@@ -57,6 +57,139 @@ STEP02_GUIDE_HEADERS = {
     "单元类型": "壳单元通常为 S4R，实体单元通常为 C3D8R。",
 }
 STEP02_REQUIRED_HEADERS = list(STEP02_GUIDE_HEADERS)
+FORMULA_LINKED_COMPONENT_HEADERS = {
+    "构件名称",
+    "abaqus_part_name",
+    "规格",
+    "长度_mm",
+    "长度_m",
+    "数量",
+    "材料牌号",
+    "建模方式",
+    "单元类型",
+}
+
+
+def _excel_string(value: Any) -> str:
+    return '"%s"' % str(value).replace('"', '""')
+
+
+def _sheet_cell_ref(sheet_name: str, column: str, row_index: int) -> str:
+    safe_sheet = sheet_name.replace("'", "''")
+    return "'%s'!%s%s" % (safe_sheet, column, row_index)
+
+
+def _same_row_link_formula(sheet_name: str, column: str, row_index: int) -> str:
+    source = _sheet_cell_ref(sheet_name, column, row_index)
+    return '=IF(TRIM(%s&"")="","",%s)' % (source, source)
+
+
+def _nested_if_equals(text_expr: str, pairs: Iterable[tuple[str, str]], default_expr: str) -> str:
+    result = default_expr
+    seen: set[str] = set()
+    normalized_pairs: list[tuple[str, str]] = []
+    for key, value_expr in pairs:
+        if key in seen:
+            continue
+        seen.add(key)
+        normalized_pairs.append((key, value_expr))
+    for key, value_expr in reversed(normalized_pairs):
+        result = "IF(%s=%s,%s,%s)" % (text_expr, _excel_string(key), value_expr, result)
+    return result
+
+
+def _support_type_code_expr(cell_ref: str, standards: dict[str, Any]) -> str:
+    text_expr = 'UPPER(TRIM(%s&""))' % cell_ref
+    pairs: list[tuple[str, str]] = []
+    for canonical, item in standards["support_types"].items():
+        code = str(item["code"])
+        candidates = [canonical, code, *(item.get("aliases") or [])]
+        pairs.extend((str(candidate).strip().upper(), _excel_string(code)) for candidate in candidates)
+    default_expr = 'UPPER(SUBSTITUTE(TRIM(%s&"")," ","_"))' % cell_ref
+    return _nested_if_equals(text_expr, pairs, default_expr)
+
+
+def _angle_code_expr(cell_ref: str) -> str:
+    text_expr = (
+        'SUBSTITUTE(SUBSTITUTE(SUBSTITUTE(SUBSTITUTE('
+        'UPPER(TRIM(%s&""))," ",""),"°",""),"度",""),"DEG","")'
+    ) % cell_ref
+    with_prefix = 'IF(LEFT(%s,3)="ANG",%s,"ANG"&%s)' % (text_expr, text_expr, text_expr)
+    return 'SUBSTITUTE(%s,".","P")' % with_prefix
+
+
+def _component_role_expr(
+    component_name_ref: str,
+    standards: dict[str, Any],
+    role_key: str,
+    default_value: str,
+) -> str:
+    text_expr = 'TRIM(%s&"")' % component_name_ref
+    pairs = [
+        (component_name, _excel_string(role.get(role_key, default_value)))
+        for component_name, role in standards["component_roles"].items()
+    ]
+    return _nested_if_equals(text_expr, pairs, _excel_string(default_value))
+
+
+def _model_policy_expr(component_name_ref: str, standards: dict[str, Any]) -> str:
+    labels = standards["model_policy_labels"]
+    text_expr = 'TRIM(%s&"")' % component_name_ref
+    pairs = [
+        (component_name, _excel_string(labels.get(str(role.get("model_policy", "")), role.get("model_policy", ""))))
+        for component_name, role in standards["component_roles"].items()
+    ]
+    default_label = labels.get("MANUAL_TEMPLATE", "人工模板")
+    return _nested_if_equals(text_expr, pairs, _excel_string(default_label))
+
+
+def _material_grade_formula(sheet_name: str, column: str, row_index: int) -> str:
+    source = _sheet_cell_ref(sheet_name, column, row_index)
+    raw_expr = 'TRIM(%s&"")' % source
+    normalized_expr = 'UPPER(SUBSTITUTE(%s," ",""))' % raw_expr
+    pairs = [
+        ("Q235B", _excel_string("Q235 B")),
+        ("Q355B", _excel_string("Q355 B")),
+        ("Q420B", _excel_string("Q420 B")),
+        ("Q550B", _excel_string("Q550 B")),
+        ("6063T5", _excel_string("6063-T5")),
+        ("6063-T5", _excel_string("6063-T5")),
+    ]
+    mapped_expr = _nested_if_equals(normalized_expr, pairs, raw_expr)
+    return '=IF(%s="","",%s)' % (raw_expr, mapped_expr)
+
+
+def _part_name_formula(row_index: int, standards: dict[str, Any]) -> str:
+    support_ref = "A%s" % row_index
+    angle_ref = "B%s" % row_index
+    component_ref = "D%s" % row_index
+    support_code = _support_type_code_expr(support_ref, standards)
+    angle_code = _angle_code_expr(angle_ref)
+    component_code = _component_role_expr(component_ref, standards, "code", "UNKNOWN_COMPONENT")
+    return (
+        '=IF(OR(TRIM(%s&"")="",TRIM(%s&"")="",TRIM(%s&"")=""),"",'
+        '"P_"&%s&"_"&%s&"_"&%s)'
+    ) % (support_ref, angle_ref, component_ref, support_code, angle_code, component_code)
+
+
+def _component_workbook_row(
+    component_row: dict[str, Any],
+    raw_sheet_name: str,
+    row_index: int,
+    standards: dict[str, Any],
+) -> list[Any]:
+    formulas = {
+        "构件名称": _same_row_link_formula(raw_sheet_name, "C", row_index),
+        "abaqus_part_name": _part_name_formula(row_index, standards),
+        "规格": _same_row_link_formula(raw_sheet_name, "D", row_index),
+        "长度_mm": _same_row_link_formula(raw_sheet_name, "E", row_index),
+        "长度_m": '=IFERROR(IF(TRIM(G%s&"")="","",VALUE(G%s)/1000),"")' % (row_index, row_index),
+        "数量": _same_row_link_formula(raw_sheet_name, "F", row_index),
+        "材料牌号": _material_grade_formula(raw_sheet_name, "G", row_index),
+        "建模方式": "=%s" % _model_policy_expr("D%s" % row_index, standards),
+        "单元类型": "=%s" % _component_role_expr("D%s" % row_index, standards, "element_type", "C3D8R"),
+    }
+    return [formulas.get(header, component_row.get(header, "")) for header in COMPONENT_HEADERS]
 
 
 def read_raw_material_csv(path: str | Path) -> list[dict[str, Any]]:
@@ -234,9 +367,16 @@ def create_material_workbook(
     standards_path: str | Path | None = None,
 ) -> Path:
     raw_rows = normalize_raw_rows(raw_rows)
-    component_rows = build_component_rows(raw_rows, support_type, angle, array_layout, standards_path)
+    standards = load_standards(standards_path)
+    component_rows = [
+        derive_component_row(row, support_type, angle, array_layout, standards)
+        for row in raw_rows
+    ]
 
     wb = Workbook()
+    wb.calculation.calcMode = "auto"
+    wb.calculation.fullCalcOnLoad = True
+    wb.calculation.forceFullCalc = True
     default_ws = wb.active
     wb.remove(default_ws)
 
@@ -266,7 +406,10 @@ def create_material_workbook(
     _append_table(
         component_ws,
         COMPONENT_HEADERS,
-        [[row.get(header, "") for header in COMPONENT_HEADERS] for row in component_rows],
+        [
+            _component_workbook_row(row, raw_ws.title, row_index, standards)
+            for row_index, row in enumerate(component_rows, start=2)
+        ],
         "ComponentModelTable",
     )
     _style_sheet(
@@ -299,8 +442,11 @@ def create_material_workbook(
     return output
 
 
-def _sheet_rows_by_header(path: str | Path, sheet_name: str) -> list[dict[str, Any]]:
-    wb = load_workbook(path, data_only=True)
+def _is_formula_value(value: Any) -> bool:
+    return isinstance(value, str) and value.startswith("=")
+
+
+def _worksheet_rows_by_header(wb: Any, sheet_name: str) -> tuple[list[dict[str, Any]], list[str]]:
     ws = wb[sheet_name]
     headers = [cell.value for cell in ws[1]]
     rows: list[dict[str, Any]] = []
@@ -308,11 +454,100 @@ def _sheet_rows_by_header(path: str | Path, sheet_name: str) -> list[dict[str, A
         if not any(value is not None and str(value).strip() for value in values):
             continue
         rows.append({header: value for header, value in zip(headers, values)})
-    return rows
+    return rows, headers
 
 
-def load_approved_components(path: str | Path) -> list[dict[str, Any]]:
-    rows = _sheet_rows_by_header(path, "建模构件表")
+def _sheet_rows_by_header(path: str | Path, sheet_name: str, data_only: bool = True) -> list[dict[str, Any]]:
+    wb = load_workbook(path, data_only=data_only, read_only=True)
+    try:
+        rows, _headers = _worksheet_rows_by_header(wb, sheet_name)
+        return rows
+    finally:
+        wb.close()
+
+
+def _derive_component_row_for_formula_fallback(
+    raw_row: dict[str, Any],
+    support_type: Any,
+    angle: Any,
+    array_layout: Any,
+    standards: dict[str, Any],
+) -> dict[str, Any]:
+    return derive_component_row(
+        raw_row,
+        str(support_type or ""),
+        angle if angle is not None else "",
+        str(array_layout or ""),
+        standards,
+    )
+
+
+def read_component_rows_for_processing(
+    path: str | Path,
+    standards_path: str | Path | None = None,
+) -> tuple[list[dict[str, Any]], list[str]]:
+    value_wb = load_workbook(path, data_only=True, read_only=True)
+    formula_wb = load_workbook(path, data_only=False, read_only=True)
+    try:
+        value_rows, headers = _worksheet_rows_by_header(value_wb, "建模构件表")
+        formula_rows, _formula_headers = _worksheet_rows_by_header(formula_wb, "建模构件表")
+        if "原始材料表" not in value_wb.sheetnames:
+            return value_rows, headers
+
+        has_link_formulas = any(
+            _is_formula_value(row.get(header))
+            for row in formula_rows
+            for header in FORMULA_LINKED_COMPONENT_HEADERS
+        )
+        if not has_link_formulas:
+            return value_rows, headers
+
+        raw_rows, _raw_headers = _worksheet_rows_by_header(value_wb, "原始材料表")
+        raw_rows = normalize_raw_rows(raw_rows)
+        standards = load_standards(standards_path)
+        merged_rows: list[dict[str, Any]] = []
+        max_rows = max(len(value_rows), len(formula_rows))
+        for index in range(max_rows):
+            value_row = value_rows[index] if index < len(value_rows) else {}
+            formula_row = formula_rows[index] if index < len(formula_rows) else {}
+            raw_row = raw_rows[index] if index < len(raw_rows) else {}
+            support_type = value_row.get("支架类型") or formula_row.get("支架类型") or ""
+            angle = value_row.get("角度") or formula_row.get("角度") or ""
+            array_layout = value_row.get("阵列布置") or formula_row.get("阵列布置") or ""
+            derived_row = {}
+            if raw_row:
+                try:
+                    derived_row = _derive_component_row_for_formula_fallback(
+                        raw_row,
+                        support_type,
+                        angle,
+                        array_layout,
+                        standards,
+                    )
+                except Exception:
+                    derived_row = {
+                        "构件名称": raw_row.get("名称", ""),
+                        "规格": raw_row.get("规格", ""),
+                        "长度_mm": raw_row.get("长度_mm", ""),
+                        "数量": raw_row.get("数量", ""),
+                        "材料牌号": raw_row.get("备注", ""),
+                    }
+
+            merged_row: dict[str, Any] = {}
+            for header in headers:
+                if header in FORMULA_LINKED_COMPONENT_HEADERS and _is_formula_value(formula_row.get(header)):
+                    merged_row[header] = derived_row.get(header, value_row.get(header))
+                else:
+                    merged_row[header] = value_row.get(header)
+            merged_rows.append(merged_row)
+        return merged_rows, headers
+    finally:
+        value_wb.close()
+        formula_wb.close()
+
+
+def load_approved_components(path: str | Path, standards_path: str | Path | None = None) -> list[dict[str, Any]]:
+    rows, _headers = read_component_rows_for_processing(path, standards_path)
     return [
         row
         for row in rows
@@ -320,8 +555,8 @@ def load_approved_components(path: str | Path) -> list[dict[str, Any]]:
     ]
 
 
-def load_dimension_complete_components(path: str | Path) -> list[dict[str, Any]]:
-    rows = _sheet_rows_by_header(path, "建模构件表")
+def load_dimension_complete_components(path: str | Path, standards_path: str | Path | None = None) -> list[dict[str, Any]]:
+    rows, _headers = read_component_rows_for_processing(path, standards_path)
     complete_rows = []
     for row in rows:
         complete, _issues = has_complete_model_dimensions(row)
@@ -339,9 +574,9 @@ def export_abaqus_json(
     standards = load_standards(standards_path)
     components = []
     if selection == "approved":
-        selected_rows = load_approved_components(workbook_path)
+        selected_rows = load_approved_components(workbook_path, standards_path)
     elif selection == "complete":
-        selected_rows = load_dimension_complete_components(workbook_path)
+        selected_rows = load_dimension_complete_components(workbook_path, standards_path)
     else:
         raise ValueError(f"未知导出选择模式: {selection}")
 

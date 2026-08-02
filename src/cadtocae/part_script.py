@@ -12,7 +12,7 @@ from typing import Any, Iterable
 from openpyxl import load_workbook
 
 from .standards import component_code_from_part_name, has_complete_model_dimensions, part_name_from_prefix, project_prefix
-from .workbook import export_abaqus_json
+from .workbook import export_abaqus_json, read_component_rows_for_processing
 
 
 PROJECT_ROOT = Path(__file__).resolve().parents[2]
@@ -71,25 +71,19 @@ def angle_from_project_prefix(project_prefix_value: str) -> str:
     return match.group("angle").replace("P", ".")
 
 
-def read_component_rows(xlsx: str | Path) -> tuple[list[dict[str, Any]], list[str]]:
-    workbook = load_workbook(xlsx, data_only=True, read_only=True)
+def read_component_rows(xlsx: str | Path, standards_path: str | Path | None = None) -> tuple[list[dict[str, Any]], list[str]]:
+    workbook = load_workbook(xlsx, read_only=True)
     try:
         if COMPONENT_SHEET not in workbook.sheetnames:
             raise ValueError("Excel 缺少 sheet: %s" % COMPONENT_SHEET)
-        worksheet = workbook[COMPONENT_SHEET]
-        headers = [cell.value for cell in worksheet[1]]
-        missing = [header for header in REQUIRED_HEADERS if header not in headers]
-        if missing:
-            raise ValueError("%s 缺少必要列: %s" % (COMPONENT_SHEET, ", ".join(missing)))
-
-        rows: list[dict[str, Any]] = []
-        for values in worksheet.iter_rows(min_row=2, values_only=True):
-            if not any(value is not None and str(value).strip() for value in values):
-                continue
-            rows.append({header: value for header, value in zip(headers, values)})
-        return rows, headers
     finally:
         workbook.close()
+
+    rows, headers = read_component_rows_for_processing(xlsx, standards_path)
+    missing = [header for header in REQUIRED_HEADERS if header not in headers]
+    if missing:
+        raise ValueError("%s 缺少必要列: %s" % (COMPONENT_SHEET, ", ".join(missing)))
+    return rows, headers
 
 
 def infer_project_prefix_from_workbook(xlsx: str | Path, standards_path: str | Path | None = None) -> str:
@@ -97,7 +91,7 @@ def infer_project_prefix_from_workbook(xlsx: str | Path, standards_path: str | P
     if prefix_from_name:
         return prefix_from_name
 
-    rows, _headers = read_component_rows(xlsx)
+    rows, _headers = read_component_rows(xlsx, standards_path)
     for row in rows:
         support_type = row.get("支架类型")
         angle = row.get("角度")
@@ -125,6 +119,8 @@ def normalize_copied_workbook_prefix(xlsx: str | Path, project_prefix_value: str
             if part_col:
                 part_cell = worksheet.cell(row=row_index, column=part_col)
                 part_value = part_cell.value
+                if isinstance(part_value, str) and part_value.startswith("="):
+                    continue
                 component_code = worksheet.cell(row=row_index, column=code_col).value if code_col else None
                 component_code = component_code or component_code_from_part_name(part_value)
                 if component_code:
@@ -138,8 +134,8 @@ def normalize_copied_workbook_prefix(xlsx: str | Path, project_prefix_value: str
         workbook.close()
 
 
-def workbook_quality_summary(xlsx: str | Path) -> dict[str, Any]:
-    rows, _headers = read_component_rows(xlsx)
+def workbook_quality_summary(xlsx: str | Path, standards_path: str | Path | None = None) -> dict[str, Any]:
+    rows, _headers = read_component_rows(xlsx, standards_path)
     complete = []
     incomplete = []
     approved = []
@@ -194,7 +190,7 @@ def generate_part_script_from_workbook(
     messages: list[str] = []
     try:
         prefix = project_prefix_value or infer_project_prefix_from_workbook(workbook, standards_path)
-        summary = workbook_quality_summary(workbook)
+        summary = workbook_quality_summary(workbook, standards_path)
         output_dir = Path(output_root)
         output_dir.mkdir(parents=True, exist_ok=True)
         report_path = step02_debug_report_path(output_dir, prefix)

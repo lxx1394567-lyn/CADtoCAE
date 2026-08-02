@@ -5,7 +5,12 @@ import unittest
 
 from openpyxl import load_workbook
 
-from cadtocae.workbook import create_material_workbook, export_abaqus_json, read_raw_material_csv
+from cadtocae.workbook import (
+    create_material_workbook,
+    export_abaqus_json,
+    read_component_rows_for_processing,
+    read_raw_material_csv,
+)
 
 
 ROOT = Path(__file__).resolve().parents[1]
@@ -24,7 +29,8 @@ class WorkbookTest(unittest.TestCase):
                 output_path=output,
             )
 
-            wb = load_workbook(output, data_only=True)
+            wb = load_workbook(output, data_only=False)
+            resolved_rows, _headers = read_component_rows_for_processing(output)
         self.assertEqual(wb.sheetnames, ["原始材料表", "建模构件表"])
 
         raw_ws = wb["原始材料表"]
@@ -35,7 +41,10 @@ class WorkbookTest(unittest.TestCase):
         part_name_col = headers.index("abaqus_part_name") + 1
         name_col = headers.index("构件名称") + 1
         self.assertEqual(part_name_col, name_col + 1)
-        self.assertEqual(component_ws.cell(row=2, column=part_name_col).value, "P_SP_SC_ANG20_INCLINED_BEAM")
+        self.assertIn("'原始材料表'!C2", component_ws.cell(row=2, column=name_col).value)
+        self.assertTrue(str(component_ws.cell(row=2, column=part_name_col).value).startswith("="))
+        self.assertIn("INCLINED_BEAM", component_ws.cell(row=2, column=part_name_col).value)
+        self.assertEqual(resolved_rows[0]["abaqus_part_name"], "P_SP_SC_ANG20_INCLINED_BEAM")
         self.assertNotIn("构件代码", headers)
         self.assertNotIn("是否重点分析", headers)
         self.assertNotIn("校核状态", headers)
@@ -43,7 +52,12 @@ class WorkbookTest(unittest.TestCase):
 
         spec_col = headers.index("规格") + 1
         length_col = headers.index("长度_mm") + 1
+        length_m_col = headers.index("长度_m") + 1
+        material_col = headers.index("材料牌号") + 1
         model_policy_col = headers.index("建模方式") + 1
+        self.assertIn("'原始材料表'!D2", component_ws.cell(row=2, column=spec_col).value)
+        self.assertIn("/1000", component_ws.cell(row=2, column=length_m_col).value)
+        self.assertIn("Q355B", component_ws.cell(row=2, column=material_col).value)
         self.assertEqual(component_ws.cell(row=1, column=spec_col).fill.fgColor.rgb, "FFC00000")
         self.assertIn("Step02", component_ws.cell(row=1, column=spec_col).comment.text)
         self.assertEqual(component_ws.cell(row=12, column=length_col).fill.fgColor.rgb, "FFFFC7CE")

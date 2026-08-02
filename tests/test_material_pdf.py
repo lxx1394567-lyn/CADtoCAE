@@ -16,6 +16,7 @@ from cadtocae.material_pdf import (
     rows_from_tables,
     rows_from_text,
 )
+from cadtocae.workbook import read_component_rows_for_processing
 
 
 class MaterialPdfExtractionTest(unittest.TestCase):
@@ -125,11 +126,13 @@ class MaterialPdfExtractionTest(unittest.TestCase):
             self.assertEqual(workbook_path.name, "SP_DC_ANG20_components.xlsx")
             self.assertTrue(workbook_path.exists())
 
-            wb = load_workbook(workbook_path, data_only=True)
+            wb = load_workbook(workbook_path, data_only=False)
             ws = wb["建模构件表"]
             headers = [cell.value for cell in ws[1]]
             part_col = headers.index("abaqus_part_name") + 1
-            self.assertEqual(ws.cell(2, part_col).value, "P_SP_DC_ANG20_INCLINED_BEAM")
+            self.assertTrue(str(ws.cell(2, part_col).value).startswith("="))
+            rows, _headers = read_component_rows_for_processing(workbook_path)
+            self.assertEqual(rows[0]["abaqus_part_name"], "P_SP_DC_ANG20_INCLINED_BEAM")
 
     def test_batch_failure_writes_template_without_component_workbook(self):
         with tempfile.TemporaryDirectory() as tmp:
