@@ -49,7 +49,7 @@ The window lets the user select one folder or multiple material-table screenshot
 <project_prefix>_components.xlsx
 ```
 
-The generated workbook keeps two sheets: `原始材料表` for comparison with the source screenshot/drawing, and `建模构件表` for Part modeling inputs. In `建模构件表`, deep-red headers are Step02 input fields and light-red cells need manual completion or correction before that row can create an Abaqus Part.
+The generated workbook keeps two sheets: `原始材料表` for comparison with the source screenshot/drawing, and `建模构件表` for Part modeling inputs. Users should first correct `原始材料表`; key Step02 fields in `建模构件表`, including `abaqus_part_name`, spec, length, material grade, modeling policy, and element type, update by formulas. Manual overrides in `建模构件表` are still respected by Step02.
 
 Batch command-line usage:
 

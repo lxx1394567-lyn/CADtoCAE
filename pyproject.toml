@@ -1,6 +1,6 @@
 [project]
 name = "cadtocae"
-version = "0.1.0"
+version = "0.1.1"
 description = "Photovoltaic support material table extraction and Abaqus Part generation standards."
 requires-python = ">=3.10"
 dependencies = [
