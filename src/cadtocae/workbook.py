@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import csv
 import json
+import re
 from pathlib import Path
 from typing import Any, Iterable
 
@@ -13,6 +14,7 @@ from openpyxl.worksheet.table import Table, TableStyleInfo
 from openpyxl.utils import get_column_letter
 
 from .standards import (
+    ParsedSpec,
     component_code_from_part_name,
     derive_component_row,
     effective_model_policy,
@@ -446,6 +448,67 @@ def _is_formula_value(value: Any) -> bool:
     return isinstance(value, str) and value.startswith("=")
 
 
+def _coerce_number(value: Any) -> float | int | None:
+    if _is_blank(value):
+        return None
+    text = str(value).strip().replace(",", "")
+    try:
+        number = float(text)
+    except ValueError:
+        return None
+    return int(number) if number.is_integer() else number
+
+
+def _parse_section_params_text(value: Any) -> dict[str, float | int | str]:
+    if _is_blank(value):
+        return {}
+    params: dict[str, float | int | str] = {}
+    for item in re.split(r"[;；]", str(value)):
+        if "=" not in item:
+            continue
+        key, raw_value = item.split("=", 1)
+        key = key.strip()
+        raw_value = raw_value.strip()
+        if not key:
+            continue
+        numeric_value = _coerce_number(raw_value)
+        params[key] = numeric_value if numeric_value is not None else raw_value
+    return params
+
+
+def _section_code_from_table(section_type: str, params: dict[str, Any], fallback: str) -> str:
+    if fallback and fallback not in {"UNKNOWN", "UNSPEC"}:
+        return fallback
+    safe_type = re.sub(r"[^A-Za-z0-9]+", "_", section_type.upper()).strip("_") or "TABLE"
+    safe_params = "_".join(
+        "%s%s" % (re.sub(r"[^A-Za-z0-9]+", "", str(key)), str(value).replace(".", "P"))
+        for key, value in sorted(params.items())
+    )
+    return ("TABLE_%s_%s" % (safe_type, safe_params)).rstrip("_")
+
+
+def _parsed_spec_for_export(row: dict[str, Any]) -> ParsedSpec:
+    parsed = parse_spec(row.get("规格", ""))
+    if parsed.status == "已解析":
+        return parsed
+
+    section_type = str(row.get("截面类型", "") or "").strip()
+    params = _parse_section_params_text(row.get("截面参数"))
+    thickness_mm = _coerce_number(row.get("厚度_mm"))
+    if thickness_mm is not None and "厚度_mm" not in params:
+        params["厚度_mm"] = thickness_mm
+    if not section_type or not params:
+        return parsed
+
+    return ParsedSpec(
+        section_type=section_type,
+        section_params=params,
+        thickness_mm=float(thickness_mm) if thickness_mm is not None else parsed.thickness_mm,
+        section_code=_section_code_from_table(section_type, params, parsed.section_code),
+        status="已解析",
+    )
+
+
 def _worksheet_rows_by_header(wb: Any, sheet_name: str) -> tuple[list[dict[str, Any]], list[str]]:
     ws = wb[sheet_name]
     headers = [cell.value for cell in ws[1]]
@@ -581,7 +644,7 @@ def export_abaqus_json(
         raise ValueError(f"未知导出选择模式: {selection}")
 
     for row in selected_rows:
-        parsed = parse_spec(row.get("规格", ""))
+        parsed = _parsed_spec_for_export(row)
         section_kind, section_params_m = section_kind_and_model_params(parsed)
         material = material_properties(str(row.get("材料牌号", "") or ""), standards)
         model_policy, element_type = effective_model_policy(row)

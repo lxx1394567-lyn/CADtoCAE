@@ -1,5 +1,7 @@
 from __future__ import annotations
 
+import subprocess
+import sys
 import tempfile
 import unittest
 from pathlib import Path
@@ -78,6 +80,35 @@ class PartScriptGenerationTest(unittest.TestCase):
             self.assertIn('MODEL_NAME = "SP_SC_ANG18"', script)
             self.assertNotIn('MODEL_NAME = "SP_SC_ANG18_PARTS"', script)
             payload = read_components_payload(outputs[0].part_script_path or "")
+            part_names = {component["part_name"] for component in payload["components"]}
+            self.assertIn("P_SP_SC_ANG18_INCLINED_BEAM", part_names)
+            self.assertNotIn("P_SP_SC_ANG20_INCLINED_BEAM", part_names)
+
+    def test_single_step02_cli_uses_filename_prefix_for_generated_part_names(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            tmp_path = Path(tmp)
+            workbook = tmp_path / "SP_SC_ANG18_components.xlsx"
+            raw_rows = read_raw_material_csv(ROOT / "examples" / "single_pile_single_column_2x7_raw_materials.csv")
+            create_material_workbook(raw_rows, "单桩单立柱", "20", "2行7列竖向", workbook)
+
+            result = subprocess.run(
+                [
+                    sys.executable,
+                    str(ROOT / "scripts" / "step02_generate_part_script.py"),
+                    "--xlsx",
+                    str(workbook),
+                    "--outputs-root",
+                    str(tmp_path / "outputs"),
+                ],
+                cwd=ROOT,
+                capture_output=True,
+                text=True,
+            )
+
+            self.assertEqual(result.returncode, 0, result.stdout + result.stderr)
+            scripts = list((tmp_path / "outputs").glob("SP_SC_ANG18_runs/*/abaqus_scripts/SP_SC_ANG18_create_parts_in_cae.py"))
+            self.assertEqual(len(scripts), 1)
+            payload = read_components_payload(scripts[0])
             part_names = {component["part_name"] for component in payload["components"]}
             self.assertIn("P_SP_SC_ANG18_INCLINED_BEAM", part_names)
             self.assertNotIn("P_SP_SC_ANG20_INCLINED_BEAM", part_names)

@@ -119,6 +119,42 @@ class WorkbookTest(unittest.TestCase):
         self.assertEqual(inclined["section_params_m"]["h_m"], 0.075)
         self.assertEqual(inclined["material"]["density_kg_per_m3"], 7850.0)
 
+    def test_export_uses_step01_section_columns_when_spec_needs_manual_parse(self):
+        raw_rows = read_raw_material_csv(ROOT / "examples" / "single_pile_single_column_2x7_raw_materials.csv")
+        with tempfile.TemporaryDirectory() as tmp:
+            workbook_path = Path(tmp) / "SP_SC_ANG20_components.xlsx"
+            create_material_workbook(
+                raw_rows,
+                support_type="单桩单立柱",
+                angle="20",
+                array_layout="2行7列竖向",
+                output_path=workbook_path,
+            )
+
+            wb = load_workbook(workbook_path)
+            ws = wb["建模构件表"]
+            headers = [cell.value for cell in ws[1]]
+            header_to_col = {header: index + 1 for index, header in enumerate(headers)}
+            ws.cell(row=2, column=header_to_col["规格"]).value = "CUSTOM_C_CHANNEL"
+            ws.cell(row=2, column=header_to_col["截面类型"]).value = "C型钢"
+            ws.cell(row=2, column=header_to_col["截面参数"]).value = "高度_mm=75; 翼缘宽_mm=40; 卷边_mm=15; 厚度_mm=2"
+            ws.cell(row=2, column=header_to_col["厚度_mm"]).value = 2
+            status_col = ws.max_column + 1
+            ws.cell(row=1, column=status_col).value = "校核状态"
+            ws.cell(row=2, column=status_col).value = "已确认"
+            wb.save(workbook_path)
+
+            json_path = Path(tmp) / "components.json"
+            export_abaqus_json(workbook_path, json_path, selection="approved")
+            payload = json.loads(json_path.read_text(encoding="utf-8"))
+
+        component = payload["components"][0]
+        self.assertEqual(component["section_kind"], "C_CHANNEL")
+        self.assertEqual(component["section_params_m"]["h_m"], 0.075)
+        self.assertEqual(component["section_params_m"]["b_m"], 0.04)
+        self.assertEqual(component["section_params_m"]["lip_m"], 0.015)
+        self.assertEqual(component["thickness_m"], 0.002)
+
 
 if __name__ == "__main__":
     unittest.main()
