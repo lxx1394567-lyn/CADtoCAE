@@ -1,0 +1,36 @@
+__pycache__/
+*.py[cod]
+.pytest_cache/
+~$*.xlsx
+.venv*/
+build/
+dist/
+*.spec
+*.zip
+*.cae
+*.jnl
+*.rec
+abaqus_acis.log
+outputs/
+release_packages/
+releases/
+
+# Keep real drawing PDFs local unless they are explicitly sanitized fixtures.
+examples/**/*.pdf
+
+# Local/private regression artifacts. Keep only curated lightweight real_tests
+# files under git; generated reports, Abaqus databases, drawings, screenshots,
+# and temporary folders should stay local.
+real_tests/过程文件/
+real_tests/待删除/
+real_tests/**/*.pdf
+real_tests/**/*.png
+real_tests/**/*.pptx
+real_tests/**/*_step02_part_script_report.json
+real_tests/**/*_step04_assembly_script_report.json
+real_tests/**/*_material_recognition_report.json
+real_tests/**/*_assembly_inputs.json
+real_tests/**/*_components.json
+real_tests/*_承德*/
+real_tests/*_洋县*/
+real_tests/test_assets_private/

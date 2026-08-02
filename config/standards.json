@@ -1,0 +1,174 @@
+{
+  "support_types": {
+    "单桩单立柱": {
+      "code": "SP_SC",
+      "description": "single pile, single column",
+      "aliases": ["SP_SC", "single pile single column", "single_pile_single_column"]
+    },
+    "单桩双立柱": {
+      "code": "SP_DC",
+      "description": "single pile, double column",
+      "aliases": ["SP_DC", "single pile double column", "single_pile_double_column"]
+    },
+    "双桩": {
+      "code": "DP",
+      "description": "double pile",
+      "aliases": ["双桩双立柱", "DP", "double pile", "double_pile"]
+    }
+  },
+  "part_name": {
+    "format": "P_{support_type_code}_{angle_code}_{component_code}",
+    "note": "Do not include layout, material table sequence number, section, length, or quantity in Abaqus Part names."
+  },
+  "component_roles": {
+    "斜梁": {
+      "code": "INCLINED_BEAM",
+      "model_policy": "SHELL",
+      "element_type": "S4R",
+      "focus_analysis": false,
+      "requires_length": true
+    },
+    "上立柱": {
+      "code": "COLUMN_UP",
+      "model_policy": "SHELL",
+      "element_type": "S4R",
+      "focus_analysis": false,
+      "requires_length": true
+    },
+    "下立柱": {
+      "code": "COLUMN_DOWN",
+      "model_policy": "SHELL",
+      "element_type": "S4R",
+      "focus_analysis": false,
+      "requires_length": true
+    },
+    "前斜撑": {
+      "code": "BRACE_FRONT",
+      "model_policy": "SHELL",
+      "element_type": "S4R",
+      "focus_analysis": false,
+      "requires_length": true
+    },
+    "后斜撑": {
+      "code": "BRACE_REAR",
+      "model_policy": "SHELL",
+      "element_type": "S4R",
+      "focus_analysis": false,
+      "requires_length": true
+    },
+    "檩条": {
+      "code": "PURLIN",
+      "model_policy": "SHELL",
+      "element_type": "S4R",
+      "focus_analysis": false,
+      "requires_length": true
+    },
+    "檩托": {
+      "code": "PURLIN_SUPPORT",
+      "model_policy": "SOLID",
+      "element_type": "C3D8R",
+      "focus_analysis": true,
+      "requires_length": false
+    },
+    "檩条拼接件": {
+      "code": "PURLIN_SPLICE",
+      "model_policy": "SOLID",
+      "element_type": "C3D8R",
+      "focus_analysis": true,
+      "requires_length": true
+    },
+    "抱箍": {
+      "code": "HOOP",
+      "model_policy": "SOLID",
+      "element_type": "C3D8R",
+      "focus_analysis": true,
+      "requires_length": false
+    },
+    "斜拉杆": {
+      "code": "TIE_ROD",
+      "model_policy": "SOLID",
+      "element_type": "C3D8R",
+      "focus_analysis": false,
+      "requires_length": true
+    },
+    "撑杆": {
+      "code": "STRUT",
+      "model_policy": "SHELL",
+      "element_type": "S4R",
+      "focus_analysis": false,
+      "requires_length": true
+    },
+    "U型螺栓": {
+      "code": "U_BOLT",
+      "model_policy": "SOLID",
+      "element_type": "C3D8R",
+      "focus_analysis": true,
+      "requires_length": false
+    },
+    "压块": {
+      "code": "PRESS_BLOCK",
+      "model_policy": "SOLID",
+      "element_type": "C3D8R",
+      "focus_analysis": true,
+      "requires_length": false
+    },
+    "柱间拉杆": {
+      "code": "COLUMN_TIE_ROD",
+      "model_policy": "SOLID",
+      "element_type": "C3D8R",
+      "focus_analysis": false,
+      "requires_length": true
+    },
+    "防水垫圈": {
+      "code": "WATERPROOF_GASKET",
+      "model_policy": "MANUAL_TEMPLATE",
+      "element_type": "C3D8R",
+      "focus_analysis": false,
+      "requires_length": false
+    }
+  },
+  "model_policy_labels": {
+    "SHELL": "壳单元",
+    "SOLID": "实体单元",
+    "CONNECTOR_ONLY": "连接器简化",
+    "MANUAL_TEMPLATE": "人工模板"
+  },
+  "materials": {
+    "Q235 B": {
+      "abaqus_name": "MAT_Q235B",
+      "elastic_modulus_pa": 206000000000.0,
+      "poisson_ratio": 0.3,
+      "density_kg_per_m3": 7850.0
+    },
+    "Q355 B": {
+      "abaqus_name": "MAT_Q355B",
+      "elastic_modulus_pa": 206000000000.0,
+      "poisson_ratio": 0.3,
+      "density_kg_per_m3": 7850.0
+    },
+    "Q420 B": {
+      "abaqus_name": "MAT_Q420B",
+      "elastic_modulus_pa": 206000000000.0,
+      "poisson_ratio": 0.3,
+      "density_kg_per_m3": 7850.0
+    },
+    "Q550 B": {
+      "abaqus_name": "MAT_Q550B",
+      "elastic_modulus_pa": 206000000000.0,
+      "poisson_ratio": 0.3,
+      "density_kg_per_m3": 7850.0
+    },
+    "6063-T5": {
+      "abaqus_name": "MAT_6063_T5",
+      "elastic_modulus_pa": 70000000000.0,
+      "poisson_ratio": 0.33,
+      "density_kg_per_m3": 2700.0
+    }
+  },
+  "mesh_defaults": {
+    "shell_global_size_m": 0.08,
+    "solid_global_size_m": 0.01,
+    "bolt_size_m": 0.004,
+    "hole_zone_size_m": 0.003
+  }
+}

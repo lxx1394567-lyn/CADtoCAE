@@ -1,0 +1,182 @@
+{
+  "meta": {
+    "project": "SP_SC_ANG20",
+    "title": "单桩单立柱 20deg 正立面 A/B/C/D/E/F 控制点坐标计算",
+    "source": "支架总装图正立面截图",
+    "revision_note": "第四版采用斜梁局部坐标 G。G 为斜梁 Part 左端局部起点，F 为全局锚点，C/E 由 GC/GF/GE 局部里程反算。",
+    "units": {
+      "length": "m",
+      "mass": "kg",
+      "force": "N",
+      "stress": "Pa"
+    },
+    "coordinate_system": "Z 竖直向上，X 向图纸右侧，Y 向图纸外侧；第一版仅处理 XZ 平面，Y=0。",
+    "origin_rule": "O 取下立柱中心线与地面线交点。"
+  },
+  "image_calibration": {
+    "origin_px": [523, 770],
+    "scale_px_per_m": 170.0,
+    "x_positive": "right",
+    "z_positive": "up",
+    "note": "该标定仅用于图上标注显示，不作为工程计算依据。控制点坐标以关键尺寸输入计算结果为准。"
+  },
+  "dimension_inputs": [
+    {
+      "name": "theta_deg",
+      "label": "斜梁倾角",
+      "value": 18.0,
+      "unit": "deg",
+      "source_dimension": "支架/光伏板倾角输入",
+      "status": "已确认",
+      "note": "斜梁局部轴线相对全局水平 X 轴的夹角。"
+    },
+    {
+      "name": "Z_A_mm",
+      "label": "A 点高度",
+      "value": 3000,
+      "unit": "mm",
+      "segments_mm": [500, 600, 400, 1500],
+      "source_dimension": "候选：500+600+400+1500=3000",
+      "status": "需人工确认",
+      "note": "A 为上立柱上顶点。A 与 F 不再假定同高。"
+    },
+    {
+      "name": "X_F_mm",
+      "label": "F 点 X 坐标",
+      "value": 0,
+      "unit": "mm",
+      "source_dimension": "候选：F 位于立柱中心线附近",
+      "status": "需人工确认",
+      "note": "F 为斜梁与上立柱/三角连接件参考交点。第一版由人工填写。"
+    },
+    {
+      "name": "Z_F_mm",
+      "label": "F 点高度",
+      "value": 3100,
+      "unit": "mm",
+      "segments_mm": [500, 600, 400, 100, 1500],
+      "source_dimension": "候选：500+600+400+100+1500=3100",
+      "status": "需人工确认",
+      "note": "F 高度需由三角连接件/斜梁截面位置校核。"
+    },
+    {
+      "name": "Z_BD_mm",
+      "label": "B/D 点共同高度",
+      "value": 1100,
+      "unit": "mm",
+      "segments_mm": [500, 600],
+      "source_dimension": "500+600=1100",
+      "status": "已确认",
+      "note": "B、D 为前后斜撑与抱箍交点，第一版假定同高。"
+    },
+    {
+      "name": "R_hoop_mm",
+      "label": "抱箍连接点水平偏移",
+      "value": 100,
+      "unit": "mm",
+      "source_dimension": "抱箍半径/连接点偏移，当前为候选值",
+      "status": "需人工确认",
+      "note": "B=(-R,0,Z_BD)，D=(+R,0,Z_BD)。该值会显著影响 BC/DE 校核。"
+    },
+    {
+      "name": "GC_mm",
+      "label": "G 到 C 的斜梁局部里程",
+      "value": 439,
+      "unit": "mm",
+      "source_dimension": "候选：左端至前斜撑交点截面，需按斜梁尺寸标注复核",
+      "status": "需人工确认",
+      "note": "G 为斜梁左端局部起点；C 为斜梁与前斜撑交点截面。"
+    },
+    {
+      "name": "GF_mm",
+      "label": "G 到 F 的斜梁局部里程",
+      "value": 2119,
+      "unit": "mm",
+      "segments_mm": [439, 1180, 500],
+      "source_dimension": "候选：439+1180+500=2119",
+      "status": "需人工确认",
+      "note": "F 为斜梁与上立柱/三角连接件参考截面。"
+    },
+    {
+      "name": "GE_mm",
+      "label": "G 到 E 的斜梁局部里程",
+      "value": 3739,
+      "unit": "mm",
+      "segments_mm": [439, 1180, 500, 390, 1230],
+      "source_dimension": "候选：439+1180+500+390+1230=3739",
+      "status": "需人工确认",
+      "note": "E 为斜梁与后斜撑交点截面；需按图纸斜梁尺寸链复核。"
+    },
+    {
+      "name": "L_BC_draw_mm",
+      "label": "图纸标注 BC 长度",
+      "value": 2105,
+      "unit": "mm",
+      "source_dimension": "图纸标注前斜撑长度 2105",
+      "status": "已确认",
+      "note": "用于 BC 段 ±1mm 校核。"
+    },
+    {
+      "name": "L_DE_draw_mm",
+      "label": "图纸标注 DE 长度",
+      "value": 2899,
+      "unit": "mm",
+      "source_dimension": "图纸标注后斜撑长度 2899",
+      "status": "已确认",
+      "note": "用于 DE 段 ±1mm 校核。"
+    }
+  ],
+  "points": [
+    {
+      "name": "O",
+      "type": "N",
+      "x_m": 0.0,
+      "y_m": 0.0,
+      "z_m": 0.0,
+      "source_dimension": "原点：下立柱中心线与地面线交点",
+      "formula": "O=(0,0,0)",
+      "status": "已确认",
+      "annotation": "立柱中心线地面交点"
+    }
+  ],
+  "members": [
+    {
+      "component_name": "前斜撑",
+      "abaqus_part_name": "P_SP_SC_ANG20_BRACE_FRONT",
+      "instance_name": "I_SP_SC_ANG20_BRACE_FRONT_01",
+      "start": "B",
+      "end": "C",
+      "axis_check_length_m": 2.105,
+      "control_segment": "BC",
+      "slot_direction": "+Y",
+      "rotation_rule": "轴线对齐后绕轴线旋转，使槽口朝 +Y",
+      "status": "需人工确认",
+      "note": "待 BC 长度校核通过、关键尺寸确认后进入 Assembly。"
+    },
+    {
+      "component_name": "后斜撑",
+      "abaqus_part_name": "P_SP_SC_ANG20_BRACE_REAR",
+      "instance_name": "I_SP_SC_ANG20_BRACE_REAR_01",
+      "start": "D",
+      "end": "E",
+      "axis_check_length_m": 2.899,
+      "control_segment": "DE",
+      "slot_direction": "+Y",
+      "rotation_rule": "轴线对齐后绕轴线旋转，使槽口朝 +Y",
+      "status": "需人工确认",
+      "note": "待 DE 长度校核通过、关键尺寸确认后进入 Assembly。"
+    },
+    {
+      "component_name": "斜梁",
+      "abaqus_part_name": "P_SP_SC_ANG20_INCLINED_BEAM",
+      "instance_name": "I_SP_SC_ANG20_INCLINED_BEAM_01",
+      "start": "C",
+      "end": "E",
+      "control_segment": "BEAM_LOCAL",
+      "slot_direction": "+Y",
+      "rotation_rule": "斜梁实例以 G_global 定位，轴线旋转至与 +X 夹角 theta_deg；再绕轴线调整 C 槽口朝向。",
+      "status": "需人工确认",
+      "note": "C/E 为斜梁上的控制截面，不等同于材料全长端点；G_global 用于斜梁实例放置。"
+    }
+  ]
+}
