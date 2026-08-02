@@ -13,7 +13,7 @@ sys.path.insert(0, str(PROJECT_ROOT / "src"))
 sys.path.insert(0, str(PROJECT_ROOT / "scripts"))
 
 from cadtocae.runs import create_run_paths, update_manifest
-from cadtocae.standards import project_prefix
+from cadtocae.part_script import infer_project_prefix_from_workbook, normalize_copied_workbook_prefix
 from cadtocae.workbook import export_abaqus_json
 from make_cae_runner import generate_cae_runner
 
@@ -24,27 +24,6 @@ def _prefix_from_latest(outputs_root: str | Path) -> str | None:
         return None
     payload = json.loads(latest.read_text(encoding="utf-8"))
     return payload.get("project_prefix") or payload.get("project_code")
-
-
-def _prefix_from_workbook(xlsx: str | Path, standards: str | Path) -> str | None:
-    from openpyxl import load_workbook
-
-    wb = load_workbook(xlsx, data_only=True, read_only=True)
-    if "建模构件表" not in wb.sheetnames:
-        return None
-    ws = wb["建模构件表"]
-    headers = [cell.value for cell in ws[1]]
-    try:
-        support_col = headers.index("支架类型") + 1
-        angle_col = headers.index("角度") + 1
-    except ValueError:
-        return None
-    for row in range(2, ws.max_row + 1):
-        support_type = ws.cell(row=row, column=support_col).value
-        angle = ws.cell(row=row, column=angle_col).value
-        if support_type and angle:
-            return project_prefix(str(support_type), angle, standards)
-    return None
 
 
 def _default_excel(run_dir: Path, project_prefix_value: str) -> Path:
@@ -80,7 +59,7 @@ def main() -> int:
     args = parse_args()
     prefix = args.project_prefix or _prefix_from_latest(args.outputs_root)
     if not prefix and args.xlsx:
-        prefix = _prefix_from_workbook(args.xlsx, args.standards)
+        prefix = infer_project_prefix_from_workbook(args.xlsx, args.standards)
     if not prefix:
         raise ValueError("Cannot determine project prefix. Pass --project-prefix or run Step01 first.")
 
@@ -96,6 +75,7 @@ def main() -> int:
         raise FileNotFoundError("Part modeling Excel not found: %s" % xlsx)
 
     copied_xlsx = _copy_input_workbook(xlsx, run_paths.workbooks)
+    normalize_copied_workbook_prefix(copied_xlsx, prefix)
     part_script = Path(args.part_script) if args.part_script else run_paths.abaqus_scripts / ("%s_create_parts_in_cae.py" % prefix)
     model_name = args.model_name or prefix
 
