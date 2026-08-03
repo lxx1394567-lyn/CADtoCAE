@@ -108,6 +108,60 @@
       "note": "E 为斜梁与后斜撑交点截面；需按图纸斜梁尺寸链复核。"
     },
     {
+      "name": "HF_mm",
+      "label": "H 到 F 的法向距离",
+      "value": "",
+      "unit": "mm",
+      "source_dimension": "檩条截面高度/腹板高度",
+      "status": "需人工确认",
+      "note": "HF 垂直于斜梁 C/F/E 轴线，用于定位光伏板/檩条轴线参考点 H。"
+    },
+    {
+      "name": "HS_mm",
+      "label": "H 到 S 的轴向距离",
+      "value": "",
+      "unit": "mm",
+      "source_dimension": "檩条轴线尺寸",
+      "status": "需人工确认",
+      "note": "S 位于 H 沿斜梁轴线负方向；图中原 O 点为避免与全局原点冲突改名为 S。"
+    },
+    {
+      "name": "HP_mm",
+      "label": "H 到 P 的轴向距离",
+      "value": "",
+      "unit": "mm",
+      "source_dimension": "檩条轴线尺寸",
+      "status": "需人工确认",
+      "note": "P 位于 H 沿斜梁轴线负方向。"
+    },
+    {
+      "name": "HQ_mm",
+      "label": "H 到 Q 的轴向距离",
+      "value": "",
+      "unit": "mm",
+      "source_dimension": "檩条轴线尺寸",
+      "status": "需人工确认",
+      "note": "Q 位于 H 沿斜梁轴线正方向。"
+    },
+    {
+      "name": "HR_mm",
+      "label": "H 到 R 的轴向距离",
+      "value": "",
+      "unit": "mm",
+      "source_dimension": "檩条轴线尺寸",
+      "status": "需人工确认",
+      "note": "R 位于 H 沿斜梁轴线正方向。"
+    },
+    {
+      "name": "pv_axis_angle_tolerance_deg",
+      "label": "S/P/Q/R 角度允许误差",
+      "value": 0.1,
+      "unit": "deg",
+      "source_dimension": "校核规则",
+      "status": "已确认",
+      "note": "S/P/Q/R 连线与 +X 夹角相对 theta_deg 的允许误差。"
+    },
+    {
       "name": "L_BC_draw_mm",
       "label": "图纸标注 BC 长度",
       "value": 2105,
