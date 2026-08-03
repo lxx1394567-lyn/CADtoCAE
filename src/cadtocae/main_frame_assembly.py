@@ -28,6 +28,11 @@ MAIN_COMPONENT_CODES = {
     "BRACE_FRONT": "BRACE_FRONT",
     "BRACE_REAR": "BRACE_REAR",
 }
+PURLIN_AXIS_INPUT_NAMES = ("HF_mm", "HS_mm", "HP_mm", "HQ_mm", "HR_mm")
+PURLIN_AXIS_POINT_NAMES = ("S", "P", "Q", "R")
+PURLIN_SHORT_LENGTH_M = 0.05
+PURLIN_GROUP_Y_OFFSET_M = 0.025
+SPQR_COLLINEAR_TOLERANCE_M = 1.0e-6
 
 
 @dataclass(frozen=True)
@@ -89,11 +94,43 @@ def _scale(a: list[float], factor: float) -> list[float]:
     return [a[0] * factor, a[1] * factor, a[2] * factor]
 
 
+def _dot(a: list[float], b: list[float]) -> float:
+    return a[0] * b[0] + a[1] * b[1] + a[2] * b[2]
+
+
+def _cross(a: list[float], b: list[float]) -> list[float]:
+    return [
+        a[1] * b[2] - a[2] * b[1],
+        a[2] * b[0] - a[0] * b[2],
+        a[0] * b[1] - a[1] * b[0],
+    ]
+
+
+def _norm(a: list[float]) -> float:
+    return math.sqrt(_dot(a, a))
+
+
+def _point_line_distance(point: list[float], start: list[float], end: list[float]) -> float:
+    line = _sub(end, start)
+    line_length = _norm(line)
+    if line_length <= 1.0e-15:
+        return distance(point, start)
+    return _norm(_cross(_sub(point, start), line)) / line_length
+
+
 def distance(a: list[float], b: list[float]) -> float:
     dx = a[0] - b[0]
     dy = a[1] - b[1]
     dz = a[2] - b[2]
     return math.sqrt(dx * dx + dy * dy + dz * dz)
+
+
+def rotate_x(point: list[float], angle_deg: float) -> list[float]:
+    angle = math.radians(angle_deg)
+    c = math.cos(angle)
+    s = math.sin(angle)
+    x, y, z = point
+    return [x, y * c - z * s, y * s + z * c]
 
 
 def rotate_y(point: list[float], angle_deg: float) -> list[float]:
@@ -114,6 +151,22 @@ def rotate_z(point: list[float], angle_deg: float) -> list[float]:
 
 def transform_local(point: list[float], rotate_y_deg: float, roll_about_axis_deg: float = 0.0) -> list[float]:
     return rotate_y(rotate_z(point, roll_about_axis_deg), rotate_y_deg)
+
+
+def transform_rotation_sequence(point: list[float], rotation_sequence: list[dict[str, Any]]) -> list[float]:
+    result = [float(point[0]), float(point[1]), float(point[2])]
+    for rotation in rotation_sequence:
+        axis = str(rotation.get("axis") or "").upper()
+        angle_deg = float(rotation.get("angle_deg") or 0.0)
+        if axis == "X":
+            result = rotate_x(result, angle_deg)
+        elif axis == "Y":
+            result = rotate_y(result, angle_deg)
+        elif axis == "Z":
+            result = rotate_z(result, angle_deg)
+        else:
+            raise ValueError("Unsupported rotation axis: %s" % axis)
+    return result
 
 
 def vector_angle_from_x(vector: list[float]) -> float:
@@ -238,6 +291,18 @@ def input_status(inputs: dict[str, ExcelInput], names: list[str]) -> str:
     return CONFIRMED
 
 
+def _has_numeric_inputs(inputs: dict[str, ExcelInput], names: tuple[str, ...]) -> bool:
+    for name in names:
+        row = inputs.get(name)
+        if row is None or row.value in (None, ""):
+            return False
+        try:
+            _float(row.value, name)
+        except (TypeError, ValueError):
+            return False
+    return True
+
+
 def solve_points_from_inputs(inputs: dict[str, ExcelInput]) -> dict[str, dict[str, Any]]:
     theta_deg = _value(inputs, "theta_deg")
     theta = math.radians(theta_deg)
@@ -288,6 +353,44 @@ def solve_points_from_inputs(inputs: dict[str, ExcelInput]) -> dict[str, dict[st
         input_status(inputs, ["theta_deg", "X_F_mm", "Z_F_mm", "GF_mm"]),
         "Derived global position of beam local origin G",
     )
+    if _has_numeric_inputs(inputs, PURLIN_AXIS_INPUT_NAMES):
+        hf = _length_m(inputs, "HF_mm")
+        hs = _length_m(inputs, "HS_mm")
+        hp = _length_m(inputs, "HP_mm")
+        hq = _length_m(inputs, "HQ_mm")
+        hr = _length_m(inputs, "HR_mm")
+        n = [-sin_theta, 0.0, cos_theta]
+        h = _add(f, _scale(n, hf))
+        purlin_status_names = ["theta_deg", "X_F_mm", "Z_F_mm", "HF_mm"]
+        points["H"] = _point(h[0], h[1], h[2], input_status(inputs, purlin_status_names), "PV/purlin axis reference point")
+        points["S"] = _point(
+            h[0] - hs * cos_theta,
+            h[1],
+            h[2] - hs * sin_theta,
+            input_status(inputs, [*purlin_status_names, "HS_mm"]),
+            "Purlin axis point S, negative beam-axis side from H",
+        )
+        points["P"] = _point(
+            h[0] - hp * cos_theta,
+            h[1],
+            h[2] - hp * sin_theta,
+            input_status(inputs, [*purlin_status_names, "HP_mm"]),
+            "Purlin axis point P, negative beam-axis side from H",
+        )
+        points["Q"] = _point(
+            h[0] + hq * cos_theta,
+            h[1],
+            h[2] + hq * sin_theta,
+            input_status(inputs, [*purlin_status_names, "HQ_mm"]),
+            "Purlin axis point Q, positive beam-axis side from H",
+        )
+        points["R"] = _point(
+            h[0] + hr * cos_theta,
+            h[1],
+            h[2] + hr * sin_theta,
+            input_status(inputs, [*purlin_status_names, "HR_mm"]),
+            "Purlin axis point R, positive beam-axis side from H",
+        )
     return points
 
 
@@ -313,7 +416,7 @@ def build_checks(inputs: dict[str, ExcelInput], points: dict[str, dict[str, Any]
     if beam_length_m is not None:
         beam_length_ok = ge < beam_length_m
 
-    return {
+    checks = {
         "GC_GF_GE_ORDER": {
             "calc_value": "GC=%.6f, GF=%.6f, GE=%.6f" % (gc, gf, ge),
             "reference_value": "0 < GC < GF < GE < beam_length",
@@ -369,6 +472,33 @@ def build_checks(inputs: dict[str, ExcelInput], points: dict[str, dict[str, Any]
             ),
         },
     }
+    if all(name in points for name in PURLIN_AXIS_POINT_NAMES) and inputs.get("pv_axis_angle_tolerance_deg") is not None:
+        s = _coords(points["S"])
+        p = _coords(points["P"])
+        q = _coords(points["Q"])
+        r = _coords(points["R"])
+        max_offset = max(_point_line_distance(p, s, r), _point_line_distance(q, s, r))
+        spqr_angle = vector_angle_from_x(_sub(r, s))
+        spqr_angle_error = _angle_error_deg(spqr_angle, theta_deg)
+        spqr_angle_tol = _value(inputs, "pv_axis_angle_tolerance_deg")
+        purlin_status = input_status(inputs, ["theta_deg", "X_F_mm", "Z_F_mm", *PURLIN_AXIS_INPUT_NAMES, "pv_axis_angle_tolerance_deg"])
+        checks["SPQR_COLLINEAR"] = {
+            "calc_value": max_offset,
+            "reference_value": 0.0,
+            "error": max_offset,
+            "tolerance": SPQR_COLLINEAR_TOLERANCE_M,
+            "passed": PASSED if max_offset <= SPQR_COLLINEAR_TOLERANCE_M else FAILED,
+            "status": purlin_status,
+        }
+        checks["SPQR_ANGLE"] = {
+            "calc_value": spqr_angle,
+            "reference_value": theta_deg,
+            "error": spqr_angle_error,
+            "tolerance": spqr_angle_tol,
+            "passed": _pass_fail(spqr_angle_error, spqr_angle_tol),
+            "status": purlin_status,
+        }
+    return checks
 
 
 def read_components_payload(path: str | Path) -> dict[str, Any]:
@@ -526,6 +656,226 @@ def _translation_for_anchor(
     return [global_anchor[0] - rotated[0], global_anchor[1] - rotated[1], global_anchor[2] - rotated[2]]
 
 
+def _translation_for_rotation_sequence(local_anchor: list[float], global_anchor: list[float], rotation_sequence: list[dict[str, Any]]) -> list[float]:
+    rotated = transform_rotation_sequence(local_anchor, rotation_sequence)
+    return [global_anchor[0] - rotated[0], global_anchor[1] - rotated[1], global_anchor[2] - rotated[2]]
+
+
+def _instance_name(component: dict[str, Any], suffix: str | None = None) -> str:
+    part_name = str(component["part_name"])
+    base = part_name[2:] if part_name.startswith("P_") else part_name
+    return "I_%s_%s" % (base, suffix) if suffix else "I_%s" % base
+
+
+def _short_purlin_part_name(component: dict[str, Any]) -> str:
+    return "%s_50MM" % component["part_name"]
+
+
+def _purlin_rotation_sequence(theta_deg: float) -> list[dict[str, Any]]:
+    return [
+        {"axis": "X", "angle_deg": 90.0},
+        {"axis": "Y", "angle_deg": -theta_deg},
+    ]
+
+
+def _purlin_support_rotation_sequence(theta_deg: float) -> list[dict[str, Any]]:
+    return [
+        {"axis": "Z", "angle_deg": 90.0},
+        {"axis": "X", "angle_deg": 90.0},
+        {"axis": "Y", "angle_deg": -theta_deg},
+    ]
+
+
+def _purlin_upper_flange_anchor(component: dict[str, Any]) -> list[float]:
+    params = component.get("section_params_m") or {}
+    return [float(params["b_m"]) / 2.0, float(params["h_m"]), PURLIN_SHORT_LENGTH_M / 2.0]
+
+
+def _purlin_support_inside_corner_anchor(component: dict[str, Any]) -> list[float]:
+    length = float(component.get("length_m") or PURLIN_SHORT_LENGTH_M)
+    return [0.0, 0.0, length / 2.0]
+
+
+def _copy_component_for_payload(component: dict[str, Any], part_name: str, length_m: float) -> dict[str, Any]:
+    copied = json.loads(json.dumps(component, ensure_ascii=False))
+    copied["part_name"] = part_name
+    copied["length_m"] = length_m
+    return copied
+
+
+def _member_with_rotation_sequence(
+    name: str,
+    phase: str,
+    component: dict[str, Any],
+    part_name: str,
+    instance_name: str,
+    local_anchor: list[float],
+    global_anchor_name: str,
+    global_anchor: list[float],
+    rotation_sequence: list[dict[str, Any]],
+    part_length_m: float | None = None,
+    source_part_name: str | None = None,
+    part_component: dict[str, Any] | None = None,
+    section_reference: dict[str, Any] | None = None,
+    axis_checks: list[dict[str, Any]] | None = None,
+    placement_note: str = "",
+) -> dict[str, Any]:
+    member = {
+        "name": name,
+        "phase": phase,
+        "part_name": part_name,
+        "source_part_name": source_part_name or component["part_name"],
+        "component_code": component.get("component_code"),
+        "instance_name": instance_name,
+        "local_anchor": local_anchor,
+        "global_anchor_name": global_anchor_name,
+        "global_anchor": global_anchor,
+        "rotation_sequence": rotation_sequence,
+        "translation": _translation_for_rotation_sequence(local_anchor, global_anchor, rotation_sequence),
+        "part_length_m": part_length_m if part_length_m is not None else component.get("length_m"),
+        "section_kind": component.get("section_kind"),
+        "section_params_m": component.get("section_params_m") or {},
+        "section_reference": section_reference or _section_reference_xy(component),
+        "model_policy": component.get("model_policy"),
+        "placement_note": placement_note,
+    }
+    if part_component is not None:
+        member["part_component"] = part_component
+    if axis_checks is not None:
+        member["axis_checks"] = axis_checks
+    return member
+
+
+def _build_purlin_members(
+    purlin_component: dict[str, Any],
+    purlin_support_component: dict[str, Any],
+    points: dict[str, dict[str, Any]],
+    theta_deg: float,
+    u: list[float],
+    n: list[float],
+) -> tuple[list[dict[str, Any]], dict[str, Any], dict[str, dict[str, Any]], list[str]]:
+    warnings: list[str] = []
+    if purlin_component.get("section_kind") != "C_CHANNEL":
+        return [], {"enabled": False, "reason": "PURLIN section_kind is not C_CHANNEL."}, {}, ["PURLIN section_kind is not C_CHANNEL; purlin assembly skipped."]
+    if purlin_support_component.get("section_kind") != "ANGLE":
+        return [], {"enabled": False, "reason": "PURLIN_SUPPORT section_kind is not ANGLE."}, {}, ["PURLIN_SUPPORT section_kind is not ANGLE; purlin assembly skipped."]
+
+    purlin_params = purlin_component.get("section_params_m") or {}
+    purlin_b = float(purlin_params["b_m"])
+    purlin_h = float(purlin_params["h_m"])
+    derived_part_name = _short_purlin_part_name(purlin_component)
+    purlin_part_component = _copy_component_for_payload(purlin_component, derived_part_name, PURLIN_SHORT_LENGTH_M)
+    purlin_rotation = _purlin_rotation_sequence(theta_deg)
+    support_rotation = _purlin_support_rotation_sequence(theta_deg)
+    purlin_local_anchor = _purlin_upper_flange_anchor(purlin_component)
+    support_local_anchor = _purlin_support_inside_corner_anchor(purlin_support_component)
+    support_length = float(purlin_support_component.get("length_m") or PURLIN_SHORT_LENGTH_M)
+    if abs(support_length - PURLIN_SHORT_LENGTH_M) > 1.0e-9:
+        warnings.append("PURLIN_SUPPORT length is %.6f m; expected 0.050000 m for the XZ simplified slice." % support_length)
+
+    members: list[dict[str, Any]] = []
+    checks: dict[str, dict[str, Any]] = {}
+    for point_name in PURLIN_AXIS_POINT_NAMES:
+        control_anchor = _coords(points[point_name])
+        global_anchor = _add(control_anchor, [0.0, PURLIN_GROUP_Y_OFFSET_M, 0.0])
+        web_top = _add(global_anchor, _scale(u, -purlin_b / 2.0))
+        web_bottom = _add(web_top, _scale(n, -purlin_h))
+        purlin_member = _member_with_rotation_sequence(
+            "PURLIN_%s" % point_name,
+            "step04_purlins",
+            purlin_component,
+            derived_part_name,
+            _instance_name(purlin_component, point_name),
+            purlin_local_anchor,
+            point_name,
+            global_anchor,
+            purlin_rotation,
+            part_length_m=PURLIN_SHORT_LENGTH_M,
+            source_part_name=purlin_component["part_name"],
+            part_component=purlin_part_component,
+            section_reference={
+                "x_m": purlin_local_anchor[0],
+                "y_m": purlin_local_anchor[1],
+                "z_m": purlin_local_anchor[2],
+                "rule": "C_CHANNEL_UPPER_FLANGE_CENTER",
+                "open_side_local": "+X",
+                "open_side_target_global": "PV_AXIS_POSITIVE",
+            },
+            axis_checks=[
+                {"name": "flange_axis", "local_vector": [1.0, 0.0, 0.0], "expected_global": u, "tolerance": 1.0e-6},
+                {"name": "web_axis", "local_vector": [0.0, 1.0, 0.0], "expected_global": n, "tolerance": 1.0e-6},
+                {"name": "length_axis_parallel_y", "local_vector": [0.0, 0.0, 1.0], "expected_global": [0.0, -1.0, 0.0], "tolerance": 1.0e-6},
+            ],
+            placement_note="50mm purlin slice; upper flange center maps to %s; length axis is parallel to global Y." % point_name,
+        )
+        support_member = _member_with_rotation_sequence(
+            "PURLIN_SUPPORT_%s" % point_name,
+            "step04_purlins",
+            purlin_support_component,
+            purlin_support_component["part_name"],
+            _instance_name(purlin_support_component, point_name),
+            support_local_anchor,
+            "%s_WEB_BOTTOM" % point_name,
+            web_bottom,
+            support_rotation,
+            part_length_m=support_length,
+            source_part_name=purlin_support_component["part_name"],
+            section_reference={
+                "x_m": support_local_anchor[0],
+                "y_m": support_local_anchor[1],
+                "z_m": support_local_anchor[2],
+                "rule": "ANGLE_INSIDE_CORNER_AT_PURLIN_WEB_BOTTOM",
+                "open_side_local": "+Y",
+                "open_side_target_global": "PV_AXIS_NEGATIVE",
+            },
+            axis_checks=[
+                {"name": "long_leg_axis", "local_vector": [1.0, 0.0, 0.0], "expected_global": n, "tolerance": 1.0e-6},
+                {"name": "short_leg_axis", "local_vector": [0.0, 1.0, 0.0], "expected_global": _scale(u, -1.0), "tolerance": 1.0e-6},
+                {"name": "length_axis_parallel_y", "local_vector": [0.0, 0.0, 1.0], "expected_global": [0.0, -1.0, 0.0], "tolerance": 1.0e-6},
+            ],
+            placement_note="Angle support inside corner contacts purlin web-bottom corner; long leg follows the web and short leg is flush with the lower flange line.",
+        )
+        members.extend([purlin_member, support_member])
+        checks["PURLIN_%s_PLACEMENT" % point_name] = {
+            "anchor": point_name,
+            "control_point": control_anchor,
+            "y_offset_m": PURLIN_GROUP_Y_OFFSET_M,
+            "upper_flange_center": global_anchor,
+            "web_top": web_top,
+            "web_bottom": web_bottom,
+            "lower_flange_center": _add(global_anchor, _scale(n, -purlin_h)),
+            "flange_axis_global": u,
+            "web_axis_global": n,
+            "length_axis_global": [0.0, -1.0, 0.0],
+            "passed": PASSED,
+        }
+        checks["PURLIN_SUPPORT_%s_PLACEMENT" % point_name] = {
+            "anchor": "%s_WEB_BOTTOM" % point_name,
+            "y_offset_m": PURLIN_GROUP_Y_OFFSET_M,
+            "inside_corner": web_bottom,
+            "long_leg_axis_global": n,
+            "short_leg_axis_global": _scale(u, -1.0),
+            "length_axis_global": [0.0, -1.0, 0.0],
+            "passed": PASSED,
+        }
+
+    metadata = {
+        "enabled": True,
+        "point_names": list(PURLIN_AXIS_POINT_NAMES),
+        "short_length_m": PURLIN_SHORT_LENGTH_M,
+        "purlin_source_part_name": purlin_component["part_name"],
+        "purlin_derived_part_name": derived_part_name,
+        "purlin_support_part_name": purlin_support_component["part_name"],
+        "axis_unit": u,
+        "normal_unit": n,
+        "purlin_height_m": purlin_h,
+        "purlin_width_m": purlin_b,
+        "group_y_offset_m": PURLIN_GROUP_Y_OFFSET_M,
+        "placement": "C-channel upper flange center at S/P/Q/R; member length axes parallel global Y.",
+    }
+    return members, metadata, checks, warnings
+
+
 def _member(
     name: str,
     phase: str,
@@ -546,7 +896,7 @@ def _member(
         "phase": phase,
         "part_name": component["part_name"],
         "component_code": component.get("component_code"),
-        "instance_name": "I_%s" % component["part_name"][2:] if str(component["part_name"]).startswith("P_") else "I_%s" % component["part_name"],
+        "instance_name": _instance_name(component),
         "local_anchor": local_anchor,
         "global_anchor_name": global_anchor_name,
         "global_anchor": global_anchor,
@@ -579,8 +929,10 @@ def build_payload(
     column_down_component = _optional_component(components, "COLUMN_DOWN")
     column_up_component = _optional_component(components, "COLUMN_UP")
     single_column_component = _optional_component(components, "COLUMN")
-    if not (column_down_component and column_up_component) and not single_column_component:
-        raise ValueError("Missing column components. Expected COLUMN_DOWN+COLUMN_UP or COLUMN in components JSON.")
+    purlin_component = _optional_component(components, "PURLIN")
+    purlin_support_component = _optional_component(components, "PURLIN_SUPPORT")
+    if not (column_down_component and column_up_component) and not single_column_component and not column_up_component:
+        raise ValueError("Missing column components. Expected COLUMN_DOWN+COLUMN_UP, COLUMN, or COLUMN_UP in components JSON.")
     beam_component = main_components["INCLINED_BEAM"]
     beam_length = beam_component.get("length_m")
 
@@ -598,6 +950,7 @@ def build_payload(
     angle_tolerance = _value(inputs, "angle_tolerance_deg")
     rotate_beam_y = 90.0 - theta_deg
     u = [math.cos(theta_rad), 0.0, math.sin(theta_rad)]
+    n = [-math.sin(theta_rad), 0.0, math.cos(theta_rad)]
     beam_roll = _default_roll_about_axis_deg("INCLINED_BEAM", beam_component)
     front_brace_roll = _default_roll_about_axis_deg("BRACE_FRONT", main_components["BRACE_FRONT"])
     rear_brace_roll = _default_roll_about_axis_deg("BRACE_REAR", main_components["BRACE_REAR"])
@@ -655,7 +1008,7 @@ def build_payload(
                 },
             }
         )
-    else:
+    elif single_column_component is not None:
         assert single_column_component is not None
         column_members.append(
             _member(
@@ -675,6 +1028,27 @@ def build_payload(
             "derived_bottom": column_bottom,
             "passed": PASSED,
             "note": "Single COLUMN component is controlled by its top point A.",
+        }
+    else:
+        assert column_up_component is not None
+        column_members.append(
+            _member(
+                "COLUMN_UP",
+                "step01_columns",
+                column_up_component,
+                _local_reference_point(column_up_component, float(column_up_component.get("length_m") or 0.0)),
+                "A",
+                points,
+                0.0,
+            )
+        )
+        column_up_bottom = _add(_coords(points["A"]), [0.0, 0.0, -float(column_up_component.get("length_m") or 0.0)])
+        member_checks["COLUMN_UP_PLACEMENT"] = {
+            "anchor": "A",
+            "part_length_m": column_up_component.get("length_m"),
+            "derived_bottom": column_up_bottom,
+            "passed": PASSED,
+            "note": "Only COLUMN_UP is available; it is controlled as a single upper column by top point A.",
         }
 
     members = [
@@ -739,11 +1113,34 @@ def build_payload(
             },
         }
     )
+    purlin_axis_metadata: dict[str, Any] = {"enabled": False, "reason": "PURLIN/PURLIN_SUPPORT components or S/P/Q/R points are not available."}
+    purlin_points_available = all(name in points for name in PURLIN_AXIS_POINT_NAMES)
+    if purlin_component and purlin_support_component and purlin_points_available:
+        purlin_members, purlin_axis_metadata, purlin_checks, purlin_warnings = _build_purlin_members(
+            purlin_component,
+            purlin_support_component,
+            points,
+            theta_deg,
+            u,
+            n,
+        )
+        members.extend(purlin_members)
+        member_checks.update(purlin_checks)
+        warnings.extend(purlin_warnings)
+    elif purlin_component or purlin_support_component:
+        missing = []
+        if not purlin_component:
+            missing.append("PURLIN")
+        if not purlin_support_component:
+            missing.append("PURLIN_SUPPORT")
+        if not purlin_points_available:
+            missing.append("S/P/Q/R")
+        warnings.append("Purlin assembly skipped because %s is unavailable." % ", ".join(missing))
 
     beam_reference = _section_reference_xy(beam_component)
     beam_local_point = _local_reference_point(beam_component, gf)
     beam_local_origin = _local_reference_point(beam_component, 0.0)
-    required_part_names = [member["part_name"] for member in members]
+    required_part_names = sorted({member.get("source_part_name") or member["part_name"] for member in members})
     payload = {
         "meta": {
             "project_code": project_code,
@@ -768,6 +1165,8 @@ def build_payload(
             "control_tolerance_m": control_tolerance,
             "angle_tolerance_deg": angle_tolerance,
             "beam_length_m": beam_length,
+            "pv_axis_angle_tolerance_deg": _value(inputs, "pv_axis_angle_tolerance_deg") if inputs.get("pv_axis_angle_tolerance_deg") is not None else None,
+            "purlin_short_length_m": PURLIN_SHORT_LENGTH_M,
         },
         "input_rows": {
             name: {
@@ -797,6 +1196,7 @@ def build_payload(
             "section_reference": beam_reference,
             "section_sets": {"C": "SET_BEAM_SEC_C", "F": "SET_BEAM_SEC_F", "E": "SET_BEAM_SEC_E"},
         },
+        "purlin_axis": purlin_axis_metadata,
         "members": members,
         "required_part_names": required_part_names,
         "checks": checks,
@@ -873,6 +1273,8 @@ import os
 
 from abaqus import mdb
 from abaqusConstants import *
+import mesh
+import regionToolset
 
 
 PHASE = "$phase"
@@ -919,6 +1321,12 @@ def _ascii(value):
     return str(value)
 
 
+def _float_or_none(value):
+    if value is None or str(value).strip() == "":
+        return None
+    return float(value)
+
+
 def _ensure_parent(path):
     folder = os.path.dirname(os.path.abspath(path))
     if folder and not os.path.exists(folder):
@@ -946,6 +1354,14 @@ def _distance(a, b):
     return math.sqrt(dx * dx + dy * dy + dz * dz)
 
 
+def _rotate_x(point, angle_deg):
+    angle = math.radians(float(angle_deg))
+    c = math.cos(angle)
+    s = math.sin(angle)
+    x, y, z = point
+    return (x, y * c - z * s, y * s + z * c)
+
+
 def _rotate_y(point, angle_deg):
     angle = math.radians(float(angle_deg))
     c = math.cos(angle)
@@ -960,6 +1376,33 @@ def _rotate_z(point, angle_deg):
     s = math.sin(angle)
     x, y, z = point
     return (x * c - y * s, x * s + y * c, z)
+
+
+def _apply_rotation_sequence(point, rotation_sequence):
+    result = tuple(float(v) for v in point)
+    for rotation in rotation_sequence or ():
+        axis = str(rotation.get("axis") or "").upper()
+        angle = float(rotation.get("angle_deg") or 0.0)
+        if axis == "X":
+            result = _rotate_x(result, angle)
+        elif axis == "Y":
+            result = _rotate_y(result, angle)
+        elif axis == "Z":
+            result = _rotate_z(result, angle)
+        else:
+            raise RuntimeError("Unsupported rotation axis for %s: %s" % (rotation, axis))
+    return result
+
+
+def _rotation_axis_direction(axis):
+    axis = str(axis or "").upper()
+    if axis == "X":
+        return (1.0, 0.0, 0.0)
+    if axis == "Y":
+        return (0.0, 1.0, 0.0)
+    if axis == "Z":
+        return (0.0, 0.0, 1.0)
+    raise RuntimeError("Unsupported rotation axis: %s" % axis)
 
 
 def _add3(a, b):
@@ -1006,10 +1449,15 @@ def _rotate_about_axis(point, axis_point, axis_direction, angle_deg):
 
 
 def _member_axis_direction(member):
+    if member.get("rotation_sequence"):
+        return _unit(_apply_rotation_sequence((0.0, 0.0, 1.0), member.get("rotation_sequence")))
     return _unit(_rotate_y((0.0, 0.0, 1.0), float(member.get("rotate_y_deg") or 0.0)))
 
 
 def _transform_member(local_point, member):
+    if member.get("rotation_sequence"):
+        rotated = _apply_rotation_sequence(tuple(float(v) for v in local_point), member.get("rotation_sequence"))
+        return _add3(rotated, tuple(float(v) for v in member.get("translation", (0.0, 0.0, 0.0))))
     rotated = _rotate_y(tuple(float(v) for v in local_point), float(member.get("rotate_y_deg") or 0.0))
     translated = _add3(rotated, tuple(float(v) for v in member.get("translation", (0.0, 0.0, 0.0))))
     roll_about_axis_deg = float(member.get("roll_about_axis_deg") or 0.0)
@@ -1017,6 +1465,82 @@ def _transform_member(local_point, member):
         return translated
     axis_point = tuple(float(v) for v in member.get("global_anchor", (0.0, 0.0, 0.0)))
     return _rotate_about_axis(translated, axis_point, _member_axis_direction(member), roll_about_axis_deg)
+
+
+def _ensure_material(model, material):
+    mat_name = _ascii((material or {}).get("abaqus_name") or "MAT_MANUAL_CHECK")
+    if mat_name in model.materials:
+        return mat_name
+    mat = model.Material(name=mat_name)
+    elastic_modulus = (material or {}).get("elastic_modulus_pa")
+    poisson_ratio = (material or {}).get("poisson_ratio")
+    if elastic_modulus is not None and poisson_ratio is not None:
+        mat.Elastic(table=((float(elastic_modulus), float(poisson_ratio)),))
+    density = (material or {}).get("density_kg_per_m3")
+    if density is not None:
+        mat.Density(table=((float(density),),))
+    return mat_name
+
+
+def _profile_points(component):
+    params = component.get("section_params_m") or {}
+    kind = component.get("section_kind")
+    if kind == "C_CHANNEL":
+        h = float(params["h_m"])
+        b = float(params["b_m"])
+        lip = float(params["lip_m"])
+        return [(b, lip), (b, 0.0), (0.0, 0.0), (0.0, h), (b, h), (b, h - lip)]
+    raise RuntimeError("Can only derive 50mm purlin from C_CHANNEL, got %s." % kind)
+
+
+def _create_shell_part(model, component):
+    part_name = _ascii(component["part_name"])
+    if part_name in model.parts:
+        return model.parts[part_name]
+
+    length = _float_or_none(component.get("length_m")) or 0.05
+    thickness = _float_or_none(component.get("thickness_m"))
+    if thickness is None:
+        raise RuntimeError("Shell Part %s requires thickness_m." % part_name)
+
+    sketch = model.ConstrainedSketch(name=_ascii("SK_" + str(component["part_name"])), sheetSize=max(length, 1.0) * 2.0)
+    points = _profile_points(component)
+    for start, end in zip(points[:-1], points[1:]):
+        sketch.Line(point1=start, point2=end)
+
+    part = model.Part(name=part_name, dimensionality=THREE_D, type=DEFORMABLE_BODY)
+    part.BaseShellExtrude(sketch=sketch, depth=length)
+
+    material_name = _ensure_material(model, component.get("material", {}))
+    section_name = _ascii("SEC_" + str(component["part_name"]))
+    if section_name not in model.sections:
+        model.HomogeneousShellSection(
+            name=section_name,
+            preIntegrate=OFF,
+            material=material_name,
+            thicknessType=UNIFORM,
+            thickness=thickness,
+        )
+    region = regionToolset.Region(faces=part.faces[:])
+    part.SectionAssignment(region=region, sectionName=section_name)
+    elem_type = mesh.ElemType(elemCode=S4R, elemLibrary=STANDARD)
+    part.seedPart(size=0.02, deviationFactor=0.1, minSizeFactor=0.1)
+    part.setElementType(regions=(part.faces[:],), elemTypes=(elem_type,))
+    part.generateMesh()
+    return part
+
+
+def _effective_part(model, member):
+    part_component = member.get("part_component")
+    if part_component:
+        source_name = member.get("source_part_name")
+        if source_name:
+            _part(model, source_name)
+        component = dict(part_component)
+        component["part_name"] = member["part_name"]
+        component["length_m"] = float(member.get("part_length_m") or component.get("length_m") or 0.05)
+        return _create_shell_part(model, component)
+    return _part(model, member["part_name"])
 
 
 def _part(model, name):
@@ -1080,10 +1604,22 @@ def _instance(model, member):
     assembly = model.rootAssembly
     inst_name = _ascii(member["instance_name"])
     _delete_instance(assembly, inst_name)
-    part = _part(model, member["part_name"])
+    part = _effective_part(model, member)
     assembly.Instance(name=inst_name, part=part, dependent=ON)
+    rotation_sequence = member.get("rotation_sequence") or []
     rotate_y_deg = float(member.get("rotate_y_deg") or 0.0)
-    if abs(rotate_y_deg) > 1.0e-12:
+    if rotation_sequence:
+        for rotation in rotation_sequence:
+            angle = float(rotation.get("angle_deg") or 0.0)
+            if abs(angle) <= 1.0e-12:
+                continue
+            assembly.rotate(
+                instanceList=(inst_name,),
+                axisPoint=(0.0, 0.0, 0.0),
+                axisDirection=_rotation_axis_direction(rotation.get("axis")),
+                angle=angle,
+            )
+    elif abs(rotate_y_deg) > 1.0e-12:
         assembly.rotate(
             instanceList=(inst_name,),
             axisPoint=(0.0, 0.0, 0.0),
@@ -1094,7 +1630,7 @@ def _instance(model, member):
     if max(abs(translation[0]), abs(translation[1]), abs(translation[2])) > 1.0e-12:
         assembly.translate(instanceList=(inst_name,), vector=translation)
     roll_about_axis_deg = float(member.get("roll_about_axis_deg") or 0.0)
-    if abs(roll_about_axis_deg) > 1.0e-12:
+    if not rotation_sequence and abs(roll_about_axis_deg) > 1.0e-12:
         axis_point = tuple(float(v) for v in member.get("global_anchor", (0.0, 0.0, 0.0)))
         assembly.rotate(
             instanceList=(inst_name,),
@@ -1105,11 +1641,14 @@ def _instance(model, member):
     return {
         "instance_name": member["instance_name"],
         "part_name": member["part_name"],
+        "source_part_name": member.get("source_part_name"),
         "rotate_y_deg": rotate_y_deg,
+        "rotation_sequence": rotation_sequence,
         "roll_about_axis_deg": roll_about_axis_deg,
         "translation": list(translation),
         "section_reference": member.get("section_reference"),
         "open_side_global": member.get("open_side_global"),
+        "placement_note": member.get("placement_note"),
     }
 
 
@@ -1157,9 +1696,18 @@ def _members_for_phase(data):
         names = set(["INCLINED_BEAM"])
     elif PHASE == "step03_main_frame":
         names = set(["COLUMN_DOWN", "COLUMN_UP", "COLUMN", "INCLINED_BEAM", "BRACE_FRONT", "BRACE_REAR"])
+    elif PHASE == "step04_purlins":
+        names = set(member.get("name") for member in data.get("members", []) if member.get("phase") == "step04_purlins")
     else:
-        names = set(["COLUMN_DOWN", "COLUMN_UP", "COLUMN", "INCLINED_BEAM", "BRACE_FRONT", "BRACE_REAR"])
+        return list(data.get("members", []))
     return [member for member in data.get("members", []) if member.get("name") in names]
+
+
+def _transform_member_vector(local_vector, member):
+    if member.get("rotation_sequence"):
+        return _unit(_apply_rotation_sequence(tuple(float(v) for v in local_vector), member.get("rotation_sequence")))
+    rotated = _rotate_y(_rotate_z(tuple(float(v) for v in local_vector), float(member.get("roll_about_axis_deg") or 0.0)), float(member.get("rotate_y_deg") or 0.0))
+    return _unit(rotated)
 
 
 def _validate_member(member, data):
@@ -1169,6 +1717,20 @@ def _validate_member(member, data):
     anchor_error = _distance(anchor, target_anchor)
     if anchor_error > 1.0e-6:
         errors.append("%s anchor error %.9g m" % (member["name"], anchor_error))
+    axis_validation = {}
+    for check in member.get("axis_checks", []):
+        actual = _transform_member_vector(check.get("local_vector", (0.0, 0.0, 1.0)), member)
+        expected = _unit(tuple(float(v) for v in check.get("expected_global", (0.0, 0.0, 1.0))))
+        error = _distance(actual, expected)
+        tolerance = float(check.get("tolerance") or 1.0e-6)
+        if error > tolerance:
+            errors.append("%s %s axis error %.9g" % (member["name"], check.get("name"), error))
+        axis_validation[str(check.get("name"))] = {
+            "actual": list(actual),
+            "expected": list(expected),
+            "error": error,
+            "tolerance": tolerance,
+        }
 
     if member.get("target_point_name"):
         part_length = float(member.get("part_length_m") or 0.0)
@@ -1178,8 +1740,8 @@ def _validate_member(member, data):
         target = tuple(float(v) for v in member.get("target_point", (0.0, 0.0, 0.0)))
         # Braces may include connection offsets, so report this value rather than failing hard.
         end_error = _distance(transformed_end, target)
-        return {"anchor_error_m": anchor_error, "end_error_m": end_error, "errors": errors}
-    return {"anchor_error_m": anchor_error, "errors": errors}
+        return {"anchor_error_m": anchor_error, "end_error_m": end_error, "axis_validation": axis_validation, "errors": errors}
+    return {"anchor_error_m": anchor_error, "axis_validation": axis_validation, "errors": errors}
 
 
 def _validate_beam(data):
@@ -1213,7 +1775,7 @@ def main():
     phase_members = _members_for_phase(data)
 
     missing = []
-    for name in sorted(set(member["part_name"] for member in phase_members)):
+    for name in sorted(set(member.get("source_part_name") or member["part_name"] for member in phase_members)):
         if _ascii(name) not in model.parts:
             missing.append(name)
     if missing:

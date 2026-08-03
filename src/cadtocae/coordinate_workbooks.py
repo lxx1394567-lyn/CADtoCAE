@@ -20,6 +20,65 @@ NOT_USED = "暂不使用"
 PASSED = "通过"
 FAILED = "不通过"
 
+PURLIN_AXIS_INPUT_ROWS = [
+    {
+        "name": "HF_mm",
+        "label": "H 到 F 的法向距离",
+        "value": "",
+        "unit": "mm",
+        "source_dimension": "檩条截面高度/腹板高度",
+        "status": MANUAL_CHECK,
+        "note": "HF 垂直于斜梁 C/F/E 轴线，用于定位光伏板/檩条轴线参考点 H。",
+    },
+    {
+        "name": "HS_mm",
+        "label": "H 到 S 的轴向距离",
+        "value": "",
+        "unit": "mm",
+        "source_dimension": "檩条轴线尺寸",
+        "status": MANUAL_CHECK,
+        "note": "S 位于 H 沿斜梁轴线负方向；图中原 O 点为避免与全局原点冲突改名为 S。",
+    },
+    {
+        "name": "HP_mm",
+        "label": "H 到 P 的轴向距离",
+        "value": "",
+        "unit": "mm",
+        "source_dimension": "檩条轴线尺寸",
+        "status": MANUAL_CHECK,
+        "note": "P 位于 H 沿斜梁轴线负方向。",
+    },
+    {
+        "name": "HQ_mm",
+        "label": "H 到 Q 的轴向距离",
+        "value": "",
+        "unit": "mm",
+        "source_dimension": "檩条轴线尺寸",
+        "status": MANUAL_CHECK,
+        "note": "Q 位于 H 沿斜梁轴线正方向。",
+    },
+    {
+        "name": "HR_mm",
+        "label": "H 到 R 的轴向距离",
+        "value": "",
+        "unit": "mm",
+        "source_dimension": "檩条轴线尺寸",
+        "status": MANUAL_CHECK,
+        "note": "R 位于 H 沿斜梁轴线正方向。",
+    },
+    {
+        "name": "pv_axis_angle_tolerance_deg",
+        "label": "S/P/Q/R 角度允许误差",
+        "value": 0.1,
+        "unit": "deg",
+        "source_dimension": "校核规则",
+        "status": CONFIRMED,
+        "note": "S/P/Q/R 连线与 +X 夹角相对 theta_deg 的允许误差。",
+    },
+]
+
+PURLIN_AXIS_STATUS_INPUTS = ["theta_deg", "X_F_mm", "Z_F_mm", "HF_mm", "HS_mm", "HP_mm", "HQ_mm", "HR_mm"]
+
 
 def load_coordinate_layout(path: str | Path) -> dict[str, Any]:
     with Path(path).open("r", encoding="utf-8") as handle:
@@ -42,6 +101,7 @@ def _copy_layout_with_prefix(layout: dict[str, Any], project_prefix: str) -> dic
 
 def _dimension_rows(layout: dict[str, Any], control_tolerance_m: float, angle_tolerance_deg: float) -> list[dict[str, Any]]:
     rows = [dict(row) for row in layout.get("dimension_inputs", [])]
+    _insert_missing_purlin_axis_rows(rows)
     calibration = layout.get("image_calibration") or {}
     rows.extend(
         [
@@ -95,6 +155,35 @@ def _dimension_rows(layout: dict[str, Any], control_tolerance_m: float, angle_to
     return rows
 
 
+def _insert_missing_purlin_axis_rows(rows: list[dict[str, Any]]) -> None:
+    existing_names = {str(row.get("name", "")) for row in rows}
+    insert_at = next((index + 1 for index, row in enumerate(rows) if row.get("name") == "GE_mm"), len(rows))
+    for row in PURLIN_AXIS_INPUT_ROWS:
+        if row["name"] in existing_names:
+            continue
+        rows.insert(insert_at, dict(row))
+        existing_names.add(row["name"])
+        insert_at += 1
+
+
+def _purlin_h_x_formula(xf: str, hf: str, theta: str) -> str:
+    return "=%s-%s*SIN(RADIANS(%s))" % (xf, hf, theta)
+
+
+def _purlin_h_z_formula(zf: str, hf: str, theta: str) -> str:
+    return "=%s+%s*COS(RADIANS(%s))" % (zf, hf, theta)
+
+
+def _purlin_axis_x_formula(hx_ref: str, distance_ref: str, theta: str, direction: int) -> str:
+    operator = "+" if direction > 0 else "-"
+    return "=%s%s%s*COS(RADIANS(%s))" % (hx_ref, operator, distance_ref, theta)
+
+
+def _purlin_axis_z_formula(hz_ref: str, distance_ref: str, theta: str, direction: int) -> str:
+    operator = "+" if direction > 0 else "-"
+    return "=%s%s%s*SIN(RADIANS(%s))" % (hz_ref, operator, distance_ref, theta)
+
+
 def write_coordinate_layout_template(output_path: str | Path, project_prefix: str) -> Path:
     template = {
         "meta": {
@@ -119,6 +208,7 @@ def write_coordinate_layout_template(output_path: str | Path, project_prefix: st
             {"name": "GC_mm", "label": "G 到 C 的斜梁局部里程", "value": "", "unit": "mm", "status": MANUAL_CHECK},
             {"name": "GF_mm", "label": "G 到 F 的斜梁局部里程", "value": "", "unit": "mm", "status": MANUAL_CHECK},
             {"name": "GE_mm", "label": "G 到 E 的斜梁局部里程", "value": "", "unit": "mm", "status": MANUAL_CHECK},
+            *[dict(row) for row in PURLIN_AXIS_INPUT_ROWS],
             {"name": "L_BC_draw_mm", "label": "图纸标注 BC 长度", "value": "", "unit": "mm", "status": MANUAL_CHECK},
             {"name": "L_DE_draw_mm", "label": "图纸标注 DE 长度", "value": "", "unit": "mm", "status": MANUAL_CHECK},
         ],
@@ -316,6 +406,13 @@ def _build_full_workbook(layout: dict[str, Any], input_rows: list[dict[str, Any]
     gc = _mm(_input_ref(row_by_name, "GC_mm", "关键尺寸输入"))
     gf = _mm(_input_ref(row_by_name, "GF_mm", "关键尺寸输入"))
     ge = _mm(_input_ref(row_by_name, "GE_mm", "关键尺寸输入"))
+    hf = _mm(_input_ref(row_by_name, "HF_mm", "关键尺寸输入"))
+    hs = _mm(_input_ref(row_by_name, "HS_mm", "关键尺寸输入"))
+    hp = _mm(_input_ref(row_by_name, "HP_mm", "关键尺寸输入"))
+    hq = _mm(_input_ref(row_by_name, "HQ_mm", "关键尺寸输入"))
+    hr = _mm(_input_ref(row_by_name, "HR_mm", "关键尺寸输入"))
+    h_x = "(%s-%s*SIN(RADIANS(%s)))" % (xf, hf, theta)
+    h_z = "(%s+%s*COS(RADIANS(%s)))" % (zf, hf, theta)
     point_rows = [
         ["O", "N", "=0", "=0", "=0", "原点", "O=(0,0,0)", CONFIRMED, "立柱中心线地面交点"],
         ["A", "N", "=0", "=0", "=%s" % za, "Z_A_mm", "A=(0,0,Z_A)", _status_formula(row_by_name, "I", ["Z_A_mm"], "关键尺寸输入"), "上立柱上顶点"],
@@ -325,11 +422,18 @@ def _build_full_workbook(layout: dict[str, Any], input_rows: list[dict[str, Any]
         ["E", "N", "=%s+(%s-%s)*COS(RADIANS(%s))" % (xf, ge, gf, theta), "=0", "=%s+(%s-%s)*SIN(RADIANS(%s))" % (zf, ge, gf, theta), "X_F_mm, Z_F_mm, GE_mm, GF_mm, theta_deg", "E=F+(GE-GF)u", _status_formula(row_by_name, "I", ["X_F_mm", "Z_F_mm", "GE_mm", "GF_mm", "theta_deg"], "关键尺寸输入"), "斜梁与后斜撑交点"],
         ["F", "N", "=%s" % xf, "=0", "=%s" % zf, "X_F_mm, Z_F_mm", "F=(X_F,0,Z_F)", _status_formula(row_by_name, "I", ["X_F_mm", "Z_F_mm"], "关键尺寸输入"), "斜梁与上立柱/三角连接件参考交点"],
         ["G_global", "REF", "=%s-%s*COS(RADIANS(%s))" % (xf, gf, theta), "=0", "=%s-%s*SIN(RADIANS(%s))" % (zf, gf, theta), "X_F_mm, Z_F_mm, GF_mm, theta_deg", "G_global=F-GF*u", _status_formula(row_by_name, "I", ["X_F_mm", "Z_F_mm", "GF_mm", "theta_deg"], "关键尺寸输入"), "斜梁局部起点派生全局位置"],
+        ["H", "PV", _purlin_h_x_formula(xf, hf, theta), "=0", _purlin_h_z_formula(zf, hf, theta), "X_F_mm, Z_F_mm, HF_mm, theta_deg", "H=F+HF*n", _status_formula(row_by_name, "I", ["X_F_mm", "Z_F_mm", "HF_mm", "theta_deg"], "关键尺寸输入"), "檩条/光伏板轴线参考点"],
+        ["S", "PV", _purlin_axis_x_formula(h_x, hs, theta, -1), "=0", _purlin_axis_z_formula(h_z, hs, theta, -1), "H, HS_mm, theta_deg", "S=H-HS*u", _status_formula(row_by_name, "I", ["X_F_mm", "Z_F_mm", "HF_mm", "HS_mm", "theta_deg"], "关键尺寸输入"), "图中原 O 点，改名 S 以避免与全局原点冲突"],
+        ["P", "PV", _purlin_axis_x_formula(h_x, hp, theta, -1), "=0", _purlin_axis_z_formula(h_z, hp, theta, -1), "H, HP_mm, theta_deg", "P=H-HP*u", _status_formula(row_by_name, "I", ["X_F_mm", "Z_F_mm", "HF_mm", "HP_mm", "theta_deg"], "关键尺寸输入"), "前侧檩条/檩托控制点"],
+        ["Q", "PV", _purlin_axis_x_formula(h_x, hq, theta, 1), "=0", _purlin_axis_z_formula(h_z, hq, theta, 1), "H, HQ_mm, theta_deg", "Q=H+HQ*u", _status_formula(row_by_name, "I", ["X_F_mm", "Z_F_mm", "HF_mm", "HQ_mm", "theta_deg"], "关键尺寸输入"), "后侧檩条/檩托控制点"],
+        ["R", "PV", _purlin_axis_x_formula(h_x, hr, theta, 1), "=0", _purlin_axis_z_formula(h_z, hr, theta, 1), "H, HR_mm, theta_deg", "R=H+HR*u", _status_formula(row_by_name, "I", ["X_F_mm", "Z_F_mm", "HF_mm", "HR_mm", "theta_deg"], "关键尺寸输入"), "后端檩条/檩托控制点"],
     ]
+    point_row_by_name = {}
     for row_index, row in enumerate(point_rows, start=4):
+        point_row_by_name[row[0]] = row_index
         for col_index, value in enumerate(row, start=1):
             point_ws.cell(row=row_index, column=col_index).value = value
-    _style_body(point_ws, 4, 11, 1, 9)
+    _style_body(point_ws, 4, len(point_rows) + 3, 1, 9)
     _set_widths(point_ws, {"A": 14, "B": 10, "C": 14, "D": 12, "E": 14, "F": 44, "G": 44, "H": 16, "I": 42})
 
     check_ws = wb.create_sheet("长度与角度校核")
@@ -338,6 +442,20 @@ def _build_full_workbook(layout: dict[str, Any], input_rows: list[dict[str, Any]
     for col, header in enumerate(check_headers, start=1):
         check_ws.cell(row=3, column=col).value = header
     _style_header(check_ws, 3, 1, 12)
+    def point_ref(name: str, col: str) -> str:
+        return _quoted("控制点坐标", "$%s$%d" % (col, point_row_by_name[name]))
+
+    s_x, s_z = point_ref("S", "C"), point_ref("S", "E")
+    p_x, p_z = point_ref("P", "C"), point_ref("P", "E")
+    q_x, q_z = point_ref("Q", "C"), point_ref("Q", "E")
+    r_x, r_z = point_ref("R", "C"), point_ref("R", "E")
+    spqr_denominator = "SQRT((%s-%s)^2+(%s-%s)^2)" % (r_z, s_z, r_x, s_x)
+    spqr_p_distance = "ABS((%s-%s)*(%s-%s)-(%s-%s)*(%s-%s))/%s" % (r_z, s_z, p_x, s_x, r_x, s_x, p_z, s_z, spqr_denominator)
+    spqr_q_distance = "ABS((%s-%s)*(%s-%s)-(%s-%s)*(%s-%s))/%s" % (r_z, s_z, q_x, s_x, r_x, s_x, q_z, s_z, spqr_denominator)
+    spqr_status_inputs = ",".join(
+        '%s="%s"' % (_quoted("关键尺寸输入", "$I$%d" % row_by_name[name]), CONFIRMED)
+        for name in PURLIN_AXIS_STATUS_INPUTS
+    )
     check_values = [
         ["GC_GF_GE_ORDER", "斜梁局部截面顺序", "G/C/F", "E", '="GC="&TEXT(%s,"0.000")&", GF="&TEXT(%s,"0.000")&", GE="&TEXT(%s,"0.000")' % (_quoted("斜梁局部截面", "$C$5"), _quoted("斜梁局部截面", "$C$6"), _quoted("斜梁局部截面", "$C$7")), "GC < GF < GE", "", "", '=IF(AND(%s<%s,%s<%s),"%s","%s")' % (_quoted("斜梁局部截面", "$C$5"), _quoted("斜梁局部截面", "$C$6"), _quoted("斜梁局部截面", "$C$6"), _quoted("斜梁局部截面", "$C$7"), PASSED, FAILED), '=IF(AND(I4="%s",%s="%s",%s="%s",%s="%s"),"%s","%s")' % (PASSED, _quoted("关键尺寸输入", "$I$%d" % row_by_name["GC_mm"]), CONFIRMED, _quoted("关键尺寸输入", "$I$%d" % row_by_name["GF_mm"]), CONFIRMED, _quoted("关键尺寸输入", "$I$%d" % row_by_name["GE_mm"]), CONFIRMED, CONFIRMED, MANUAL_CHECK), "GC < GF < GE", "不满足时 C/F/E 截面顺序需人工确认"],
         ["CF_LOCAL", "斜梁局部截面距离", "C", "F", "=%s-%s" % (_quoted("斜梁局部截面", "$C$6"), _quoted("斜梁局部截面", "$C$5")), "GF-GC", "", "", '=IF(E5>0,"%s","%s")' % (PASSED, FAILED), '=IF(AND(I5="%s",%s="%s",%s="%s"),"%s","%s")' % (PASSED, _quoted("关键尺寸输入", "$I$%d" % row_by_name["GC_mm"]), CONFIRMED, _quoted("关键尺寸输入", "$I$%d" % row_by_name["GF_mm"]), CONFIRMED, CONFIRMED, MANUAL_CHECK), "CF_calc=GF-GC", "用于复核图纸分段尺寸"],
@@ -345,11 +463,13 @@ def _build_full_workbook(layout: dict[str, Any], input_rows: list[dict[str, Any]
         ["CE_ANGLE", "斜梁角度", "C", "E", "=DEGREES(ATAN((%s-%s)/(%s-%s)))" % (_quoted("控制点坐标", "$E$9"), _quoted("控制点坐标", "$E$7"), _quoted("控制点坐标", "$C$9"), _quoted("控制点坐标", "$C$7")), "=%s" % _input_ref(row_by_name, "theta_deg", "关键尺寸输入"), "=MOD(E7-F7+180,360)-180", "=%s" % _input_ref(row_by_name, "angle_tolerance_deg", "关键尺寸输入"), '=IF(ABS(G7)<=H7,"%s","%s")' % (PASSED, FAILED), '=IF(AND(I7="%s",%s="%s",%s="%s",%s="%s",%s="%s",%s="%s",%s="%s"),"%s","%s")' % (PASSED, _quoted("关键尺寸输入", "$I$%d" % row_by_name["theta_deg"]), CONFIRMED, _quoted("关键尺寸输入", "$I$%d" % row_by_name["X_F_mm"]), CONFIRMED, _quoted("关键尺寸输入", "$I$%d" % row_by_name["Z_F_mm"]), CONFIRMED, _quoted("关键尺寸输入", "$I$%d" % row_by_name["GC_mm"]), CONFIRMED, _quoted("关键尺寸输入", "$I$%d" % row_by_name["GF_mm"]), CONFIRMED, _quoted("关键尺寸输入", "$I$%d" % row_by_name["GE_mm"]), CONFIRMED, CONFIRMED, MANUAL_CHECK), "DEGREES(ATAN(ΔZ/ΔX))", "C/F/E 应在斜梁轴线上"],
         ["BC", "斜撑长度", "B", "C", "=SQRT((%s-%s)^2+(%s-%s)^2)" % (_quoted("控制点坐标", "$C$7"), _quoted("控制点坐标", "$C$6"), _quoted("控制点坐标", "$E$7"), _quoted("控制点坐标", "$E$6")), "=%s" % _mm(_input_ref(row_by_name, "L_BC_draw_mm", "关键尺寸输入")), "=E8-F8", "=%s" % _input_ref(row_by_name, "control_tolerance_m", "关键尺寸输入"), '=IF(ABS(G8)<=H8,"%s","%s")' % (PASSED, FAILED), '=IF(AND(I8="%s",%s="%s"),"%s","%s")' % (PASSED, _quoted("关键尺寸输入", "$I$%d" % row_by_name["L_BC_draw_mm"]), CONFIRMED, CONFIRMED, MANUAL_CHECK), "sqrt((C.x-B.x)^2+(C.z-B.z)^2)", "误差不超过允许值时通过"],
         ["DE", "斜撑长度", "D", "E", "=SQRT((%s-%s)^2+(%s-%s)^2)" % (_quoted("控制点坐标", "$C$9"), _quoted("控制点坐标", "$C$8"), _quoted("控制点坐标", "$E$9"), _quoted("控制点坐标", "$E$8")), "=%s" % _mm(_input_ref(row_by_name, "L_DE_draw_mm", "关键尺寸输入")), "=E9-F9", "=%s" % _input_ref(row_by_name, "control_tolerance_m", "关键尺寸输入"), '=IF(ABS(G9)<=H9,"%s","%s")' % (PASSED, FAILED), '=IF(AND(I9="%s",%s="%s"),"%s","%s")' % (PASSED, _quoted("关键尺寸输入", "$I$%d" % row_by_name["L_DE_draw_mm"]), CONFIRMED, CONFIRMED, MANUAL_CHECK), "sqrt((E.x-D.x)^2+(E.z-D.z)^2)", "误差不超过允许值时通过"],
+        ["SPQR_COLLINEAR", "檩条轴线共线", "S/P/Q", "R", '=IFERROR(MAX(%s,%s),"")' % (spqr_p_distance, spqr_q_distance), "=0", '=IF(ISNUMBER(E10),E10-F10,"")', "=1E-6", '=IF(AND(ISNUMBER(E10),ISNUMBER(G10)),IF(ABS(G10)<=H10,"%s","%s"),"%s")' % (PASSED, FAILED, FAILED), '=IF(AND(I10="%s",%s),"%s","%s")' % (PASSED, spqr_status_inputs, CONFIRMED, MANUAL_CHECK), "max(distance(P,line SR),distance(Q,line SR))", "S/P/Q/R 应位于同一条光伏板/檩条轴线上"],
+        ["SPQR_ANGLE", "檩条轴线角度", "S", "R", '=IFERROR(DEGREES(ATAN((%s-%s)/(%s-%s))),"")' % (r_z, s_z, r_x, s_x), "=%s" % _input_ref(row_by_name, "theta_deg", "关键尺寸输入"), '=IF(ISNUMBER(E11),MOD(E11-F11+180,360)-180,"")', "=%s" % _input_ref(row_by_name, "pv_axis_angle_tolerance_deg", "关键尺寸输入"), '=IF(AND(ISNUMBER(E11),ISNUMBER(G11)),IF(ABS(G11)<=H11,"%s","%s"),"%s")' % (PASSED, FAILED, FAILED), '=IF(AND(I11="%s",%s),"%s","%s")' % (PASSED, spqr_status_inputs, CONFIRMED, MANUAL_CHECK), "DEGREES(ATAN(ΔZ/ΔX))", "S-R 与 +X 夹角应等于 theta_deg，允许误差 0.1°"],
     ]
     for row_index, row in enumerate(check_values, start=4):
         for col_index, value in enumerate(row, start=1):
             check_ws.cell(row=row_index, column=col_index).value = value
-    _style_body(check_ws, 4, 9, 1, 12)
+    _style_body(check_ws, 4, len(check_values) + 3, 1, 12)
     _set_widths(check_ws, {"A": 18, "B": 20, "C": 10, "D": 10, "E": 24, "F": 18, "G": 14, "H": 12, "I": 12, "J": 16, "K": 44, "L": 50})
 
     member_ws = wb.create_sheet("构件轴线校核")
@@ -390,17 +510,18 @@ def _build_full_workbook(layout: dict[str, Any], input_rows: list[dict[str, Any]
     for col, header in enumerate(annotation_headers, start=1):
         annotation_ws.cell(row=3, column=col).value = header
     _style_header(annotation_ws, 3, 1, 8)
-    for idx, name in enumerate(["O", "A", "B", "C", "D", "E", "F", "G_global"], start=4):
-        source_row = idx
+    annotation_names = ["O", "A", "B", "C", "D", "E", "F", "G_global", "H", "S", "P", "Q", "R"]
+    for idx, name in enumerate(annotation_names, start=4):
+        source_row = point_row_by_name[name]
         annotation_ws.cell(row=idx, column=1).value = name
-        annotation_ws.cell(row=idx, column=2).value = "REF" if name == "G_global" else "N"
+        annotation_ws.cell(row=idx, column=2).value = "REF" if name == "G_global" else ("PV" if name in {"H", "S", "P", "Q", "R"} else "N")
         annotation_ws.cell(row=idx, column=3).value = '=A%d&" ("&TEXT(D%d,"0.000")&","&TEXT(E%d,"0.000")&")m"' % (idx, idx, idx)
         annotation_ws.cell(row=idx, column=4).value = "=%s" % _quoted("控制点坐标", "$C$%d" % source_row)
         annotation_ws.cell(row=idx, column=5).value = "=%s" % _quoted("控制点坐标", "$E$%d" % source_row)
         annotation_ws.cell(row=idx, column=6).value = "=ROUND(%s+D%d*%s,0)" % (_input_ref(row_by_name, "origin_px_x", "关键尺寸输入"), idx, _input_ref(row_by_name, "scale_px_per_m", "关键尺寸输入"))
         annotation_ws.cell(row=idx, column=7).value = "=ROUND(%s-E%d*%s,0)" % (_input_ref(row_by_name, "origin_px_y", "关键尺寸输入"), idx, _input_ref(row_by_name, "scale_px_per_m", "关键尺寸输入"))
         annotation_ws.cell(row=idx, column=8).value = "=%s" % _quoted("控制点坐标", "$H$%d" % source_row)
-    _style_body(annotation_ws, 4, 11, 1, 8)
+    _style_body(annotation_ws, 4, len(annotation_names) + 3, 1, 8)
     _set_widths(annotation_ws, {"A": 14, "B": 10, "C": 34, "D": 14, "E": 14, "F": 12, "G": 12, "H": 16})
 
     info_ws = wb.create_sheet("坐标系说明")
@@ -456,6 +577,13 @@ def _build_simple_workbook(layout: dict[str, Any], input_rows: list[dict[str, An
     gc = _mm(_input_ref(row_by_name, "GC_mm"))
     gf = _mm(_input_ref(row_by_name, "GF_mm"))
     ge = _mm(_input_ref(row_by_name, "GE_mm"))
+    hf = _mm(_input_ref(row_by_name, "HF_mm"))
+    hs = _mm(_input_ref(row_by_name, "HS_mm"))
+    hp = _mm(_input_ref(row_by_name, "HP_mm"))
+    hq = _mm(_input_ref(row_by_name, "HQ_mm"))
+    hr = _mm(_input_ref(row_by_name, "HR_mm"))
+    h_x = "(%s-%s*SIN(RADIANS(%s)))" % (xf, hf, theta)
+    h_z = "(%s+%s*COS(RADIANS(%s)))" % (zf, hf, theta)
     rows = [
         ["A", "=0", "=0", "=%s" % za, _status_formula(row_by_name, "E", ["Z_A_mm"]), "上立柱上顶点"],
         ["B", "=-%s" % r, "=0", "=%s" % zbd, _status_formula(row_by_name, "E", ["Z_BD_mm", "R_hoop_mm"]), "前斜撑与抱箍交点"],
@@ -464,20 +592,39 @@ def _build_simple_workbook(layout: dict[str, Any], input_rows: list[dict[str, An
         ["E", "=%s+(%s-%s)*COS(RADIANS(%s))" % (xf, ge, gf, theta), "=0", "=%s+(%s-%s)*SIN(RADIANS(%s))" % (zf, ge, gf, theta), _status_formula(row_by_name, "E", ["X_F_mm", "Z_F_mm", "GE_mm", "GF_mm", "theta_deg"]), "斜梁与后斜撑交点"],
         ["F", "=%s" % xf, "=0", "=%s" % zf, _status_formula(row_by_name, "E", ["X_F_mm", "Z_F_mm"]), "斜梁与上立柱/三角连接件参考交点"],
         ["G_global", "=%s-%s*COS(RADIANS(%s))" % (xf, gf, theta), "=0", "=%s-%s*SIN(RADIANS(%s))" % (zf, gf, theta), _status_formula(row_by_name, "E", ["X_F_mm", "Z_F_mm", "GF_mm", "theta_deg"]), "斜梁局部起点派生全局位置"],
+        ["H", _purlin_h_x_formula(xf, hf, theta), "=0", _purlin_h_z_formula(zf, hf, theta), _status_formula(row_by_name, "E", ["X_F_mm", "Z_F_mm", "HF_mm", "theta_deg"]), "檩条/光伏板轴线参考点"],
+        ["S", _purlin_axis_x_formula(h_x, hs, theta, -1), "=0", _purlin_axis_z_formula(h_z, hs, theta, -1), _status_formula(row_by_name, "E", ["X_F_mm", "Z_F_mm", "HF_mm", "HS_mm", "theta_deg"]), "图中原 O 点，改名 S 以避免与全局原点冲突"],
+        ["P", _purlin_axis_x_formula(h_x, hp, theta, -1), "=0", _purlin_axis_z_formula(h_z, hp, theta, -1), _status_formula(row_by_name, "E", ["X_F_mm", "Z_F_mm", "HF_mm", "HP_mm", "theta_deg"]), "前侧檩条/檩托控制点"],
+        ["Q", _purlin_axis_x_formula(h_x, hq, theta, 1), "=0", _purlin_axis_z_formula(h_z, hq, theta, 1), _status_formula(row_by_name, "E", ["X_F_mm", "Z_F_mm", "HF_mm", "HQ_mm", "theta_deg"]), "后侧檩条/檩托控制点"],
+        ["R", _purlin_axis_x_formula(h_x, hr, theta, 1), "=0", _purlin_axis_z_formula(h_z, hr, theta, 1), _status_formula(row_by_name, "E", ["X_F_mm", "Z_F_mm", "HF_mm", "HR_mm", "theta_deg"]), "后端檩条/檩托控制点"],
     ]
     out_rows = {}
     for row_index, row in enumerate(rows, start=output_start + 2):
         out_rows[row[0]] = row_index
         for col_index, value in enumerate(row, start=1):
             ws.cell(row=row_index, column=col_index).value = value
-    _style_body(ws, output_start + 2, output_start + 8, 1, 6)
+    point_data_end = output_start + 1 + len(rows)
+    _style_body(ws, output_start + 2, point_data_end, 1, 6)
 
-    check_start = output_start + 11
+    check_start = point_data_end + 3
     ws.cell(row=check_start, column=1).value = "校核结果"
     _style_header(ws, check_start, 1, 8)
     for col, header in enumerate(["校核项", "计算值", "图纸/输入值", "误差", "允许误差", "是否通过", "校核状态", "备注"], start=1):
         ws.cell(row=check_start + 1, column=col).value = header
     _style_header(ws, check_start + 1, 1, 8)
+    s_x, s_z = "$B$%d" % out_rows["S"], "$D$%d" % out_rows["S"]
+    p_x, p_z = "$B$%d" % out_rows["P"], "$D$%d" % out_rows["P"]
+    q_x, q_z = "$B$%d" % out_rows["Q"], "$D$%d" % out_rows["Q"]
+    r_x, r_z = "$B$%d" % out_rows["R"], "$D$%d" % out_rows["R"]
+    spqr_denominator = "SQRT((%s-%s)^2+(%s-%s)^2)" % (r_z, s_z, r_x, s_x)
+    spqr_p_distance = "ABS((%s-%s)*(%s-%s)-(%s-%s)*(%s-%s))/%s" % (r_z, s_z, p_x, s_x, r_x, s_x, p_z, s_z, spqr_denominator)
+    spqr_q_distance = "ABS((%s-%s)*(%s-%s)-(%s-%s)*(%s-%s))/%s" % (r_z, s_z, q_x, s_x, r_x, s_x, q_z, s_z, spqr_denominator)
+    spqr_status_inputs = ",".join(
+        '$E$%d="%s"' % (row_by_name[name], CONFIRMED)
+        for name in PURLIN_AXIS_STATUS_INPUTS
+    )
+    spqr_collinear_row = check_start + 8
+    spqr_angle_row = check_start + 9
     check_rows = [
         ["GC_GF_GE_ORDER", '="GC="&TEXT(%s,"0.000")&", GF="&TEXT(%s,"0.000")&", GE="&TEXT(%s,"0.000")' % (gc, gf, ge), "GC < GF < GE", "", "", '=IF(AND(%s<%s,%s<%s),"%s","%s")' % (gc, gf, gf, ge, PASSED, FAILED), '=IF(AND(F%d="%s",$E$%d="%s",$E$%d="%s",$E$%d="%s"),"%s","%s")' % (check_start + 2, PASSED, row_by_name["GC_mm"], CONFIRMED, row_by_name["GF_mm"], CONFIRMED, row_by_name["GE_mm"], CONFIRMED, CONFIRMED, MANUAL_CHECK), "斜梁局部截面顺序"],
         ["CF_LOCAL", "=%s-%s" % (gf, gc), "GF-GC", "", "", '=IF(B%d>0,"%s","%s")' % (check_start + 3, PASSED, FAILED), '=IF(F%d="%s","%s","%s")' % (check_start + 3, PASSED, CONFIRMED, MANUAL_CHECK), "C-F 局部距离"],
@@ -485,11 +632,13 @@ def _build_simple_workbook(layout: dict[str, Any], input_rows: list[dict[str, An
         ["CE_ANGLE", "=DEGREES(ATAN((D%d-D%d)/(B%d-B%d)))" % (out_rows["E"], out_rows["C"], out_rows["E"], out_rows["C"]), "=%s" % theta, "=MOD(B%d-C%d+180,360)-180" % (check_start + 5, check_start + 5), "=%s" % _input_ref(row_by_name, "angle_tolerance_deg"), '=IF(ABS(D%d)<=E%d,"%s","%s")' % (check_start + 5, check_start + 5, PASSED, FAILED), '=IF(F%d="%s","%s","%s")' % (check_start + 5, PASSED, CONFIRMED, MANUAL_CHECK), "CE 与 +X 夹角"],
         ["BC", "=SQRT((B%d-B%d)^2+(D%d-D%d)^2)" % (out_rows["C"], out_rows["B"], out_rows["C"], out_rows["B"]), "=%s" % _mm(_input_ref(row_by_name, "L_BC_draw_mm")), "=B%d-C%d" % (check_start + 6, check_start + 6), "=%s" % _input_ref(row_by_name, "control_tolerance_m"), '=IF(ABS(D%d)<=E%d,"%s","%s")' % (check_start + 6, check_start + 6, PASSED, FAILED), '=IF(F%d="%s","%s","%s")' % (check_start + 6, PASSED, CONFIRMED, MANUAL_CHECK), "前斜撑长度校核"],
         ["DE", "=SQRT((B%d-B%d)^2+(D%d-D%d)^2)" % (out_rows["E"], out_rows["D"], out_rows["E"], out_rows["D"]), "=%s" % _mm(_input_ref(row_by_name, "L_DE_draw_mm")), "=B%d-C%d" % (check_start + 7, check_start + 7), "=%s" % _input_ref(row_by_name, "control_tolerance_m"), '=IF(ABS(D%d)<=E%d,"%s","%s")' % (check_start + 7, check_start + 7, PASSED, FAILED), '=IF(F%d="%s","%s","%s")' % (check_start + 7, PASSED, CONFIRMED, MANUAL_CHECK), "后斜撑长度校核"],
+        ["SPQR_COLLINEAR", '=IFERROR(MAX(%s,%s),"")' % (spqr_p_distance, spqr_q_distance), "=0", '=IF(ISNUMBER(B%d),B%d-C%d,"")' % (spqr_collinear_row, spqr_collinear_row, spqr_collinear_row), "=1E-6", '=IF(AND(ISNUMBER(B%d),ISNUMBER(D%d)),IF(ABS(D%d)<=E%d,"%s","%s"),"%s")' % (spqr_collinear_row, spqr_collinear_row, spqr_collinear_row, spqr_collinear_row, PASSED, FAILED, FAILED), '=IF(AND(F%d="%s",%s),"%s","%s")' % (spqr_collinear_row, PASSED, spqr_status_inputs, CONFIRMED, MANUAL_CHECK), "S/P/Q/R 共线最大垂距"],
+        ["SPQR_ANGLE", '=IFERROR(DEGREES(ATAN((%s-%s)/(%s-%s))),"")' % (r_z, s_z, r_x, s_x), "=%s" % theta, '=IF(ISNUMBER(B%d),MOD(B%d-C%d+180,360)-180,"")' % (spqr_angle_row, spqr_angle_row, spqr_angle_row), "=%s" % _input_ref(row_by_name, "pv_axis_angle_tolerance_deg"), '=IF(AND(ISNUMBER(B%d),ISNUMBER(D%d)),IF(ABS(D%d)<=E%d,"%s","%s"),"%s")' % (spqr_angle_row, spqr_angle_row, spqr_angle_row, spqr_angle_row, PASSED, FAILED, FAILED), '=IF(AND(F%d="%s",%s),"%s","%s")' % (spqr_angle_row, PASSED, spqr_status_inputs, CONFIRMED, MANUAL_CHECK), "S-R 与 +X 夹角"],
     ]
     for row_index, row in enumerate(check_rows, start=check_start + 2):
         for col_index, value in enumerate(row, start=1):
             ws.cell(row=row_index, column=col_index).value = value
-    _style_body(ws, check_start + 2, check_start + 7, 1, 8)
+    _style_body(ws, check_start + 2, check_start + 1 + len(check_rows), 1, 8)
 
     figure_start = check_start + 10
     ws.cell(row=figure_start, column=1).value = "控制点示意图"

@@ -6,13 +6,18 @@ import tempfile
 import unittest
 from pathlib import Path
 
+from openpyxl import load_workbook
+
 from cadtocae.assembly_script import generate_assembly_scripts_from_workbook
 from cadtocae.coordinate_workbooks import create_coordinate_formula_workbooks
 from cadtocae.main_frame_assembly import (
     PASSED,
+    PURLIN_GROUP_Y_OFFSET_M,
+    PURLIN_SHORT_LENGTH_M,
     _section_reference_xy,
     build_payload,
     export_main_frame_assembly,
+    transform_rotation_sequence,
     rotate_z,
     rotate_y,
 )
@@ -37,6 +42,26 @@ def build_sample_inputs(tmp: str | Path) -> tuple[Path, Path]:
         "SP_SC_ANG20",
     )
     return simple, components_json
+
+
+def fill_purlin_axis_inputs(excel: Path) -> None:
+    values = {
+        "HF_mm": 115,
+        "HS_mm": 1849,
+        "HP_mm": 449,
+        "HQ_mm": 449,
+        "HR_mm": 1849,
+    }
+    wb = load_workbook(excel)
+    try:
+        for ws in wb.worksheets:
+            for row in range(1, ws.max_row + 1):
+                name = ws.cell(row=row, column=1).value
+                if name in values:
+                    ws.cell(row=row, column=3).value = values[name]
+        wb.save(excel)
+    finally:
+        wb.close()
 
 
 class MainFrameAssemblyTest(unittest.TestCase):
@@ -127,6 +152,76 @@ class MainFrameAssemblyTest(unittest.TestCase):
         self.assertAlmostEqual(checks["BC"]["error"], 0.0012409188706739016)
         self.assertAlmostEqual(checks["DE"]["error"], -0.013053394071534719)
 
+    def test_purlin_axis_points_checks_and_members_are_exported(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            excel, components = build_sample_inputs(tmp)
+            fill_purlin_axis_inputs(excel)
+            payload = build_payload(excel, components)
+
+        points = payload["points"]
+        checks = payload["checks"]
+        self.assertEqual(checks["SPQR_COLLINEAR"]["passed"], PASSED)
+        self.assertEqual(checks["SPQR_ANGLE"]["passed"], PASSED)
+        self.assertAlmostEqual(checks["SPQR_ANGLE"]["error"], 0.0)
+        for name in ["H", "S", "P", "Q", "R"]:
+            self.assertIn(name, points)
+
+        members_by_name = {member["name"]: member for member in payload["members"]}
+        purlin_names = ["PURLIN_%s" % name for name in ["S", "P", "Q", "R"]]
+        support_names = ["PURLIN_SUPPORT_%s" % name for name in ["S", "P", "Q", "R"]]
+        for name in purlin_names + support_names:
+            self.assertIn(name, members_by_name)
+        self.assertEqual(len({members_by_name[name]["instance_name"] for name in purlin_names + support_names}), 8)
+        self.assertEqual(payload["purlin_axis"]["enabled"], True)
+        self.assertEqual(payload["purlin_axis"]["purlin_derived_part_name"], "P_SP_SC_ANG20_PURLIN_50MM")
+
+        theta = math.radians(payload["inputs"]["theta_deg"])
+        expected_u = [math.cos(theta), 0.0, math.sin(theta)]
+        expected_n = [-math.sin(theta), 0.0, math.cos(theta)]
+        purlin_s = members_by_name["PURLIN_S"]
+        support_s = members_by_name["PURLIN_SUPPORT_S"]
+        self.assertEqual(purlin_s["part_name"], "P_SP_SC_ANG20_PURLIN_50MM")
+        self.assertEqual(purlin_s["source_part_name"], "P_SP_SC_ANG20_PURLIN")
+        self.assertAlmostEqual(purlin_s["part_length_m"], PURLIN_SHORT_LENGTH_M)
+        self.assertEqual(purlin_s["local_anchor"], [0.025, 0.115, 0.025])
+
+        rotated_anchor = transform_rotation_sequence(purlin_s["local_anchor"], purlin_s["rotation_sequence"])
+        transformed_anchor = [rotated_anchor[index] + purlin_s["translation"][index] for index in range(3)]
+        expected_purlin_anchor = list(points["S"]["coords"])
+        expected_purlin_anchor[1] += PURLIN_GROUP_Y_OFFSET_M
+        for index, expected in enumerate(expected_purlin_anchor):
+            self.assertAlmostEqual(transformed_anchor[index], expected)
+        self.assertAlmostEqual(payload["purlin_axis"]["group_y_offset_m"], PURLIN_GROUP_Y_OFFSET_M)
+
+        flange_axis = transform_rotation_sequence([1.0, 0.0, 0.0], purlin_s["rotation_sequence"])
+        web_axis = transform_rotation_sequence([0.0, 1.0, 0.0], purlin_s["rotation_sequence"])
+        length_axis = transform_rotation_sequence([0.0, 0.0, 1.0], purlin_s["rotation_sequence"])
+        for index in range(3):
+            self.assertAlmostEqual(flange_axis[index], expected_u[index])
+            self.assertAlmostEqual(web_axis[index], expected_n[index])
+        self.assertAlmostEqual(abs(length_axis[1]), 1.0)
+        self.assertAlmostEqual(length_axis[0], 0.0, places=7)
+        self.assertAlmostEqual(length_axis[2], 0.0, places=7)
+
+        support_long_leg = transform_rotation_sequence([1.0, 0.0, 0.0], support_s["rotation_sequence"])
+        support_short_leg = transform_rotation_sequence([0.0, 1.0, 0.0], support_s["rotation_sequence"])
+        for index in range(3):
+            self.assertAlmostEqual(support_long_leg[index], expected_n[index])
+            self.assertAlmostEqual(support_short_leg[index], -expected_u[index])
+        self.assertEqual(support_s["part_name"], "P_SP_SC_ANG20_PURLIN_SUPPORT")
+        self.assertEqual(support_s["local_anchor"], [0.0, 0.0, 0.025])
+
+        expected_web_bottom = [
+            points["S"]["coords"][index] - 0.025 * expected_u[index] - 0.115 * expected_n[index]
+            for index in range(3)
+        ]
+        expected_web_bottom[1] += PURLIN_GROUP_Y_OFFSET_M
+        support_rotated_anchor = transform_rotation_sequence(support_s["local_anchor"], support_s["rotation_sequence"])
+        support_transformed_anchor = [support_rotated_anchor[index] + support_s["translation"][index] for index in range(3)]
+        for index, expected in enumerate(expected_web_bottom):
+            self.assertAlmostEqual(support_transformed_anchor[index], expected)
+        self.assertEqual(payload["member_checks"]["PURLIN_SUPPORT_S_PLACEMENT"]["anchor"], "S_WEB_BOTTOM")
+
     def test_export_generates_single_embedded_assembly_script(self):
         with tempfile.TemporaryDirectory() as tmp:
             out_dir = Path(tmp)
@@ -198,6 +293,25 @@ class MainFrameAssemblyTest(unittest.TestCase):
             self.assertNotIn("COLUMN_UP", member_names)
             self.assertNotIn("COLUMN_DOWN", member_names)
             self.assertIn("COLUMN_PLACEMENT", assembly_payload["member_checks"])
+
+    def test_build_payload_accepts_column_up_without_column_down(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            tmp_path = Path(tmp)
+            excel, components = build_sample_inputs(tmp)
+            payload = json.loads(components.read_text(encoding="utf-8"))
+            payload["components"] = [
+                row for row in payload["components"] if row.get("component_code") != "COLUMN_DOWN"
+            ]
+            column_up_only = tmp_path / "column_up_only_components.json"
+            column_up_only.write_text(json.dumps(payload, ensure_ascii=False, indent=2), encoding="utf-8")
+
+            assembly_payload = build_payload(excel, column_up_only)
+
+            member_names = {member["name"] for member in assembly_payload["members"]}
+            self.assertIn("COLUMN_UP", member_names)
+            self.assertNotIn("COLUMN_DOWN", member_names)
+            self.assertIn("COLUMN_UP_PLACEMENT", assembly_payload["member_checks"])
+            self.assertIn("Only COLUMN_UP is available", assembly_payload["member_checks"]["COLUMN_UP_PLACEMENT"]["note"])
 
     def test_step04_auto_locates_flat_step02_part_script_components(self):
         with tempfile.TemporaryDirectory() as tmp:
