@@ -1,124 +1,62 @@
 # CADtoCAE Codex 操作规则
 
+本文件仅记录 CADtoCAE 仓库的通用开发约束。详细 Git、worktree、测试和 EXE 构建流程见 [docs/DEVELOPMENT.md](docs/DEVELOPMENT.md)。
+
 ## 基本原则
 
-1. 修改代码前先执行 `git status --short --branch`。
-2. `main` 只保留稳定可用版本。
-3. 新功能必须在 `feature/*` 分支开发。
-4. Bug 修复必须在 `fix/*` 分支开发。
-5. 文档类修改可以使用 `docs/*` 分支。
-6. 不自动 push，除非用户明确要求。
+1. `main` 工作区只用于同步 `origin/main`、集成验证、PR 合并后的最终检查、正式 EXE 构建和 Release。
+2. 每个独立开发任务使用一个独立的 `feature/*` 或 `fix/*` 分支，并创建独立 worktree。
+3. 不在 `main` 上直接开发普通功能或修复。
+4. 影响 Step01、Step02、Step04 程序行为、GUI、输入输出、打包结果或运行逻辑的修改，遵循：源码修改、自动化测试、构建对应模块开发版 EXE、等待用户人工验证、再进入提交流程。
+5. 未经用户明确说“测试通过，可以提交”或同等意思，不 commit、不 push、不创建 PR。
+6. feature/fix worktree 中生成的 EXE 只作为开发验证版；正式集成版或发布候选版 EXE 必须在最新 `main` 上重新构建。
 
-## 禁止的高风险操作
+## 开工前检查
 
-未经用户明确授权，不得执行：
+开始任何开发或提交前，先确认当前 Git 环境：
+
+```powershell
+git rev-parse --show-toplevel
+git branch --show-current
+git status
+git worktree list
+git remote -v
+```
+
+必须确认当前目录是本任务指定的独立 worktree，当前分支是本任务指定的 feature/fix 分支，工作树状态符合预期，并且没有误操作 `main`。
+
+## 禁止操作
+
+除非用户明确授权，不执行：
 
 - `git reset --hard`
-- `git clean -fd`
-- `git push --force`
-- `git push --force-with-lease`
-- `git branch -D`
-- 批量删除或移动未确认范围的文件
+- `git clean`
+- force push
+- 删除 branch
+- 删除 worktree
+- 直接 push 到 `main`
+- 自动 merge PR
 
-回退版本前必须先创建 `backup/*` 备份分支。
+## 测试与 EXE
 
-## Git 提交规则
+Codex 负责修改源码、运行相关自动化测试，并在修改影响 Step01、Step02 或 Step04 程序运行时构建对应模块的开发版 EXE。用户负责实际运行 EXE，检查 GUI、输入输出文件和 Abaqus 中的最终效果。
 
-提交前必须检查：
+开发阶段的 EXE 输出应位于当前 worktree 自己的构建输出目录，例如 `dist/`，避免不同 worktree 的生成物混淆。
+
+纯文档、Git 流程说明等不影响程序运行的修改，不强制构建 EXE。
+
+## 提交前
+
+提交前必须检查修改范围并运行最终相关测试：
 
 ```powershell
 git status --short
 git diff --stat
 ```
 
-提交说明使用清晰前缀：
-
-- `新增：...`
-- `修复：...`
-- `优化：...`
-- `文档：...`
-- `发布：...`
-
-避免使用：
-
-- `修改一下`
-- `更新`
-- `测试`
-- `最终版`
-- `最终版2`
-
-## 不提交的文件
-
-不得把以下内容提交到 git：
-
-- `.venv_step01_build/`
-- `build/`
-- `dist/`
-- `outputs/`
-- `release_packages/`
-- `*.spec`
-- `*.zip`
-- `*.cae`
-- `*.odb`
-- `*.jnl`
-- `*.rec`
-- `*.lck`
-- 用户项目生成文件
-- 调试报告和过程文件
-- 未脱敏的真实图纸、截图、PPT 或计算结果
-
-正式 exe 发布包应放在 `release_packages/` 或 GitHub Release，不直接进入 git。
-
-## 测试规则
-
-重要修改提交前运行完整测试：
+第一次 push 新分支时应建立远程 tracking branch：
 
 ```powershell
-$env:PYTHONPATH='src'
-.\.venv_step01_build\Scripts\python.exe -m unittest discover -s tests -v
+git push -u origin <当前branch>
 ```
-
-只修改 Step02 时至少运行：
-
-```powershell
-$env:PYTHONPATH='src'
-.\.venv_step01_build\Scripts\python.exe -m unittest discover -s tests -p 'test_part_script.py' -v
-```
-
-只修改 Step04 时至少运行：
-
-```powershell
-$env:PYTHONPATH='src'
-.\.venv_step01_build\Scripts\python.exe -m unittest discover -s tests -p 'test_main_frame_assembly.py' -v
-```
-
-## CADtoCAE 专属验证
-
-修改 Step02 后必须确认：
-
-- 不再生成外部 `<project_prefix>_components.json`
-- `<project_prefix>_create_parts_in_cae.py` 内嵌 `COMPONENTS_JSON`
-- Abaqus Model 名等于 `<project_prefix>`
-- 不自动打开或保存 `.cae`
-- 调试报告进入 `过程文件\调试文件`
-
-修改 Step04 后必须确认：
-
-- 输入为 `<project_prefix>_coordinate_formula_simple_fixed.xlsx` 和 `<project_prefix>_create_parts_in_cae.py`
-- 输出为 `<project_prefix>_assembly_frame.py`
-- 不生成外部 `assembly_inputs.json`
-- 调试报告进入 `过程文件\调试文件`
-- 脚本只操作同名 `<project_prefix>` Model
-- 不生成多余 RP/reference point
-- `INCLINED_BEAM` 装配时额外绕自身中心轴旋转 180°
-
-涉及真实流程时，应重跑 `real_tests` 中 ANG18 和 ANG33 样例。
-
-## 分支建议
-
-- `feature/step02-all-components`
-- `feature/step04-sp-dc-dp-assembly`
-- `feature/step05-analysis-submit`
-- `fix/step04-coordinate-error`
-- `docs/user-manual`
 
