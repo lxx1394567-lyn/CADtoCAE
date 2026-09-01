@@ -16,6 +16,8 @@ from openpyxl.utils import get_column_letter
 from .standards import (
     ParsedSpec,
     component_code_from_part_name,
+    component_role_entries,
+    component_role_key,
     derive_component_row,
     effective_model_policy,
     has_complete_model_dimensions,
@@ -27,7 +29,20 @@ from .standards import (
 )
 
 
-RAW_HEADERS = ["类别", "序号", "名称", "规格", "长度_mm", "数量", "备注", "来源页码", "识别置信度"]
+RAW_HEADERS = [
+    "类别",
+    "序号",
+    "名称",
+    "规格",
+    "长度_mm",
+    "数量",
+    "构件米重 kg/m",
+    "单位重量 kg",
+    "总重量 kg",
+    "备注",
+    "来源页码",
+    "识别置信度",
+]
 COMPONENT_HEADERS = [
     "支架类型",
     "角度",
@@ -45,6 +60,13 @@ COMPONENT_HEADERS = [
     "截面参数",
     "厚度_mm",
     "厚度_m",
+    "材料密度 kg/m³",
+    "构件米重 kg/m",
+    "单件质量 kg",
+    "总质量 kg",
+    "理论单件质量 kg",
+    "理论总质量 kg",
+    "质量校核状态",
 ]
 STEP02_GUIDE_HEADERS = {
     "支架类型": "用于推断项目名前缀。文件名已有 SP_SC_ANG20 这类前缀时，以文件名前缀优先。",
@@ -54,7 +76,7 @@ STEP02_GUIDE_HEADERS = {
     "规格": "Step02 会从本列重新解析截面。支持 C80x40x10x2.0、L90x56x5.0、Φ159x3.0、Φ180x70x5.0、Φ10、M8 等格式。",
     "长度_mm": "C 型钢、圆管、角钢、撑杆、圆杆等线性构件必须填写。",
     "数量": "Step02 会写入 JSON，后续 assembly 会使用。",
-    "材料牌号": "必须填写，建议使用 Q235 B、Q355 B、Q420 B、Q550 B、6063-T5。",
+    "材料牌号": "必须填写，建议使用 Q235B、Q355B、Q420B、Q550B、6063-T5。",
     "建模方式": "要自动生成 Part，应填写 壳单元 或 实体单元。人工模板不会自动建 Part。",
     "单元类型": "壳单元通常为 S4R，实体单元通常为 C3D8R。",
 }
@@ -100,6 +122,37 @@ def _nested_if_equals(text_expr: str, pairs: Iterable[tuple[str, str]], default_
     return result
 
 
+def _switch_equals(text_expr: str, pairs: Iterable[tuple[str, str]], default_expr: str) -> str:
+    seen: set[str] = set()
+    args: list[str] = []
+    for key, value_expr in pairs:
+        if key in seen:
+            continue
+        seen.add(key)
+        args.extend([_excel_string(key), value_expr])
+    if not args:
+        return default_expr
+    return "SWITCH(%s,%s,%s)" % (text_expr, ",".join(args), default_expr)
+
+
+def _nested_if_contains(text_expr: str, pairs: Iterable[tuple[str, str]], default_expr: str) -> str:
+    result = default_expr
+    seen: set[str] = set()
+    normalized_pairs: list[tuple[str, str]] = []
+    for key, value_expr in sorted(pairs, key=lambda item: len(item[0]), reverse=True):
+        if key in seen:
+            continue
+        seen.add(key)
+        normalized_pairs.append((key, value_expr))
+    for key, value_expr in reversed(normalized_pairs):
+        result = 'IF(ISNUMBER(SEARCH(%s,%s)),%s,%s)' % (_excel_string(key), text_expr, value_expr, result)
+    return result
+
+
+def _raw_header_columns() -> dict[str, str]:
+    return {header: get_column_letter(index + 1) for index, header in enumerate(RAW_HEADERS)}
+
+
 def _support_type_code_expr(cell_ref: str, standards: dict[str, Any]) -> str:
     text_expr = 'UPPER(TRIM(%s&""))' % cell_ref
     pairs: list[tuple[str, str]] = []
@@ -127,37 +180,87 @@ def _component_role_expr(
     default_value: str,
 ) -> str:
     text_expr = 'TRIM(%s&"")' % component_name_ref
+    numbered_default = _numbered_component_role_expr(text_expr, standards, role_key, default_value)
     pairs = [
-        (component_name, _excel_string(role.get(role_key, default_value)))
-        for component_name, role in standards["component_roles"].items()
+        (entry_name, _excel_string(role.get(role_key, default_value)))
+        for entry_name, _canonical_name, role in component_role_entries(standards)
     ]
-    return _nested_if_equals(text_expr, pairs, _excel_string(default_value))
+    return _switch_equals(text_expr, pairs, numbered_default)
+
+
+def _numbered_component_role_expr(
+    text_expr: str,
+    standards: dict[str, Any],
+    role_key: str,
+    default_value: str,
+) -> str:
+    result = _excel_string(default_value)
+    entries = sorted(component_role_entries(standards), key=lambda item: len(item[0]), reverse=True)
+    seen: set[str] = set()
+    for entry_name, _canonical_name, role in reversed(entries):
+        base = str(entry_name).strip()
+        if not base or base in seen:
+            continue
+        seen.add(base)
+        code = str(role.get("code", "")).strip().upper()
+        if not code or code == "UNKNOWN_COMPONENT":
+            continue
+        suffix_expr = "MID(%s,%d,99)" % (text_expr, len(base) + 1)
+        condition = (
+            'AND(LEN(%s)>%d,LEFT(%s,%d)=%s,ISNUMBER(IFERROR(VALUE(%s),"")))'
+            % (text_expr, len(base), text_expr, len(base), _excel_string(base), suffix_expr)
+        )
+        if role_key == "code":
+            value_expr = '%s&"_"&%s' % (_excel_string(code), suffix_expr)
+        else:
+            value_expr = _excel_string(role.get(role_key, default_value))
+        result = "IF(%s,%s,%s)" % (condition, value_expr, result)
+    return result
 
 
 def _model_policy_expr(component_name_ref: str, standards: dict[str, Any]) -> str:
     labels = standards["model_policy_labels"]
     text_expr = 'TRIM(%s&"")' % component_name_ref
+    numbered_default = _numbered_model_policy_expr(text_expr, standards, labels)
     pairs = [
-        (component_name, _excel_string(labels.get(str(role.get("model_policy", "")), role.get("model_policy", ""))))
-        for component_name, role in standards["component_roles"].items()
+        (entry_name, _excel_string(labels.get(str(role.get("model_policy", "")), role.get("model_policy", ""))))
+        for entry_name, _canonical_name, role in component_role_entries(standards)
     ]
+    return _switch_equals(text_expr, pairs, numbered_default)
+
+
+def _numbered_model_policy_expr(text_expr: str, standards: dict[str, Any], labels: dict[str, str]) -> str:
     default_label = labels.get("MANUAL_TEMPLATE", "人工模板")
-    return _nested_if_equals(text_expr, pairs, _excel_string(default_label))
+    result = _excel_string(default_label)
+    entries = sorted(component_role_entries(standards), key=lambda item: len(item[0]), reverse=True)
+    seen: set[str] = set()
+    for entry_name, _canonical_name, role in reversed(entries):
+        base = str(entry_name).strip()
+        if not base or base in seen:
+            continue
+        seen.add(base)
+        suffix_expr = "MID(%s,%d,99)" % (text_expr, len(base) + 1)
+        condition = (
+            'AND(LEN(%s)>%d,LEFT(%s,%d)=%s,ISNUMBER(IFERROR(VALUE(%s),"")))'
+            % (text_expr, len(base), text_expr, len(base), _excel_string(base), suffix_expr)
+        )
+        label = labels.get(str(role.get("model_policy", "")), role.get("model_policy", ""))
+        result = "IF(%s,%s,%s)" % (condition, _excel_string(label), result)
+    return result
 
 
-def _material_grade_formula(sheet_name: str, column: str, row_index: int) -> str:
+def _material_grade_formula(sheet_name: str, column: str, row_index: int, standards: dict[str, Any]) -> str:
     source = _sheet_cell_ref(sheet_name, column, row_index)
     raw_expr = 'TRIM(%s&"")' % source
     normalized_expr = 'UPPER(SUBSTITUTE(%s," ",""))' % raw_expr
-    pairs = [
-        ("Q235B", _excel_string("Q235 B")),
-        ("Q355B", _excel_string("Q355 B")),
-        ("Q420B", _excel_string("Q420 B")),
-        ("Q550B", _excel_string("Q550 B")),
-        ("6063T5", _excel_string("6063-T5")),
-        ("6063-T5", _excel_string("6063-T5")),
-    ]
-    mapped_expr = _nested_if_equals(normalized_expr, pairs, raw_expr)
+    pairs: list[tuple[str, str]] = []
+    for grade in standards.get("materials", {}):
+        key = str(grade).replace(" ", "").upper()
+        value_expr = _excel_string(str(grade))
+        pairs.append((key, value_expr))
+        if "-" in key:
+            pairs.append((key.replace("-", ""), value_expr))
+    mapped_expr = _nested_if_contains(normalized_expr, pairs, raw_expr)
     return '=IF(%s="","",%s)' % (raw_expr, mapped_expr)
 
 
@@ -179,15 +282,16 @@ def _component_workbook_row(
     raw_sheet_name: str,
     row_index: int,
     standards: dict[str, Any],
+    raw_columns: dict[str, str],
 ) -> list[Any]:
     formulas = {
-        "构件名称": _same_row_link_formula(raw_sheet_name, "C", row_index),
+        "构件名称": _same_row_link_formula(raw_sheet_name, raw_columns["名称"], row_index),
         "abaqus_part_name": _part_name_formula(row_index, standards),
-        "规格": _same_row_link_formula(raw_sheet_name, "D", row_index),
-        "长度_mm": _same_row_link_formula(raw_sheet_name, "E", row_index),
+        "规格": _same_row_link_formula(raw_sheet_name, raw_columns["规格"], row_index),
+        "长度_mm": _same_row_link_formula(raw_sheet_name, raw_columns["长度_mm"], row_index),
         "长度_m": '=IFERROR(IF(TRIM(G%s&"")="","",VALUE(G%s)/1000),"")' % (row_index, row_index),
-        "数量": _same_row_link_formula(raw_sheet_name, "F", row_index),
-        "材料牌号": _material_grade_formula(raw_sheet_name, "G", row_index),
+        "数量": _same_row_link_formula(raw_sheet_name, raw_columns["数量"], row_index),
+        "材料牌号": _material_grade_formula(raw_sheet_name, raw_columns["备注"], row_index, standards),
         "建模方式": "=%s" % _model_policy_expr("D%s" % row_index, standards),
         "单元类型": "=%s" % _component_role_expr("D%s" % row_index, standards, "element_type", "C3D8R"),
     }
@@ -332,7 +436,36 @@ def _step02_issue_cells(component_row: dict[str, Any]) -> dict[str, list[str]]:
     return issue_map
 
 
-def _apply_step02_guidance(ws, component_rows: list[dict[str, Any]]) -> None:
+def _part_name_collision_messages(component_rows: list[dict[str, Any]], standards: dict[str, Any]) -> dict[int, list[str]]:
+    by_part_name: dict[str, list[tuple[int, str, str]]] = {}
+    for row_index, component_row in enumerate(component_rows, start=2):
+        part_name_value = str(component_row.get("abaqus_part_name", "") or "").strip()
+        component_name = str(component_row.get("构件名称", "") or "").strip()
+        if not part_name_value or not component_name:
+            continue
+        role_key = component_role_key(component_name, standards) or component_name
+        by_part_name.setdefault(part_name_value, []).append((row_index, component_name, role_key))
+
+    messages_by_row: dict[int, list[str]] = {}
+    for part_name_value, items in by_part_name.items():
+        names = {name for _row_index, name, _role_key in items}
+        role_keys = {role_key for _row_index, _name, role_key in items}
+        if len(names) <= 1 or len(role_keys) <= 1:
+            continue
+        message = "不同构件名称生成相同 Abaqus Part 名称：%s -> %s；请检查构件英文映射。" % (
+            "、".join(sorted(names)),
+            part_name_value,
+        )
+        for row_index, _name, _role_key in items:
+            messages_by_row.setdefault(row_index, []).append(message)
+    return messages_by_row
+
+
+def _apply_step02_guidance(
+    ws,
+    component_rows: list[dict[str, Any]],
+    collision_messages: dict[int, list[str]] | None = None,
+) -> None:
     header_to_col = {cell.value: cell.column for cell in ws[1]}
     header_fill = PatternFill("solid", fgColor="FFC00000")
     header_font = Font(name="Microsoft YaHei", bold=True, color="FFFFFF")
@@ -350,6 +483,8 @@ def _apply_step02_guidance(ws, component_rows: list[dict[str, Any]]) -> None:
 
     for row_index, component_row in enumerate(component_rows, start=2):
         issue_map = _step02_issue_cells(component_row)
+        for message in (collision_messages or {}).get(row_index, []):
+            _add_issue(issue_map, "abaqus_part_name", message)
         for header, header_messages in issue_map.items():
             column = header_to_col.get(header)
             if not column:
@@ -370,10 +505,12 @@ def create_material_workbook(
 ) -> Path:
     raw_rows = normalize_raw_rows(raw_rows)
     standards = load_standards(standards_path)
+    raw_columns = _raw_header_columns()
     component_rows = [
         derive_component_row(row, support_type, angle, array_layout, standards)
         for row in raw_rows
     ]
+    collision_messages = _part_name_collision_messages(component_rows, standards)
 
     wb = Workbook()
     wb.calculation.calcMode = "auto"
@@ -398,9 +535,12 @@ def create_material_workbook(
             "D": 22,
             "E": 12,
             "F": 10,
-            "G": 14,
-            "H": 12,
+            "G": 16,
+            "H": 14,
             "I": 14,
+            "J": 18,
+            "K": 12,
+            "L": 14,
         },
     )
 
@@ -409,7 +549,7 @@ def create_material_workbook(
         component_ws,
         COMPONENT_HEADERS,
         [
-            _component_workbook_row(row, raw_ws.title, row_index, standards)
+            _component_workbook_row(row, raw_ws.title, row_index, standards, raw_columns)
             for row_index, row in enumerate(component_rows, start=2)
         ],
         "ComponentModelTable",
@@ -433,10 +573,17 @@ def create_material_workbook(
             "N": 38,
             "O": 10,
             "P": 10,
+            "Q": 16,
+            "R": 16,
+            "S": 14,
+            "T": 14,
+            "U": 16,
+            "V": 16,
+            "W": 14,
         },
     )
     _add_review_validations(component_ws)
-    _apply_step02_guidance(component_ws, component_rows)
+    _apply_step02_guidance(component_ws, component_rows, collision_messages)
 
     output = Path(output_path)
     output.parent.mkdir(parents=True, exist_ok=True)
