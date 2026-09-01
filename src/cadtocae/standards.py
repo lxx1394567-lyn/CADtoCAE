@@ -226,13 +226,65 @@ def project_prefix(support_type: str, angle: Any, standards: dict[str, Any] | No
     return "%s_%s" % (support_type_code(support_type, standards), angle_code(angle))
 
 
-def component_role(component_name: str, standards: dict[str, Any] | None = None) -> dict[str, Any]:
+def component_role_entries(standards: dict[str, Any] | None = None) -> list[tuple[str, str, dict[str, Any]]]:
     standards = _ensure_standards(standards)
+    entries: list[tuple[str, str, dict[str, Any]]] = []
+    for canonical_name, role in standards["component_roles"].items():
+        entries.append((str(canonical_name).strip(), str(canonical_name).strip(), role))
+        for alias in role.get("aliases") or []:
+            alias_text = str(alias).strip()
+            if alias_text:
+                entries.append((alias_text, str(canonical_name).strip(), role))
+    return entries
+
+
+def _component_role_exact(component_name: str, standards: dict[str, Any]) -> tuple[str, dict[str, Any]] | None:
     name = str(component_name).strip()
-    role = standards["component_roles"].get(name)
-    if role:
-        return role
-    sanitized = re.sub(r"[^A-Za-z0-9]+", "_", name.upper()).strip("_") or "UNKNOWN_COMPONENT"
+    for entry_name, canonical_name, role in component_role_entries(standards):
+        if name == entry_name:
+            return canonical_name, role
+    return None
+
+
+def _role_with_code(role: dict[str, Any], code: str) -> dict[str, Any]:
+    copied = dict(role)
+    copied["code"] = code
+    return copied
+
+
+def _component_role_numbered(component_name: str, standards: dict[str, Any]) -> tuple[str, dict[str, Any]] | None:
+    match = re.fullmatch(r"(?P<base>.+?)(?P<index>\d+)", str(component_name).strip())
+    if not match:
+        return None
+    base = match.group("base").strip()
+    index = match.group("index")
+    resolved = _component_role_exact(base, standards)
+    if not resolved:
+        return None
+    canonical_name, role = resolved
+    code = str(role.get("code", "")).strip().upper()
+    if not code or code == "UNKNOWN_COMPONENT":
+        return None
+    return "%s%s" % (canonical_name, index), _role_with_code(role, "%s_%s" % (code, index))
+
+
+def component_role_key(component_name: Any, standards: dict[str, Any] | None = None) -> str | None:
+    standards = _ensure_standards(standards)
+    name = str(component_name or "").strip()
+    resolved = _component_role_exact(name, standards) or _component_role_numbered(name, standards)
+    if not resolved:
+        return None
+    return resolved[0]
+
+
+def _unknown_component_role(component_name: Any) -> dict[str, Any]:
+    name = str(component_name or "").strip()
+    if re.search(r"[\u4e00-\u9fff]", name):
+        sanitized = "UNKNOWN_COMPONENT"
+    else:
+        sanitized = re.sub(r"[^A-Za-z0-9]+", "_", name.upper()).strip("_") or "UNKNOWN_COMPONENT"
+        if not re.match(r"[A-Z_]", sanitized):
+            sanitized = "UNKNOWN_COMPONENT"
     return {
         "code": sanitized,
         "model_policy": "MANUAL_TEMPLATE",
@@ -240,6 +292,15 @@ def component_role(component_name: str, standards: dict[str, Any] | None = None)
         "focus_analysis": False,
         "requires_length": False,
     }
+
+
+def component_role(component_name: str, standards: dict[str, Any] | None = None) -> dict[str, Any]:
+    standards = _ensure_standards(standards)
+    name = str(component_name).strip()
+    resolved = _component_role_exact(name, standards) or _component_role_numbered(name, standards)
+    if resolved:
+        return resolved[1]
+    return _unknown_component_role(name)
 
 
 def part_name(support_type: str, angle: Any, component_name: str, standards: dict[str, Any] | None = None) -> str:
@@ -278,16 +339,64 @@ def is_valid_abaqus_name(name_value: Any) -> bool:
 def normalize_material_grade(grade: Any) -> str:
     if grade is None:
         return ""
-    text = str(grade).strip().upper().replace(" ", "")
-    aliases = {
-        "Q235B": "Q235 B",
-        "Q355B": "Q355 B",
-        "Q420B": "Q420 B",
-        "Q550B": "Q550 B",
-        "6063T5": "6063-T5",
-        "6063-T5": "6063-T5",
-    }
-    return aliases.get(text, str(grade).strip())
+    raw_text = str(grade).strip()
+    text = re.sub(r"\s+", "", raw_text.upper())
+    text = text.replace("_", "-")
+    if not text:
+        return ""
+
+    match = re.search(r"(?:AL)?6063-?T5", text)
+    if match:
+        return "6063-T5"
+
+    match = re.search(r"Q(?P<num>235|345|355|420|450|550)(?P<suffix>[A-Z]?)", text)
+    if match:
+        suffix = match.group("suffix") or ""
+        return "Q%s%s" % (match.group("num"), suffix)
+
+    match = re.search(r"S(?P<num>250|350|420|550)GD", text)
+    if match:
+        return "S%sGD" % match.group("num")
+
+    return raw_text
+
+
+def _float_value(value: Any) -> float | None:
+    if _is_blank(value):
+        return None
+    match = re.search(r"-?\d+(?:\.\d+)?", str(value).replace(",", ""))
+    if not match:
+        return None
+    return float(match.group(0))
+
+
+def _rounded_mass(value: float | None) -> float | str:
+    if value is None:
+        return ""
+    return round(value + 0.0, 2)
+
+
+def _mass_within_tolerance(actual: float, expected: float) -> bool:
+    tolerance = max(0.05, abs(expected) * 0.01)
+    return abs(actual - expected) <= tolerance
+
+
+def _mass_check_status(
+    theoretical_single_kg: float | None,
+    theoretical_total_kg: float | None,
+    raw_single_kg: Any,
+    raw_total_kg: Any,
+) -> str:
+    checks: list[bool] = []
+    actual_single = _float_value(raw_single_kg)
+    actual_total = _float_value(raw_total_kg)
+    if theoretical_single_kg is not None and actual_single is not None:
+        checks.append(_mass_within_tolerance(actual_single, theoretical_single_kg))
+    if theoretical_total_kg is not None and actual_total is not None:
+        checks.append(_mass_within_tolerance(actual_total, theoretical_total_kg))
+    if not checks:
+        return ""
+    return "OK" if all(checks) else "CHECK"
 
 
 def _is_blank(value: Any) -> bool:
@@ -314,6 +423,25 @@ def derive_component_row(
     policy = role["model_policy"]
     policy_label = standards["model_policy_labels"].get(policy, policy)
     material_grade = normalize_material_grade(raw_row.get("备注", ""))
+    material = material_properties(material_grade, standards)
+    length_m = mm_to_m(raw_row.get("长度_mm")) or ""
+    meter_weight = raw_row.get("构件米重 kg/m", "")
+    single_mass = raw_row.get("单位重量 kg", "")
+    total_mass = raw_row.get("总重量 kg", "")
+    meter_weight_value = _float_value(meter_weight)
+    quantity_value = _float_value(raw_row.get("数量", ""))
+    theoretical_single_raw = None
+    theoretical_total_raw = None
+    if meter_weight_value is not None and length_m != "":
+        theoretical_single_raw = meter_weight_value * float(length_m)
+    if theoretical_single_raw is not None and quantity_value is not None:
+        theoretical_total_raw = theoretical_single_raw * quantity_value
+    mass_check_status = _mass_check_status(
+        theoretical_single_raw,
+        theoretical_total_raw,
+        single_mass,
+        total_mass,
+    )
 
     issues: list[str] = []
     if parsed.status != "已解析":
@@ -334,7 +462,7 @@ def derive_component_row(
         "构件代码": role["code"],
         "规格": raw_row.get("规格", ""),
         "长度_mm": raw_row.get("长度_mm", ""),
-        "长度_m": mm_to_m(raw_row.get("长度_mm", "")) or "",
+        "长度_m": length_m,
         "数量": raw_row.get("数量", ""),
         "材料牌号": material_grade,
         "建模方式": policy_label,
@@ -343,6 +471,13 @@ def derive_component_row(
         "截面参数": parsed.params_text(),
         "厚度_mm": parsed.thickness_mm if parsed.thickness_mm is not None else "",
         "厚度_m": mm_to_m(parsed.thickness_mm) or "",
+        "材料密度 kg/m³": material.get("density_kg_per_m3") or "",
+        "构件米重 kg/m": meter_weight,
+        "单件质量 kg": single_mass,
+        "总质量 kg": total_mass,
+        "理论单件质量 kg": _rounded_mass(theoretical_single_raw),
+        "理论总质量 kg": _rounded_mass(theoretical_total_raw),
+        "质量校核状态": mass_check_status,
         "是否重点分析": "是" if role.get("focus_analysis") else "否",
         "校核状态": review_status,
         "abaqus_part_name": part_name(support_type, angle, name, standards),

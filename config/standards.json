@@ -28,6 +28,13 @@
       "focus_analysis": false,
       "requires_length": true
     },
+    "立柱": {
+      "code": "COLUMN",
+      "model_policy": "SHELL",
+      "element_type": "S4R",
+      "focus_analysis": false,
+      "requires_length": true
+    },
     "上立柱": {
       "code": "COLUMN_UP",
       "model_policy": "SHELL",
@@ -39,6 +46,27 @@
       "code": "COLUMN_DOWN",
       "model_policy": "SHELL",
       "element_type": "S4R",
+      "focus_analysis": false,
+      "requires_length": true
+    },
+    "前立柱": {
+      "code": "COLUMN_FRONT",
+      "model_policy": "MANUAL_TEMPLATE",
+      "element_type": "C3D8R",
+      "focus_analysis": false,
+      "requires_length": true
+    },
+    "后立柱": {
+      "code": "COLUMN_REAR",
+      "model_policy": "MANUAL_TEMPLATE",
+      "element_type": "C3D8R",
+      "focus_analysis": false,
+      "requires_length": true
+    },
+    "斜撑": {
+      "code": "BRACE",
+      "model_policy": "MANUAL_TEMPLATE",
+      "element_type": "C3D8R",
       "focus_analysis": false,
       "requires_length": true
     },
@@ -77,6 +105,83 @@
       "focus_analysis": true,
       "requires_length": true
     },
+    "柱间支撑": {
+      "code": "COLUMN_BRACE",
+      "model_policy": "MANUAL_TEMPLATE",
+      "element_type": "C3D8R",
+      "focus_analysis": false,
+      "requires_length": true
+    },
+    "柱间支撑连接件": {
+      "code": "COLUMN_BRACE_CONNECTOR",
+      "model_policy": "MANUAL_TEMPLATE",
+      "element_type": "C3D8R",
+      "focus_analysis": false,
+      "requires_length": false
+    },
+    "斜梁拉杆": {
+      "code": "INCLINED_BEAM_TIE_ROD",
+      "model_policy": "MANUAL_TEMPLATE",
+      "element_type": "C3D8R",
+      "focus_analysis": false,
+      "requires_length": true
+    },
+    "水平拉杆": {
+      "code": "HORIZONTAL_TIE_ROD",
+      "model_policy": "MANUAL_TEMPLATE",
+      "element_type": "C3D8R",
+      "focus_analysis": false,
+      "requires_length": true
+    },
+    "水平拉杆垫脚": {
+      "code": "HORIZONTAL_TIE_ROD_PAD",
+      "model_policy": "MANUAL_TEMPLATE",
+      "element_type": "C3D8R",
+      "focus_analysis": false,
+      "requires_length": false
+    },
+    "直拉条": {
+      "code": "STRAIGHT_TIE_ROD",
+      "model_policy": "MANUAL_TEMPLATE",
+      "element_type": "C3D8R",
+      "focus_analysis": false,
+      "requires_length": true
+    },
+    "斜拉条": {
+      "code": "DIAGONAL_TIE_ROD",
+      "model_policy": "MANUAL_TEMPLATE",
+      "element_type": "C3D8R",
+      "focus_analysis": false,
+      "requires_length": true
+    },
+    "斜撑拉杆": {
+      "code": "BRACE_TIE_ROD",
+      "model_policy": "MANUAL_TEMPLATE",
+      "element_type": "C3D8R",
+      "focus_analysis": false,
+      "requires_length": true
+    },
+    "预埋钢管": {
+      "code": "EMBEDDED_STEEL_PIPE",
+      "model_policy": "MANUAL_TEMPLATE",
+      "element_type": "C3D8R",
+      "focus_analysis": false,
+      "requires_length": true
+    },
+    "三角连接件": {
+      "code": "TRIANGULAR_CONNECTOR",
+      "model_policy": "MANUAL_TEMPLATE",
+      "element_type": "C3D8R",
+      "focus_analysis": false,
+      "requires_length": false
+    },
+    "连接件": {
+      "code": "CONNECTOR",
+      "model_policy": "MANUAL_TEMPLATE",
+      "element_type": "C3D8R",
+      "focus_analysis": false,
+      "requires_length": false
+    },
     "抱箍": {
       "code": "HOOP",
       "model_policy": "SOLID",
@@ -84,8 +189,23 @@
       "focus_analysis": true,
       "requires_length": false
     },
+    "斜撑抱箍": {
+      "code": "BRACE_HOOP",
+      "model_policy": "MANUAL_TEMPLATE",
+      "element_type": "C3D8R",
+      "focus_analysis": false,
+      "requires_length": false
+    },
+    "抱箍组合": {
+      "code": "HOOP_ASSEMBLY",
+      "model_policy": "MANUAL_TEMPLATE",
+      "element_type": "C3D8R",
+      "focus_analysis": false,
+      "requires_length": false
+    },
     "斜拉杆": {
       "code": "TIE_ROD",
+      "aliases": ["拉杆"],
       "model_policy": "SOLID",
       "element_type": "C3D8R",
       "focus_analysis": false,
@@ -112,8 +232,45 @@
       "focus_analysis": true,
       "requires_length": false
     },
+    "边压块": {
+      "code": "EDGE_CLAMP",
+      "model_policy": "MANUAL_TEMPLATE",
+      "element_type": "C3D8R",
+      "focus_analysis": false,
+      "requires_length": false
+    },
+    "中压块": {
+      "code": "MID_CLAMP",
+      "model_policy": "MANUAL_TEMPLATE",
+      "element_type": "C3D8R",
+      "focus_analysis": false,
+      "requires_length": false
+    },
+    "背板": {
+      "code": "BACK_PLATE",
+      "model_policy": "MANUAL_TEMPLATE",
+      "element_type": "C3D8R",
+      "focus_analysis": false,
+      "requires_length": false
+    },
+    "密封圈": {
+      "code": "SEAL_RING",
+      "model_policy": "MANUAL_TEMPLATE",
+      "element_type": "C3D8R",
+      "focus_analysis": false,
+      "requires_length": false
+    },
+    "M8U型螺栓": {
+      "code": "U_BOLT_M8",
+      "aliases": ["M8 U型螺栓"],
+      "model_policy": "MANUAL_TEMPLATE",
+      "element_type": "C3D8R",
+      "focus_analysis": false,
+      "requires_length": false
+    },
     "柱间拉杆": {
       "code": "COLUMN_TIE_ROD",
+      "aliases": ["立柱拉杆"],
       "model_policy": "SOLID",
       "element_type": "C3D8R",
       "focus_analysis": false,
@@ -134,26 +291,92 @@
     "MANUAL_TEMPLATE": "人工模板"
   },
   "materials": {
-    "Q235 B": {
+    "Q235": {
+      "abaqus_name": "MAT_Q235",
+      "elastic_modulus_pa": 206000000000.0,
+      "poisson_ratio": 0.3,
+      "density_kg_per_m3": 7850.0
+    },
+    "Q235B": {
       "abaqus_name": "MAT_Q235B",
       "elastic_modulus_pa": 206000000000.0,
       "poisson_ratio": 0.3,
       "density_kg_per_m3": 7850.0
     },
-    "Q355 B": {
+    "Q345": {
+      "abaqus_name": "MAT_Q345",
+      "elastic_modulus_pa": 206000000000.0,
+      "poisson_ratio": 0.3,
+      "density_kg_per_m3": 7850.0
+    },
+    "Q355": {
+      "abaqus_name": "MAT_Q355",
+      "elastic_modulus_pa": 206000000000.0,
+      "poisson_ratio": 0.3,
+      "density_kg_per_m3": 7850.0
+    },
+    "Q355B": {
       "abaqus_name": "MAT_Q355B",
       "elastic_modulus_pa": 206000000000.0,
       "poisson_ratio": 0.3,
       "density_kg_per_m3": 7850.0
     },
-    "Q420 B": {
+    "Q420": {
+      "abaqus_name": "MAT_Q420",
+      "elastic_modulus_pa": 206000000000.0,
+      "poisson_ratio": 0.3,
+      "density_kg_per_m3": 7850.0
+    },
+    "Q420B": {
       "abaqus_name": "MAT_Q420B",
       "elastic_modulus_pa": 206000000000.0,
       "poisson_ratio": 0.3,
       "density_kg_per_m3": 7850.0
     },
-    "Q550 B": {
+    "Q450": {
+      "abaqus_name": "MAT_Q450",
+      "elastic_modulus_pa": 206000000000.0,
+      "poisson_ratio": 0.3,
+      "density_kg_per_m3": 7850.0
+    },
+    "Q450B": {
+      "abaqus_name": "MAT_Q450B",
+      "elastic_modulus_pa": 206000000000.0,
+      "poisson_ratio": 0.3,
+      "density_kg_per_m3": 7850.0
+    },
+    "Q550": {
+      "abaqus_name": "MAT_Q550",
+      "elastic_modulus_pa": 206000000000.0,
+      "poisson_ratio": 0.3,
+      "density_kg_per_m3": 7850.0
+    },
+    "Q550B": {
       "abaqus_name": "MAT_Q550B",
+      "elastic_modulus_pa": 206000000000.0,
+      "poisson_ratio": 0.3,
+      "density_kg_per_m3": 7850.0
+    },
+    "S250GD": {
+      "abaqus_name": "MAT_S250GD",
+      "elastic_modulus_pa": 206000000000.0,
+      "poisson_ratio": 0.3,
+      "density_kg_per_m3": 7850.0
+    },
+    "S350GD": {
+      "abaqus_name": "MAT_S350GD",
+      "elastic_modulus_pa": 206000000000.0,
+      "poisson_ratio": 0.3,
+      "density_kg_per_m3": 7850.0
+    },
+    "S420GD": {
+      "abaqus_name": "MAT_S420GD",
+      "elastic_modulus_pa": 206000000000.0,
+      "poisson_ratio": 0.3,
+      "density_kg_per_m3": 7850.0
+    },
+    "S550GD": {
+      "abaqus_name": "MAT_S550GD",
       "elastic_modulus_pa": 206000000000.0,
       "poisson_ratio": 0.3,
       "density_kg_per_m3": 7850.0

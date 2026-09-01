@@ -134,8 +134,10 @@ class PartScriptGenerationTest(unittest.TestCase):
 
             wb = load_workbook(workbook)
             raw_ws = wb["原始材料表"]
+            raw_headers = [cell.value for cell in raw_ws[1]]
+            raw_header_to_col = {header: index + 1 for index, header in enumerate(raw_headers)}
             raw_ws["C2"] = "上立柱"
-            raw_ws["G2"] = "Q235B"
+            raw_ws.cell(row=2, column=raw_header_to_col["备注"]).value = "Q235B"
             wb.save(workbook)
 
             outputs = batch_generate_part_scripts([workbook], tmp_path / "out", selection="complete")
@@ -146,7 +148,7 @@ class PartScriptGenerationTest(unittest.TestCase):
             component = payload["components"][0]
             self.assertEqual(component["part_name"], "P_SP_SC_ANG20_COLUMN_UP")
             self.assertEqual(component["component_code"], "COLUMN_UP")
-            self.assertEqual(component["material"]["material_grade"], "Q235 B")
+            self.assertEqual(component["material"]["material_grade"], "Q235B")
 
     def test_step02_prefers_manual_component_sheet_overrides(self):
         with tempfile.TemporaryDirectory() as tmp:
