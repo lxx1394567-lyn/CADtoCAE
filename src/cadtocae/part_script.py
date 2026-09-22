@@ -29,6 +29,7 @@ DEBUG_REPORT_SUBDIR = Path("过程文件") / "调试文件"
 COMPONENT_SHEET = "建模构件表"
 REQUIRED_HEADERS = ["支架类型", "角度", "构件名称", "规格", "长度_mm", "数量", "材料牌号", "建模方式", "abaqus_part_name"]
 PROJECT_PREFIX_RE = re.compile(r"(SP_SC|SP_DC|DP)_ANG\d+(?:P\d+)?", re.IGNORECASE)
+COMPONENTS_STEM_RE = re.compile(r"(?P<project_id>.+)_components(?:_v\d+)?$", re.IGNORECASE)
 
 
 @dataclass
@@ -58,7 +59,12 @@ def _safe_name(value: str, max_len: int = 90) -> str:
 
 
 def project_prefix_from_path(path: str | Path) -> str | None:
-    match = PROJECT_PREFIX_RE.search(Path(path).stem)
+    stem = Path(path).stem
+    match = COMPONENTS_STEM_RE.fullmatch(stem)
+    if match:
+        return match.group("project_id")
+
+    match = PROJECT_PREFIX_RE.search(stem)
     if not match:
         match = PROJECT_PREFIX_RE.search(str(Path(path).parent.name))
     return match.group(0).upper() if match else None
@@ -113,6 +119,7 @@ def normalize_copied_workbook_prefix(xlsx: str | Path, project_prefix_value: str
         code_col = header_to_col.get("构件代码")
         name_col = header_to_col.get("构件名称")
         angle = angle_from_project_prefix(project_prefix_value)
+        abaqus_project_prefix = re.sub(r"[^A-Za-z0-9_]", "_", project_prefix_value)
         for row_index in range(2, worksheet.max_row + 1):
             if angle_col and angle:
                 worksheet.cell(row=row_index, column=angle_col).value = angle
@@ -124,11 +131,11 @@ def normalize_copied_workbook_prefix(xlsx: str | Path, project_prefix_value: str
                 component_code = worksheet.cell(row=row_index, column=code_col).value if code_col else None
                 component_code = component_code or component_code_from_part_name(part_value)
                 if component_code:
-                    part_cell.value = "P_%s_%s" % (project_prefix_value, str(component_code).strip().upper())
+                    part_cell.value = "P_%s_%s" % (abaqus_project_prefix, str(component_code).strip().upper())
                 elif not part_value and name_col:
                     component_name = worksheet.cell(row=row_index, column=name_col).value
                     if component_name:
-                        part_cell.value = part_name_from_prefix(project_prefix_value, str(component_name).strip())
+                        part_cell.value = part_name_from_prefix(abaqus_project_prefix, str(component_name).strip())
         workbook.save(xlsx)
     finally:
         workbook.close()
@@ -285,14 +292,30 @@ def batch_generate_part_scripts(
 ) -> list[PartScriptOutput]:
     root = Path(output_root)
     root.mkdir(parents=True, exist_ok=True)
+    workbooks = [Path(workbook) for workbook in workbook_paths]
+    prefixes: list[tuple[Path, str]] = []
+    seen_prefixes: dict[str, Path] = {}
+    for workbook in workbooks:
+        prefix = infer_project_prefix_from_workbook(workbook, standards_path)
+        key = prefix.casefold()
+        resolved = workbook.resolve()
+        if key in seen_prefixes and seen_prefixes[key] != resolved:
+            raise ValueError(
+                "Step02 project_id collision: %s is inferred from both %s and %s."
+                % (prefix, seen_prefixes[key], resolved)
+            )
+        seen_prefixes[key] = resolved
+        prefixes.append((workbook, prefix))
+
     outputs: list[PartScriptOutput] = []
-    for workbook in workbook_paths:
+    for workbook, prefix in prefixes:
         outputs.append(
             generate_part_script_from_workbook(
                 workbook,
                 root,
                 selection=selection,
                 standards_path=standards_path,
+                project_prefix_value=prefix,
                 cae_save_path=cae_save_path,
                 overwrite=overwrite,
             )

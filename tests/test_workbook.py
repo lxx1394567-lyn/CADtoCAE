@@ -109,6 +109,13 @@ class WorkbookTest(unittest.TestCase):
                 array_layout="2行7列竖向",
                 output_path=workbook_path,
             )
+            wb = load_workbook(workbook_path)
+            ws = wb["建模构件表"]
+            headers = {cell.value: cell.column for cell in ws[1]}
+            hoop_row = next(index for index, row in enumerate(raw_rows, start=2) if row["名称"] == "抱箍")
+            ws.cell(row=hoop_row, column=headers["规格"]).value = "HOOP(D=60,W=40,T=3,L=57,R=117)"
+            ws.cell(row=hoop_row, column=headers["建模方式"]).value = "实体单元"
+            wb.save(workbook_path)
             json_path = Path(tmp) / "test_complete_components.json"
             export_abaqus_json(workbook_path, json_path, selection="complete")
             payload = json.loads(json_path.read_text(encoding="utf-8"))
@@ -126,6 +133,184 @@ class WorkbookTest(unittest.TestCase):
         self.assertEqual(inclined["thickness_m"], 0.002)
         self.assertEqual(inclined["section_params_m"]["h_m"], 0.075)
         self.assertEqual(inclined["material"]["density_kg_per_m3"], 7850.0)
+        hoop = next(component for component in payload["components"] if component["part_name"] == "P_SP_SC_ANG20_HOOP")
+        self.assertEqual(hoop["model_policy"], "SOLID")
+        self.assertAlmostEqual(hoop["section_params_m"]["inner_radius_m"], 0.03)
+        self.assertAlmostEqual(hoop["section_params_m"]["outer_radius_m"], 0.033)
+        self.assertAlmostEqual(hoop["section_params_m"]["left_extension_m"], 0.057)
+        self.assertAlmostEqual(hoop["section_params_m"]["right_extension_m"], 0.117)
+
+    def test_export_complete_components_converts_length_mm_once(self):
+        raw_rows = [
+            {"类别": "支架", "序号": "1", "名称": "斜梁", "规格": "C80×40×15×2.0", "长度_mm": "4000", "数量": "5", "备注": "S350GD"},
+            {"类别": "支架", "序号": "2", "名称": "前斜撑", "规格": "C50×30×15×2.0", "长度_mm": "2080", "数量": "5", "备注": "S250GD"},
+            {"类别": "支架", "序号": "3", "名称": "檩条", "规格": "C90×50×15×1.8", "长度_mm": "16326", "数量": "4", "备注": "S420GD"},
+        ]
+        with tempfile.TemporaryDirectory() as tmp:
+            workbook_path = Path(tmp) / "DP_ANG14_components.xlsx"
+            create_material_workbook(raw_rows, "双桩", "14", "2行7列竖向", workbook_path)
+
+            json_path = Path(tmp) / "test_length_units.json"
+            export_abaqus_json(workbook_path, json_path, selection="complete")
+            payload = json.loads(json_path.read_text(encoding="utf-8"))
+
+        by_code = {component["component_code"]: component for component in payload["components"]}
+        self.assertAlmostEqual(by_code["INCLINED_BEAM"]["length_m"], 4.0)
+        self.assertAlmostEqual(by_code["BRACE_FRONT"]["length_m"], 2.08)
+        self.assertAlmostEqual(by_code["PURLIN"]["length_m"], 16.326)
+
+    def test_export_complete_components_preserves_meter_values_written_to_length_mm(self):
+        raw_rows = [
+            {"类别": "支架", "序号": "1", "名称": "斜梁", "规格": "C80×40×15×2.0", "长度_mm": "4.000", "数量": "5", "备注": "S350GD"},
+            {"类别": "支架", "序号": "2", "名称": "前斜撑", "规格": "C50×30×15×2.0", "长度_mm": "2.080", "数量": "5", "备注": "S250GD"},
+            {"类别": "支架", "序号": "3", "名称": "檩条", "规格": "C90×50×15×1.8", "长度_mm": "16.326", "数量": "4", "备注": "S420GD"},
+        ]
+        with tempfile.TemporaryDirectory() as tmp:
+            workbook_path = Path(tmp) / "DP_ANG14_components.xlsx"
+            create_material_workbook(raw_rows, "双桩", "14", "2行7列竖向", workbook_path)
+
+            json_path = Path(tmp) / "test_meter_values.json"
+            export_abaqus_json(workbook_path, json_path, selection="complete")
+            payload = json.loads(json_path.read_text(encoding="utf-8"))
+
+        by_code = {component["component_code"]: component for component in payload["components"]}
+        self.assertAlmostEqual(by_code["INCLINED_BEAM"]["length_m"], 4.0)
+        self.assertAlmostEqual(by_code["BRACE_FRONT"]["length_m"], 2.08)
+        self.assertAlmostEqual(by_code["PURLIN"]["length_m"], 16.326)
+
+    def test_export_adds_purlin_local_using_purlin_support_length(self):
+        raw_rows = [
+            {"类别": "支架", "序号": "1", "名称": "檩条", "规格": "C100×50×15×2.0", "长度_mm": "16326", "数量": "4", "备注": "S350GD"},
+            {"类别": "支架", "序号": "2", "名称": "檩托", "规格": "L50×50×5.0", "长度_mm": "50", "数量": "8", "备注": "Q235B"},
+        ]
+        with tempfile.TemporaryDirectory() as tmp:
+            workbook_path = Path(tmp) / "SP_SC_ANG20_components.xlsx"
+            create_material_workbook(raw_rows, "单桩单立柱", "20", "2行7列竖向", workbook_path)
+
+            json_path = Path(tmp) / "purlin_local.json"
+            export_abaqus_json(workbook_path, json_path, selection="complete")
+            payload = json.loads(json_path.read_text(encoding="utf-8"))
+
+        by_code = {component["component_code"]: component for component in payload["components"]}
+        local = by_code["PURLIN_LOCAL"]
+        purlin = by_code["PURLIN"]
+        self.assertEqual(local["part_name"], "P_SP_SC_ANG20_PURLIN_LOCAL")
+        self.assertEqual(local["section_kind"], "C_CHANNEL")
+        self.assertEqual(local["section_params_m"], purlin["section_params_m"])
+        self.assertAlmostEqual(local["section_params_m"]["h_m"], 0.1)
+        self.assertAlmostEqual(local["section_params_m"]["b_m"], 0.05)
+        self.assertAlmostEqual(local["section_params_m"]["lip_m"], 0.015)
+        self.assertAlmostEqual(local["section_params_m"]["t_m"], 0.002)
+        self.assertEqual(local["length_source"], "PURLIN_SUPPORT.length_m")
+        self.assertAlmostEqual(local["length_m"], 0.05)
+        self.assertTrue(local["auxiliary_part"])
+
+    def test_export_adds_purlin_local_using_inclined_beam_flange_fallback(self):
+        raw_rows = [
+            {"类别": "支架", "序号": "1", "名称": "斜梁", "规格": "C80×40×15×2.0", "长度_mm": "4000", "数量": "4", "备注": "S350GD"},
+            {"类别": "支架", "序号": "2", "名称": "檩条", "规格": "C100×50×15×2.0", "长度_mm": "16326", "数量": "4", "备注": "S350GD"},
+        ]
+        with tempfile.TemporaryDirectory() as tmp:
+            workbook_path = Path(tmp) / "SP_SC_ANG20_components.xlsx"
+            create_material_workbook(raw_rows, "单桩单立柱", "20", "2行7列竖向", workbook_path)
+
+            json_path = Path(tmp) / "purlin_local.json"
+            export_abaqus_json(workbook_path, json_path, selection="complete")
+            payload = json.loads(json_path.read_text(encoding="utf-8"))
+
+        local = next(component for component in payload["components"] if component["component_code"] == "PURLIN_LOCAL")
+        self.assertEqual(local["length_source"], "INCLINED_BEAM.section_params_m.b_m")
+        self.assertAlmostEqual(local["length_m"], 0.04)
+
+    def test_export_adds_purlin_local_using_default_length_fallback(self):
+        raw_rows = [
+            {"类别": "支架", "序号": "1", "名称": "檩条", "规格": "C100×50×15×2.0", "长度_mm": "16326", "数量": "4", "备注": "S350GD"},
+        ]
+        with tempfile.TemporaryDirectory() as tmp:
+            workbook_path = Path(tmp) / "SP_SC_ANG20_components.xlsx"
+            create_material_workbook(raw_rows, "单桩单立柱", "20", "2行7列竖向", workbook_path)
+
+            json_path = Path(tmp) / "purlin_local.json"
+            export_abaqus_json(workbook_path, json_path, selection="complete")
+            payload = json.loads(json_path.read_text(encoding="utf-8"))
+
+        local = next(component for component in payload["components"] if component["component_code"] == "PURLIN_LOCAL")
+        self.assertEqual(local["length_source"], "default_50_mm")
+        self.assertAlmostEqual(local["length_m"], 0.05)
+
+    def test_export_precision_parts_keep_component_codes_and_geometry_kinds(self):
+        raw_rows = [
+            {"类别": "支架", "序号": "1", "名称": "檩托", "规格": "L100×63×6.0", "长度_mm": "50", "数量": "4", "备注": "S550GD"},
+            {"类别": "支架", "序号": "2", "名称": "檩条连接件", "规格": "C106×52×3.0", "长度_mm": "270", "数量": "4", "备注": "S550GD"},
+            {"类别": "支架", "序号": "3", "名称": "抱箍", "规格": "HOOP(D=60,W=40,T=3,L=57,R=117,RF=4)", "数量": "2", "备注": "Q235B"},
+            {"类别": "支架", "序号": "4", "名称": "中压块", "规格": "MIDCLAMP_V1(L=90,SLOT=9X12,E=15,P=60)", "数量": "4", "备注": "6063-T5"},
+            {"类别": "支架", "序号": "5", "名称": "边压块", "规格": "EDGECLAMP_V1(L=90,SLOT=9X12,E=15,P=60)", "数量": "4", "备注": "6063-T5"},
+        ]
+        with tempfile.TemporaryDirectory() as tmp:
+            workbook_path = Path(tmp) / "DP_ANG35_GEOMETRY_components.xlsx"
+            create_material_workbook(raw_rows, "双桩", "35", "2行7列竖向", workbook_path)
+            json_path = Path(tmp) / "precision_parts.json"
+            export_abaqus_json(workbook_path, json_path, selection="complete")
+            payload = json.loads(json_path.read_text(encoding="utf-8"))
+
+        by_code = {component["component_code"]: component for component in payload["components"]}
+        self.assertEqual(by_code["PURLIN_SUPPORT"]["section_kind"], "ANGLE")
+        self.assertAlmostEqual(by_code["PURLIN_SUPPORT"]["section_params_m"]["inner_root_radius_m"], 0.006)
+        self.assertEqual(by_code["PURLIN_SPLICE"]["section_kind"], "C_CHANNEL_SIMPLE")
+        self.assertEqual(by_code["HOOP"]["section_kind"], "HOOP_BAND")
+        self.assertEqual(by_code["MID_CLAMP"]["section_kind"], "MID_CLAMP_PROFILE")
+        self.assertEqual(by_code["EDGE_CLAMP"]["section_kind"], "EDGE_CLAMP_PROFILE")
+        self.assertEqual(by_code["MID_CLAMP"]["model_policy"], "SOLID")
+        self.assertEqual(by_code["EDGE_CLAMP"]["model_policy"], "SOLID")
+
+    def test_manual_component_rows_beyond_raw_table_are_read_and_exported(self):
+        raw_rows = [
+            {"类别": "支架", "序号": "1", "名称": "檩条", "规格": "C100×50×15×2", "长度_mm": "1000", "数量": "1", "备注": "S550GD"},
+        ]
+        with tempfile.TemporaryDirectory() as tmp:
+            workbook_path = Path(tmp) / "DP_ANG35_MANUAL_components.xlsx"
+            create_material_workbook(raw_rows, "双桩", "35", "2行7列竖向", workbook_path)
+            wb = load_workbook(workbook_path)
+            ws = wb["建模构件表"]
+            header_to_col = {cell.value: cell.column for cell in ws[1]}
+            additions = [
+                ("中压块", "MID_CLAMP", "MIDCLAMP_V1(L=90,SLOT=9X12,E=15,P=60)"),
+                ("边压块", "EDGE_CLAMP", "EDGECLAMP_V1(L=90,SLOT=9X12,E=15,P=60)"),
+            ]
+            for name, code, spec in additions:
+                row_index = ws.max_row + 1
+                values = {
+                    "支架类型": "双桩",
+                    "角度": "35",
+                    "阵列布置": "2行7列竖向",
+                    "构件名称": name,
+                    "构件代码": code,
+                    "abaqus_part_name": "P_DP_ANG35_%s" % code,
+                    "规格": spec,
+                    "数量": None,
+                    "材料牌号": None,
+                    "建模方式": "",
+                    "单元类型": "S4R",
+                }
+                for header, value in values.items():
+                    if header in header_to_col:
+                        ws.cell(row=row_index, column=header_to_col[header]).value = value
+            wb.save(workbook_path)
+
+            rows, _headers = read_component_rows_for_processing(workbook_path)
+            self.assertEqual(len(rows), 3)
+            json_path = Path(tmp) / "manual_components.json"
+            export_abaqus_json(workbook_path, json_path, selection="complete")
+            payload = json.loads(json_path.read_text(encoding="utf-8"))
+
+        by_code = {component["component_code"]: component for component in payload["components"]}
+        for code in ("MID_CLAMP", "EDGE_CLAMP"):
+            self.assertEqual(by_code[code]["model_policy"], "SOLID")
+            self.assertEqual(by_code[code]["element_type"], "C3D8R")
+            self.assertIsNone(by_code[code]["quantity"])
+            self.assertEqual(by_code[code]["material"]["abaqus_name"], "MAT_MANUAL_CHECK")
+            self.assertIn("quantity requires manual check", by_code[code]["validation_warnings"])
+            self.assertIn("material requires manual check", by_code[code]["validation_warnings"])
 
     def test_workbook_preserves_raw_mass_columns_and_adds_model_mass_fields(self):
         raw_rows = [

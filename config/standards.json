@@ -100,6 +100,7 @@
     },
     "檩条拼接件": {
       "code": "PURLIN_SPLICE",
+      "aliases": ["檩条连接件"],
       "model_policy": "SOLID",
       "element_type": "C3D8R",
       "focus_analysis": true,
@@ -234,13 +235,20 @@
     },
     "边压块": {
       "code": "EDGE_CLAMP",
-      "model_policy": "MANUAL_TEMPLATE",
+      "model_policy": "SOLID",
       "element_type": "C3D8R",
-      "focus_analysis": false,
+      "focus_analysis": true,
       "requires_length": false
     },
     "中压块": {
       "code": "MID_CLAMP",
+      "model_policy": "SOLID",
+      "element_type": "C3D8R",
+      "focus_analysis": true,
+      "requires_length": false
+    },
+    "矩形垫片": {
+      "code": "RECTANGULAR_WASHER",
       "model_policy": "MANUAL_TEMPLATE",
       "element_type": "C3D8R",
       "focus_analysis": false,

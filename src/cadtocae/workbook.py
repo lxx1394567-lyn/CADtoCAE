@@ -15,15 +15,17 @@ from openpyxl.utils import get_column_letter
 
 from .standards import (
     ParsedSpec,
-    component_code_from_part_name,
+    component_code_from_row,
     component_role_entries,
     component_role_key,
     derive_component_row,
     effective_model_policy,
     has_complete_model_dimensions,
+    is_hoop_component_code,
     load_standards,
     material_properties,
     mm_to_m,
+    parse_component_spec,
     parse_spec,
     section_kind_and_model_params,
 )
@@ -68,6 +70,7 @@ COMPONENT_HEADERS = [
     "理论总质量 kg",
     "质量校核状态",
 ]
+DEFAULT_PURLIN_LOCAL_LENGTH_MM = 50.0
 STEP02_GUIDE_HEADERS = {
     "支架类型": "用于推断项目名前缀。文件名已有 SP_SC_ANG20 这类前缀时，以文件名前缀优先。",
     "角度": "用于推断项目名前缀，例如 20 或 26.5。",
@@ -635,7 +638,7 @@ def _section_code_from_table(section_type: str, params: dict[str, Any], fallback
 
 
 def _parsed_spec_for_export(row: dict[str, Any]) -> ParsedSpec:
-    parsed = parse_spec(row.get("规格", ""))
+    parsed = parse_component_spec(row)
     if parsed.status == "已解析":
         return parsed
 
@@ -656,9 +659,136 @@ def _parsed_spec_for_export(row: dict[str, Any]) -> ParsedSpec:
     )
 
 
+def _length_m_for_export(row: dict[str, Any], parsed: ParsedSpec) -> float | None:
+    """Return component length in meters for Abaqus export."""
+    length_mm_value = _coerce_number(row.get("长度_mm"))
+    length_m_value = _coerce_number(row.get("长度_m"))
+    if length_mm_value is None:
+        return float(length_m_value) if length_m_value is not None else None
+
+    length_from_mm = mm_to_m(length_mm_value)
+    length_required_sections = {"C型钢", "圆管", "角钢", "套管撑杆", "圆钢/圆杆"}
+    if (
+        parsed.section_type in length_required_sections
+        and length_m_value is not None
+        and length_m_value < 0.03
+        and 0.03 <= float(length_mm_value) < 100.0
+    ):
+        return float(length_mm_value)
+
+    return length_from_mm
+
+
+def _positive_float(value: Any) -> float | None:
+    if value is None or str(value).strip() == "":
+        return None
+    try:
+        number = float(value)
+    except (TypeError, ValueError):
+        return None
+    return number if number > 0.0 else None
+
+
+def _find_first_component(components: list[dict[str, Any]], component_code: str) -> dict[str, Any] | None:
+    target = component_code.upper()
+    for component in components:
+        if str(component.get("component_code") or "").strip().upper() == target:
+            return component
+    return None
+
+
+def _purlin_local_length_m(components: list[dict[str, Any]]) -> tuple[float, str]:
+    support = _find_first_component(components, "PURLIN_SUPPORT")
+    if support:
+        support_length = _positive_float(support.get("length_m"))
+        if support_length is not None:
+            return support_length, "PURLIN_SUPPORT.length_m"
+
+    beam = _find_first_component(components, "INCLINED_BEAM")
+    if beam:
+        beam_params = beam.get("section_params_m") or {}
+        beam_flange_width = _positive_float(beam_params.get("b_m"))
+        if beam_flange_width is not None:
+            return beam_flange_width, "INCLINED_BEAM.section_params_m.b_m"
+
+    return float(mm_to_m(DEFAULT_PURLIN_LOCAL_LENGTH_MM)), "default_50_mm"
+
+
+def _section_summary(component: dict[str, Any]) -> str:
+    params = component.get("section_params_m") or {}
+    if component.get("section_kind") == "C_CHANNEL":
+        return "C_CHANNEL h_m=%s b_m=%s lip_m=%s t_m=%s" % (
+            params.get("h_m"),
+            params.get("b_m"),
+            params.get("lip_m"),
+            params.get("t_m"),
+        )
+    return str(component.get("section_kind") or "")
+
+
+def _append_purlin_local_component(components: list[dict[str, Any]]) -> None:
+    purlin = _find_first_component(components, "PURLIN")
+    if not purlin:
+        return
+
+    part_name = str(purlin.get("part_name") or "").strip()
+    if not part_name:
+        return
+    local_part_name = "%s_LOCAL" % part_name
+    if any(str(component.get("part_name") or "").strip() == local_part_name for component in components):
+        return
+
+    length_m, length_source = _purlin_local_length_m(components)
+    local_component = dict(purlin)
+    local_component.update(
+        {
+            "part_name": local_part_name,
+            "component_name": "PURLIN_LOCAL",
+            "component_code": "PURLIN_LOCAL",
+            "length_m": length_m,
+            "quantity": 1,
+            "auxiliary_part": True,
+            "source_component_code": "PURLIN",
+            "length_source": length_source,
+            "material": dict(purlin.get("material") or {}),
+            "model_units": dict(purlin.get("model_units") or {}),
+            "section_params_m": dict(purlin.get("section_params_m") or {}),
+        }
+    )
+    local_component["geometry_summary"] = {
+        "type": "PURLIN_LOCAL",
+        "section": _section_summary(local_component),
+        "length_source": length_source,
+        "length_m": length_m,
+    }
+    components.append(local_component)
+
+
+def _add_hoop_geometry_summary(component: dict[str, Any]) -> None:
+    if component.get("section_kind") != "HOOP_BAND" or not is_hoop_component_code(component.get("component_code")):
+        return
+    params = component.get("section_params_m") or {}
+    diameter_m = params.get("diameter_m")
+    thickness_m = params.get("t_m")
+    component["geometry_summary"] = {
+        "type": "HOOP",
+        "D_m": diameter_m,
+        "Ri_m": params.get("inner_radius_m"),
+        "Ro_m": params.get("outer_radius_m"),
+        "W_m": params.get("width_m"),
+        "T_m": thickness_m,
+        "L_m": params.get("left_extension_m"),
+        "R_m": params.get("right_extension_m"),
+        "RF_m": params.get("transition_fillet_m"),
+        "transition_note": None if params.get("transition_fillet_m") else "transition fillet not specified",
+    }
+
+
 def _worksheet_rows_by_header(wb: Any, sheet_name: str) -> tuple[list[dict[str, Any]], list[str]]:
     ws = wb[sheet_name]
     headers = [cell.value for cell in ws[1]]
+    if sheet_name == "建模构件表" and headers and _is_blank(headers[0]) and "支架类型" not in headers and "角度" in headers:
+        headers[0] = "支架类型"
     rows: list[dict[str, Any]] = []
     for values in ws.iter_rows(min_row=2, values_only=True):
         if not any(value is not None and str(value).strip() for value in values):
@@ -795,29 +925,39 @@ def export_abaqus_json(
         section_kind, section_params_m = section_kind_and_model_params(parsed)
         material = material_properties(str(row.get("材料牌号", "") or ""), standards)
         model_policy, element_type = effective_model_policy(row)
-        length_m = mm_to_m(row.get("长度_mm"))
+        length_m = _length_m_for_export(row, parsed)
         thickness_m = mm_to_m(parsed.thickness_mm)
-        component_code = row.get("构件代码") or component_code_from_part_name(row.get("abaqus_part_name"))
-        components.append(
-            {
-                "part_name": row.get("abaqus_part_name"),
-                "support_type": row.get("支架类型"),
-                "angle": row.get("角度"),
-                "component_name": row.get("构件名称"),
-                "component_code": component_code,
-                "spec": row.get("规格"),
-                "length_m": length_m,
-                "quantity": row.get("数量"),
-                "material": material,
-                "model_policy": model_policy,
-                "element_type": element_type,
-                "section_kind": section_kind,
-                "section_params_m": section_params_m,
-                "thickness_m": thickness_m,
-                "section_code": parsed.section_code,
-                "model_units": {"length": "m", "mass": "kg", "force": "N", "stress": "Pa"},
-            }
-        )
+        component_code = component_code_from_row(row)
+        component = {
+            "part_name": row.get("abaqus_part_name"),
+            "support_type": row.get("支架类型"),
+            "angle": row.get("角度"),
+            "component_name": row.get("构件名称"),
+            "component_code": component_code,
+            "spec": row.get("规格"),
+            "length_m": length_m,
+            "quantity": row.get("数量"),
+            "material": material,
+            "model_policy": model_policy,
+            "element_type": element_type,
+            "section_kind": section_kind,
+            "section_params_m": section_params_m,
+            "thickness_m": thickness_m,
+            "section_code": parsed.section_code,
+            "model_units": {"length": "m", "mass": "kg", "force": "N", "stress": "Pa"},
+            "validation_warnings": [
+                warning
+                for warning, missing in (
+                    ("quantity requires manual check", _is_blank(row.get("数量"))),
+                    ("material requires manual check", not str(row.get("材料牌号") or "").strip()),
+                )
+                if missing
+            ],
+        }
+        _add_hoop_geometry_summary(component)
+        components.append(component)
+
+    _append_purlin_local_component(components)
     output = Path(output_path)
     output.parent.mkdir(parents=True, exist_ok=True)
     with output.open("w", encoding="utf-8") as handle:

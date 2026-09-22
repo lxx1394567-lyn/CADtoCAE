@@ -9,7 +9,7 @@ from pathlib import Path
 from openpyxl import load_workbook
 
 from cadtocae.main_frame_assembly import read_components_payload
-from cadtocae.part_script import batch_generate_part_scripts, infer_project_prefix_from_workbook
+from cadtocae.part_script import batch_generate_part_scripts, infer_project_prefix_from_workbook, normalize_copied_workbook_prefix
 from cadtocae.workbook import create_material_workbook, read_raw_material_csv
 
 
@@ -17,6 +17,27 @@ ROOT = Path(__file__).resolve().parents[1]
 
 
 class PartScriptGenerationTest(unittest.TestCase):
+    def test_manual_part_names_sanitize_full_project_id_for_abaqus(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            workbook_path = Path(tmp) / "DP_ANG35_11042410101020S-T0201_components.xlsx"
+            raw_rows = [
+                {"类别": "支架", "序号": "1", "名称": "中压块", "规格": "MIDCLAMP_V1(L=90,SLOT=9X12,E=15,P=60)", "数量": "", "备注": ""},
+            ]
+            create_material_workbook(raw_rows, "双桩", "35", "2行7列竖向", workbook_path)
+            wb = load_workbook(workbook_path)
+            ws = wb["建模构件表"]
+            headers = {cell.value: cell.column for cell in ws[1]}
+            ws.cell(2, headers["abaqus_part_name"]).value = "P_DP_ANG35_MID_CLAMP"
+            wb.save(workbook_path)
+
+            normalize_copied_workbook_prefix(workbook_path, "DP_ANG35_11042410101020S-T0201")
+            wb = load_workbook(workbook_path, data_only=False)
+            try:
+                value = wb["建模构件表"].cell(2, headers["abaqus_part_name"]).value
+            finally:
+                wb.close()
+
+        self.assertEqual(value, "P_DP_ANG35_11042410101020S_T0201_MID_CLAMP")
     def test_batch_generates_part_script_from_step01_workbook(self):
         with tempfile.TemporaryDirectory() as tmp:
             tmp_path = Path(tmp)
@@ -64,6 +85,81 @@ class PartScriptGenerationTest(unittest.TestCase):
             create_material_workbook(raw_rows, "双桩", "26.5", "2行7列竖向", workbook)
 
             self.assertEqual(infer_project_prefix_from_workbook(workbook), "DP_ANG26P5")
+
+    def test_project_id_comes_from_full_components_filename(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            tmp_path = Path(tmp)
+            raw_rows = [
+                {
+                    "类别": "支架",
+                    "序号": "1",
+                    "名称": "斜梁",
+                    "规格": "C80×40×15×2.0",
+                    "长度_mm": "4000",
+                    "数量": "5",
+                    "备注": "S350GD",
+                }
+            ]
+            dc_workbook = tmp_path / "SP_DC_ANG28_1042110101170S-T0202_components.xlsx"
+            sc_workbook = tmp_path / "SP_SC_ANG28_1042110101170S-T0204_components.xlsx"
+            legacy_workbook = tmp_path / "DP_ANG14_components.xlsx"
+            create_material_workbook(raw_rows, "单桩双立柱", "28", "2行7列竖向", dc_workbook)
+            create_material_workbook(raw_rows, "单桩单立柱", "28", "2行7列竖向", sc_workbook)
+            create_material_workbook(raw_rows, "双桩", "14", "2行7列竖向", legacy_workbook)
+            workbook = load_workbook(sc_workbook)
+            worksheet = workbook["建模构件表"]
+            worksheet["A1"] = None
+            workbook.save(sc_workbook)
+            workbook.close()
+
+            outputs = batch_generate_part_scripts(
+                [dc_workbook, sc_workbook, legacy_workbook],
+                tmp_path / "out",
+                selection="complete",
+            )
+
+            by_project = {output.project_prefix: output for output in outputs}
+            self.assertEqual(
+                set(by_project),
+                {
+                    "SP_DC_ANG28_1042110101170S-T0202",
+                    "SP_SC_ANG28_1042110101170S-T0204",
+                    "DP_ANG14",
+                },
+            )
+            for project_id in by_project:
+                result = by_project[project_id]
+                self.assertEqual(Path(result.part_script_path or "").name, "%s_create_parts_in_cae.py" % project_id)
+                self.assertEqual(Path(result.report_path).name, "%s_step02_part_script_report.json" % project_id)
+                self.assertIn('MODEL_NAME = "%s"' % project_id, Path(result.part_script_path or "").read_text(encoding="utf-8"))
+
+    def test_batch_rejects_different_workbooks_with_same_project_id(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            tmp_path = Path(tmp)
+            raw_rows = [
+                {
+                    "类别": "支架",
+                    "序号": "1",
+                    "名称": "斜梁",
+                    "规格": "C80×40×15×2.0",
+                    "长度_mm": "4000",
+                    "数量": "5",
+                    "备注": "S350GD",
+                }
+            ]
+            first_dir = tmp_path / "a"
+            second_dir = tmp_path / "b"
+            first_dir.mkdir()
+            second_dir.mkdir()
+            first_workbook = first_dir / "DP_ANG14_components.xlsx"
+            second_workbook = second_dir / "DP_ANG14_components.xlsx"
+            create_material_workbook(raw_rows, "双桩", "14", "2行7列竖向", first_workbook)
+            create_material_workbook(raw_rows, "双桩", "14", "2行7列竖向", second_workbook)
+
+            with self.assertRaisesRegex(ValueError, "project_id collision"):
+                batch_generate_part_scripts([first_workbook, second_workbook], tmp_path / "out", selection="complete")
+
+            self.assertFalse((tmp_path / "out" / "DP_ANG14_create_parts_in_cae.py").exists())
 
     def test_filename_prefix_overrides_stale_angle_inside_workbook(self):
         with tempfile.TemporaryDirectory() as tmp:
