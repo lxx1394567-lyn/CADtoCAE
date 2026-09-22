@@ -11,6 +11,9 @@ from typing import Any
 PROJECT_ROOT = Path(__file__).resolve().parents[2]
 DEFAULT_STANDARDS_PATH = PROJECT_ROOT / "config" / "standards.json"
 MM_TO_M = 0.001
+HOOP_COMPONENT_CODE_RE = re.compile(r"^(?:HOOP(?:_\d+)?|HOOP_ASSEMBLY(?:_\d+)?|BRACE_HOOP)$", re.IGNORECASE)
+CLAMP_COMPONENT_CODES = {"MID_CLAMP", "EDGE_CLAMP"}
+FORCED_SOLID_COMPONENT_CODES = {"PURLIN_SUPPORT", "HOOP", "PURLIN_SPLICE", "MID_CLAMP", "EDGE_CLAMP"}
 
 
 @dataclass(frozen=True)
@@ -93,6 +96,114 @@ def _section_code(prefix: str, *values: float | int | str) -> str:
     return prefix + "".join("X" + _code_number(value) for value in values)
 
 
+def is_hoop_component_code(component_code: Any) -> bool:
+    return bool(HOOP_COMPONENT_CODE_RE.fullmatch(str(component_code or "").strip()))
+
+
+def parse_hoop_spec(spec: Any) -> ParsedSpec:
+    normalized = normalize_spec(spec)
+    if not normalized:
+        return ParsedSpec("未识别", {}, None, "UNSPEC", "需人工确认", "规格为空")
+
+    match = re.fullmatch(
+        r"HOOP\(D=(?P<diameter>\d+(?:\.\d+)?),W=(?P<width>\d+(?:\.\d+)?),"
+        r"T=(?P<t>\d+(?:\.\d+)?),L=(?P<left>\d+(?:\.\d+)?),R=(?P<right>\d+(?:\.\d+)?)"
+        r"(?:,RF=(?P<fillet>\d+(?:\.\d+)?))?\)",
+        normalized,
+    )
+    if match:
+        diameter, width, t, left, right = (
+            _number(match.group(key)) for key in ("diameter", "width", "t", "left", "right")
+        )
+        fillet = _number(match.group("fillet")) if match.group("fillet") is not None else 0
+        return ParsedSpec(
+            "抱箍带",
+            {
+                "内径_mm": diameter,
+                "带宽_mm": width,
+                "厚度_mm": t,
+                "左直段_mm": left,
+                "右直段_mm": right,
+                "内半径_mm": diameter / 2.0,
+                "外半径_mm": diameter / 2.0 + t,
+                "过渡圆角_mm": fillet,
+            },
+            t,
+            "HOOP_D%s_W%s_T%s_L%s_R%s_RF%s"
+            % tuple(_code_number(value) for value in (diameter, width, t, left, right, fillet)),
+            "已解析",
+        )
+
+    return ParsedSpec("未识别", {"原始规格": normalized}, None, "UNKNOWN", "需人工确认", "抱箍规格格式未纳入规则")
+
+
+def parse_simple_c_spec(spec: Any) -> ParsedSpec:
+    normalized = normalize_spec(spec)
+    match = re.fullmatch(r"C(?P<h>\d+(?:\.\d+)?)X(?P<b>\d+(?:\.\d+)?)X(?P<t>\d+(?:\.\d+)?)", normalized)
+    if not match:
+        return ParsedSpec("未识别", {"原始规格": normalized}, None, "UNKNOWN", "需人工确认", "无回折C型钢规格格式未纳入规则")
+    h, b, t = (_number(match.group(key)) for key in ("h", "b", "t"))
+    return ParsedSpec(
+        "无回折C型钢",
+        {"高度_mm": h, "翼缘宽_mm": b, "厚度_mm": t},
+        t,
+        _section_code("CS", h, b, t),
+        "已解析",
+    )
+
+
+def parse_clamp_spec(spec: Any, component_code: str) -> ParsedSpec:
+    normalized = normalize_spec(spec)
+    template = "MIDCLAMP_V1" if component_code == "MID_CLAMP" else "EDGECLAMP_V1"
+    match = re.fullmatch(
+        template + r"\(L=(?P<length>\d+(?:\.\d+)?),SLOT=(?P<slot_w>\d+(?:\.\d+)?)X"
+        r"(?P<slot_l>\d+(?:\.\d+)?),E=(?P<end>\d+(?:\.\d+)?),P=(?P<pitch>\d+(?:\.\d+)?)\)",
+        normalized,
+    )
+    if not match:
+        return ParsedSpec("未识别", {"原始规格": normalized}, None, "UNKNOWN", "需人工确认", "%s规格格式未纳入规则" % template)
+    length, slot_w, slot_l, end, pitch = (
+        _number(match.group(key)) for key in ("length", "slot_w", "slot_l", "end", "pitch")
+    )
+    section_type = "中压块V1" if component_code == "MID_CLAMP" else "边压块V1"
+    return ParsedSpec(
+        section_type,
+        {
+            "长度_mm": length,
+            "长圆孔宽_mm": slot_w,
+            "长圆孔长_mm": slot_l,
+            "端距_mm": end,
+            "孔距_mm": pitch,
+            "孔1中心_mm": end,
+            "孔2中心_mm": end + pitch,
+        },
+        None,
+        "%s_L%s_SLOT%sX%s_E%s_P%s" % tuple(
+            [template] + [_code_number(value) for value in (length, slot_w, slot_l, end, pitch)]
+        ),
+        "已解析",
+        "tooth geometry requires drawing detail",
+    )
+
+
+def parse_rectangular_washer_spec(spec: Any) -> ParsedSpec:
+    normalized = normalize_spec(spec)
+    match = re.fullmatch(
+        r"RECT_WASHER\(L=(?P<length>\d+(?:\.\d+)?),W=(?P<width>\d+(?:\.\d+)?),"
+        r"T=(?P<t>\d+(?:\.\d+)?),HOLE=(?P<hole>\d+(?:\.\d+)?)\)",
+        normalized,
+    )
+    if not match:
+        return ParsedSpec("未识别", {"原始规格": normalized}, None, "UNKNOWN", "需人工确认", "矩形垫片尺寸尚未完整定义")
+    length, width, t, hole = (_number(match.group(key)) for key in ("length", "width", "t", "hole"))
+    return ParsedSpec(
+        "矩形垫片",
+        {"长度_mm": length, "宽度_mm": width, "厚度_mm": t, "孔径_mm": hole},
+        t,
+        "RECT_WASHER_L%s_W%s_T%s_HOLE%s" % tuple(_code_number(value) for value in (length, width, t, hole)),
+        "已解析",
+        "geometry remains MANUAL_TEMPLATE",
+    )
 def parse_spec(spec: Any) -> ParsedSpec:
     normalized = normalize_spec(spec)
     if not normalized:
@@ -148,20 +259,6 @@ def parse_spec(spec: Any) -> ParsedSpec:
             {"外径_mm": od, "厚度_mm": t, "内拉杆直径_mm": rod},
             t,
             f"D{_code_number(od)}X{_code_number(t)}_ROD{_code_number(rod)}",
-            "已解析",
-        )
-
-    match = re.fullmatch(
-        r"Φ(?P<diameter>\d+(?:\.\d+)?)X(?P<width>\d+(?:\.\d+)?)X(?P<t>\d+(?:\.\d+)?)",
-        normalized,
-    )
-    if match:
-        diameter, width, t = (_number(match.group(key)) for key in ("diameter", "width", "t"))
-        return ParsedSpec(
-            "抱箍带",
-            {"内径或适配直径_mm": diameter, "宽度_mm": width, "厚度_mm": t},
-            t,
-            _section_code("HOOP", diameter, width, t),
             "已解析",
         )
 
@@ -329,6 +426,39 @@ def component_code_from_part_name(part_name_value: Any) -> str | None:
     if match:
         return match.group("code").upper()
     return None
+
+
+def component_code_from_row(component_row: dict[str, Any]) -> str | None:
+    component_code = component_row.get("构件代码")
+    component_name = str(component_row.get("构件名称") or "").strip()
+    if not component_code and component_name:
+        role_code = component_role(component_name).get("code")
+        if role_code and role_code != "UNKNOWN_COMPONENT":
+            component_code = role_code
+    if not component_code:
+        component_code = component_code_from_part_name(component_row.get("abaqus_part_name"))
+    return str(component_code).strip().upper() if component_code else None
+
+
+def parse_component_spec(component_row: dict[str, Any]) -> ParsedSpec:
+    component_code = component_code_from_row(component_row)
+    if is_hoop_component_code(component_code):
+        hoop_spec = parse_hoop_spec(component_row.get("规格", ""))
+        if hoop_spec.status == "已解析":
+            return hoop_spec
+    if component_code == "PURLIN_SPLICE":
+        return parse_simple_c_spec(component_row.get("规格", ""))
+    if component_code in CLAMP_COMPONENT_CODES:
+        return parse_clamp_spec(component_row.get("规格", ""), component_code)
+    if component_code == "RECTANGULAR_WASHER":
+        return parse_rectangular_washer_spec(component_row.get("规格", ""))
+    if component_code == "PURLIN_SUPPORT":
+        parsed = parse_spec(component_row.get("规格", ""))
+        if parsed.section_type == "角钢" and parsed.status == "已解析":
+            params = dict(parsed.section_params)
+            params["内根圆角_mm"] = params["厚度_mm"]
+            return ParsedSpec(parsed.section_type, params, parsed.thickness_mm, parsed.section_code, parsed.status, parsed.message)
+    return parse_spec(component_row.get("规格", ""))
 
 
 def is_valid_abaqus_name(name_value: Any) -> bool:
@@ -511,7 +641,7 @@ def material_properties(grade: str, standards: dict[str, Any] | None = None) -> 
 
 def has_complete_model_dimensions(component_row: dict[str, Any]) -> tuple[bool, list[str]]:
     """Return whether a component has enough dimensions for first-stage Part generation."""
-    spec = parse_spec(component_row.get("规格", ""))
+    spec = parse_component_spec(component_row)
     issues: list[str] = []
     if spec.status != "已解析":
         issues.append(spec.message or "规格未解析")
@@ -521,6 +651,7 @@ def has_complete_model_dimensions(component_row: dict[str, Any]) -> tuple[bool, 
     material = normalize_material_grade(component_row.get("材料牌号", component_row.get("备注", "")))
     model_policy = str(component_row.get("建模方式", ""))
     part_name_value = component_row.get("abaqus_part_name")
+    component_code = component_code_from_row(component_row)
 
     if _is_blank(component_row.get("构件名称")):
         issues.append("构件名称缺失")
@@ -528,12 +659,12 @@ def has_complete_model_dimensions(component_row: dict[str, Any]) -> tuple[bool, 
         issues.append("abaqus_part_name缺失")
     elif not is_valid_abaqus_name(part_name_value):
         issues.append("abaqus_part_name只能使用英文、数字和下划线，且不能以数字开头")
-    if _is_blank(component_row.get("数量")):
+    if _is_blank(component_row.get("数量")) and component_code not in CLAMP_COMPONENT_CODES:
         issues.append("数量缺失")
-    if not material:
+    if not material and component_code not in CLAMP_COMPONENT_CODES:
         issues.append("材料牌号缺失")
     normalized_policy, _element_type = effective_model_policy(component_row)
-    if _is_blank(model_policy):
+    if _is_blank(model_policy) and component_code not in FORCED_SOLID_COMPONENT_CODES:
         issues.append("建模方式缺失")
     elif normalized_policy == "MANUAL_TEMPLATE":
         issues.append("人工模板构件暂不自动建模")
@@ -542,7 +673,7 @@ def has_complete_model_dimensions(component_row: dict[str, Any]) -> tuple[bool, 
     elif normalized_policy not in {"SHELL", "SOLID"}:
         issues.append("建模方式暂不支持自动建 Part")
 
-    requires_length = section_type in {"C型钢", "圆管", "角钢", "套管撑杆", "圆钢/圆杆"}
+    requires_length = section_type in {"C型钢", "无回折C型钢", "圆管", "角钢", "套管撑杆", "圆钢/圆杆"}
     if requires_length and _is_blank(length):
         issues.append("长度缺失")
 
@@ -551,8 +682,12 @@ def has_complete_model_dimensions(component_row: dict[str, Any]) -> tuple[bool, 
         "C型钢": ["高度_mm", "翼缘宽_mm", "卷边_mm", "厚度_mm"],
         "圆管": ["外径_mm", "厚度_mm"],
         "角钢": ["边长A_mm", "边长B_mm", "厚度_mm"],
+        "无回折C型钢": ["高度_mm", "翼缘宽_mm", "厚度_mm"],
         "套管撑杆": ["外径_mm", "厚度_mm", "内拉杆直径_mm"],
-        "抱箍带": ["内径或适配直径_mm", "宽度_mm", "厚度_mm"],
+        "抱箍带": ["内径_mm", "带宽_mm", "厚度_mm", "左直段_mm", "右直段_mm"],
+        "中压块V1": ["长度_mm", "长圆孔宽_mm", "长圆孔长_mm", "端距_mm", "孔距_mm"],
+        "边压块V1": ["长度_mm", "长圆孔宽_mm", "长圆孔长_mm", "端距_mm", "孔距_mm"],
+        "矩形垫片": ["长度_mm", "宽度_mm", "厚度_mm", "孔径_mm"],
         "圆钢/圆杆": ["直径_mm"],
         "螺纹件": ["公称直径_mm"],
     }
@@ -568,7 +703,8 @@ def has_complete_model_dimensions(component_row: dict[str, Any]) -> tuple[bool, 
 
 def effective_model_policy(component_row: dict[str, Any]) -> tuple[str, str]:
     """Normalize model policy for section types that cannot be represented as shells."""
-    section_type = parse_spec(component_row.get("规格", "")).section_type
+    spec = parse_component_spec(component_row)
+    section_type = spec.section_type
     policy = str(component_row.get("建模方式", "")).strip()
     element = str(component_row.get("单元类型", "")).strip()
     label_to_code = {
@@ -577,6 +713,8 @@ def effective_model_policy(component_row: dict[str, Any]) -> tuple[str, str]:
         "连接器简化": "CONNECTOR_ONLY",
         "人工模板": "MANUAL_TEMPLATE",
     }
+    if component_code_from_row(component_row) in FORCED_SOLID_COMPONENT_CODES and spec.status == "已解析":
+        return "SOLID", "C3D8R"
     code = label_to_code.get(policy, policy or "MANUAL_TEMPLATE")
     if code in {"MANUAL_TEMPLATE", "CONNECTOR_ONLY"}:
         return code, element or "C3D8R"
@@ -616,6 +754,16 @@ def section_kind_and_ascii_params(spec: ParsedSpec) -> tuple[str, dict[str, floa
                 "leg_a_mm": params["边长A_mm"],
                 "leg_b_mm": params["边长B_mm"],
                 "t_mm": params["厚度_mm"],
+                "inner_root_radius_mm": params.get("内根圆角_mm", 0.0),
+            },
+        )
+    if spec.section_type == "无回折C型钢":
+        return (
+            "C_CHANNEL_SIMPLE",
+            {
+                "h_mm": params["高度_mm"],
+                "b_mm": params["翼缘宽_mm"],
+                "t_mm": params["厚度_mm"],
             },
         )
     if spec.section_type == "套管撑杆":
@@ -631,9 +779,28 @@ def section_kind_and_ascii_params(spec: ParsedSpec) -> tuple[str, dict[str, floa
         return (
             "HOOP_BAND",
             {
-                "inner_or_fit_diameter_mm": params["内径或适配直径_mm"],
-                "width_mm": params["宽度_mm"],
+                "diameter_mm": params["内径_mm"],
+                "width_mm": params["带宽_mm"],
                 "t_mm": params["厚度_mm"],
+                "left_extension_mm": params["左直段_mm"],
+                "right_extension_mm": params["右直段_mm"],
+                "inner_radius_mm": params["内半径_mm"],
+                "outer_radius_mm": params["外半径_mm"],
+                "transition_fillet_mm": params.get("过渡圆角_mm", 0.0),
+            },
+        )
+    if spec.section_type in {"中压块V1", "边压块V1"}:
+        kind = "MID_CLAMP_PROFILE" if spec.section_type == "中压块V1" else "EDGE_CLAMP_PROFILE"
+        return (
+            kind,
+            {
+                "length_mm": params["长度_mm"],
+                "slot_width_mm": params["长圆孔宽_mm"],
+                "slot_length_mm": params["长圆孔长_mm"],
+                "end_distance_mm": params["端距_mm"],
+                "pitch_mm": params["孔距_mm"],
+                "hole_1_center_mm": params["孔1中心_mm"],
+                "hole_2_center_mm": params["孔2中心_mm"],
             },
         )
     if spec.section_type == "圆钢/圆杆":
