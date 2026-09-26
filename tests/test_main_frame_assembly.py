@@ -17,6 +17,7 @@ from cadtocae.main_frame_assembly import (
     _section_reference_xy,
     build_payload,
     export_main_frame_assembly,
+    resolve_hoop_component_code,
     transform_rotation_sequence,
     rotate_z,
     rotate_y,
@@ -51,20 +52,96 @@ def fill_purlin_axis_inputs(excel: Path) -> None:
         "HP_mm": 449,
         "HQ_mm": 449,
         "HR_mm": 1849,
+        "GP1_mm": 150,
+        "GP2_mm": 1400,
+        "GP3_mm": 2600,
+        "GP4_mm": 3800,
     }
     wb = load_workbook(excel)
     try:
+        found = set()
         for ws in wb.worksheets:
             for row in range(1, ws.max_row + 1):
                 name = ws.cell(row=row, column=1).value
                 if name in values:
                     ws.cell(row=row, column=3).value = values[name]
+                    found.add(name)
+            if any(ws.cell(row=row, column=1).value == "参数名" for row in range(1, ws.max_row + 1)):
+                missing_names = [name for name in ("GP1_mm", "GP2_mm", "GP3_mm", "GP4_mm") if name not in found]
+                if missing_names:
+                    header_row = ws.max_row + 2
+                    for column, header in enumerate(("参数名", "参数含义", "数值", "单位", "校核状态", "备注"), start=1):
+                        ws.cell(row=header_row, column=column).value = header
+                    for offset, name in enumerate(missing_names, start=1):
+                        row = header_row + offset
+                        ws.cell(row=row, column=1).value = name
+                        ws.cell(row=row, column=2).value = "G to purlin node station"
+                        ws.cell(row=row, column=3).value = values[name]
+                        ws.cell(row=row, column=4).value = "mm"
+                        ws.cell(row=row, column=5).value = "已确认"
         wb.save(excel)
     finally:
         wb.close()
 
 
 class MainFrameAssemblyTest(unittest.TestCase):
+    def test_hoop_component_code_resolver(self):
+        self.assertEqual(resolve_hoop_component_code("HOOP"), ("HOOP", None))
+        self.assertEqual(resolve_hoop_component_code("HOOP_ASSEMBLY_1"), ("HOOP", 1))
+        self.assertEqual(resolve_hoop_component_code("HOOP_ASSEMBLY_23"), ("HOOP", 23))
+        self.assertIsNone(resolve_hoop_component_code("HOOP_ASSEMBLY_X"))
+        self.assertIsNone(resolve_hoop_component_code("HOOP_EXTRA"))
+
+    def test_sp_sc_hoop_control_point_creates_complete_pair(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            excel, components = build_sample_inputs(tmp)
+            component_payload = json.loads(components.read_text(encoding="utf-8"))
+            component_payload["components"].append(
+                {
+                    "component_code": "HOOP",
+                    "part_name": "P_SP_SC_ANG20_HOOP",
+                    "length_m": None,
+                    "section_kind": "HOOP_BAND",
+                    "section_params_m": {"width_m": 0.08, "diameter_m": 0.3, "t_m": 0.006},
+                }
+            )
+            components.write_text(json.dumps(component_payload, ensure_ascii=False), encoding="utf-8")
+            payload = build_payload(excel, components)
+
+        hoops = [item for item in payload["instance_plan"] if item["component_code"] == "HOOP"]
+        self.assertEqual([item["instance_id"] for item in hoops], ["HOOP_01_A", "HOOP_01_B"])
+        self.assertEqual(hoops[0]["part_name"], hoops[1]["part_name"])
+        self.assertEqual(hoops[0]["origin"], hoops[1]["origin"])
+        self.assertNotIn("post_rotation", hoops[0])
+        self.assertEqual(
+            hoops[1]["post_rotation"],
+            {"axis_point": hoops[1]["origin"], "axis_direction": [0.0, 0.0, 1.0], "angle_deg": 180.0},
+        )
+        self.assertEqual(len(payload["hoop_groups"]), 1)
+
+    def test_sp_sc_numbered_hoop_assembly_creates_complete_pair(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            excel, components = build_sample_inputs(tmp)
+            component_payload = json.loads(components.read_text(encoding="utf-8"))
+            component_payload["components"].append(
+                {
+                    "component_code": "HOOP_ASSEMBLY_1",
+                    "part_name": "P_SP_SC_ANG20_HOOP_ASSEMBLY_1",
+                    "length_m": None,
+                    "section_kind": "HOOP_BAND",
+                    "section_params_m": {"width_m": 0.08, "diameter_m": 0.3, "t_m": 0.006},
+                }
+            )
+            components.write_text(json.dumps(component_payload, ensure_ascii=False), encoding="utf-8")
+            payload = build_payload(excel, components)
+
+        hoops = [item for item in payload["instance_plan"] if item.get("canonical_role") == "HOOP"]
+        self.assertEqual([item["instance_id"] for item in hoops], ["HOOP_01_A", "HOOP_01_B"])
+        self.assertTrue(all(item["component_code"] == "HOOP_ASSEMBLY_1" for item in hoops))
+        self.assertTrue(all(item["assembly_index"] == 1 for item in hoops))
+        self.assertTrue(all(item["part_name"] == "P_SP_SC_ANG20_HOOP_ASSEMBLY_1" for item in hoops))
+        self.assertEqual(payload["hoop_groups"][0]["source_component_code"], "HOOP_ASSEMBLY_1")
+
     def test_section_reference_for_pipe_c_channel_and_angle(self):
         pipe_ref = _section_reference_xy({"section_kind": "PIPE", "section_params_m": {"od_m": 0.14, "t_m": 0.0035}})
         self.assertEqual(pipe_ref["x_m"], 0.0)
@@ -152,7 +229,7 @@ class MainFrameAssemblyTest(unittest.TestCase):
         self.assertAlmostEqual(checks["BC"]["error"], 0.0012409188706739016)
         self.assertAlmostEqual(checks["DE"]["error"], -0.013053394071534719)
 
-    def test_purlin_axis_points_checks_and_members_are_exported(self):
+    def test_purlin_station_points_create_exact_support_and_local_purlin_pairs(self):
         with tempfile.TemporaryDirectory() as tmp:
             excel, components = build_sample_inputs(tmp)
             fill_purlin_axis_inputs(excel)
@@ -160,38 +237,45 @@ class MainFrameAssemblyTest(unittest.TestCase):
 
         points = payload["points"]
         checks = payload["checks"]
-        self.assertEqual(checks["SPQR_COLLINEAR"]["passed"], PASSED)
-        self.assertEqual(checks["SPQR_ANGLE"]["passed"], PASSED)
-        self.assertAlmostEqual(checks["SPQR_ANGLE"]["error"], 0.0)
-        for name in ["H", "S", "P", "Q", "R"]:
+        self.assertEqual([payload["input_rows"]["GP%d_mm" % index]["value"] for index in range(1, 5)], [150, 1400, 2600, 3800])
+        for name in ["P1", "P2", "P3", "P4"]:
             self.assertIn(name, points)
 
         members_by_name = {member["name"]: member for member in payload["members"]}
-        purlin_names = ["PURLIN_%s" % name for name in ["S", "P", "Q", "R"]]
-        support_names = ["PURLIN_SUPPORT_%s" % name for name in ["S", "P", "Q", "R"]]
+        purlin_names = ["PURLIN_LOCAL_%02d" % index for index in range(1, 5)]
+        support_names = ["PURLIN_SUPPORT_%02d" % index for index in range(1, 5)]
         for name in purlin_names + support_names:
             self.assertIn(name, members_by_name)
         self.assertEqual(len({members_by_name[name]["instance_name"] for name in purlin_names + support_names}), 8)
         self.assertEqual(payload["purlin_axis"]["enabled"], True)
-        self.assertEqual(payload["purlin_axis"]["purlin_derived_part_name"], "P_SP_SC_ANG20_PURLIN_50MM")
+        self.assertEqual(payload["purlin_axis"]["purlin_local_part_name"], "P_SP_SC_ANG20_PURLIN_LOCAL")
+        self.assertEqual(len(payload["purlin_nodes"]), 4)
 
         theta = math.radians(payload["inputs"]["theta_deg"])
         expected_u = [math.cos(theta), 0.0, math.sin(theta)]
         expected_n = [-math.sin(theta), 0.0, math.cos(theta)]
-        purlin_s = members_by_name["PURLIN_S"]
-        support_s = members_by_name["PURLIN_SUPPORT_S"]
-        self.assertEqual(purlin_s["part_name"], "P_SP_SC_ANG20_PURLIN_50MM")
-        self.assertEqual(purlin_s["source_part_name"], "P_SP_SC_ANG20_PURLIN")
+        purlin_s = members_by_name["PURLIN_LOCAL_01"]
+        support_s = members_by_name["PURLIN_SUPPORT_01"]
+        self.assertEqual(purlin_s["component_code"], "PURLIN_LOCAL")
+        self.assertEqual(purlin_s["part_name"], "P_SP_SC_ANG20_PURLIN_LOCAL")
+        self.assertEqual(purlin_s["source_part_name"], "P_SP_SC_ANG20_PURLIN_LOCAL")
         self.assertAlmostEqual(purlin_s["part_length_m"], PURLIN_SHORT_LENGTH_M)
-        self.assertEqual(purlin_s["local_anchor"], [0.025, 0.115, 0.025])
+        self.assertEqual(purlin_s["local_anchor"], [0.0, 0.0, 0.025])
 
         rotated_anchor = transform_rotation_sequence(purlin_s["local_anchor"], purlin_s["rotation_sequence"])
         transformed_anchor = [rotated_anchor[index] + purlin_s["translation"][index] for index in range(3)]
-        expected_purlin_anchor = list(points["S"]["coords"])
-        expected_purlin_anchor[1] += PURLIN_GROUP_Y_OFFSET_M
+        expected_purlin_anchor = [points["P1"]["coords"][index] + 0.0495 * expected_n[index] for index in range(3)]
+        expected_purlin_anchor[1] += 0.020
         for index, expected in enumerate(expected_purlin_anchor):
             self.assertAlmostEqual(transformed_anchor[index], expected)
-        self.assertAlmostEqual(payload["purlin_axis"]["group_y_offset_m"], PURLIN_GROUP_Y_OFFSET_M)
+        self.assertAlmostEqual(payload["purlin_nodes"][0]["beam_to_purlin_gap_m"], 0.010)
+        self.assertAlmostEqual(payload["purlin_nodes"][0]["purlin_shell_midplane_offset_m"], 0.011)
+        self.assertAlmostEqual(payload["purlin_nodes"][0]["beam_surface_offset_m"], 0.0385)
+        self.assertAlmostEqual(payload["purlin_nodes"][0]["beam_section_center_offset_m"], 0.020)
+        self.assertEqual(payload["purlin_nodes"][0]["web_contact_side"], "outer")
+        self.assertAlmostEqual(payload["purlin_nodes"][0]["y_offset_support_m"], 0.020)
+        self.assertAlmostEqual(payload["purlin_nodes"][0]["y_offset_local_m"], 0.020)
+        self.assertAlmostEqual(payload["purlin_nodes"][0]["alignment_error_m"], 0.0)
 
         flange_axis = transform_rotation_sequence([1.0, 0.0, 0.0], purlin_s["rotation_sequence"])
         web_axis = transform_rotation_sequence([0.0, 1.0, 0.0], purlin_s["rotation_sequence"])
@@ -211,16 +295,13 @@ class MainFrameAssemblyTest(unittest.TestCase):
         self.assertEqual(support_s["part_name"], "P_SP_SC_ANG20_PURLIN_SUPPORT")
         self.assertEqual(support_s["local_anchor"], [0.0, 0.0, 0.025])
 
-        expected_web_bottom = [
-            points["S"]["coords"][index] - 0.025 * expected_u[index] - 0.115 * expected_n[index]
-            for index in range(3)
-        ]
-        expected_web_bottom[1] += PURLIN_GROUP_Y_OFFSET_M
         support_rotated_anchor = transform_rotation_sequence(support_s["local_anchor"], support_s["rotation_sequence"])
         support_transformed_anchor = [support_rotated_anchor[index] + support_s["translation"][index] for index in range(3)]
-        for index, expected in enumerate(expected_web_bottom):
+        expected_support_anchor = [points["P1"]["coords"][index] + 0.0385 * expected_n[index] for index in range(3)]
+        expected_support_anchor[1] += 0.020
+        for index, expected in enumerate(expected_support_anchor):
             self.assertAlmostEqual(support_transformed_anchor[index], expected)
-        self.assertEqual(payload["member_checks"]["PURLIN_SUPPORT_S_PLACEMENT"]["anchor"], "S_WEB_BOTTOM")
+        self.assertEqual(payload["member_checks"]["P1_SUPPORT_SURFACE"]["actual"], expected_support_anchor)
 
     def test_export_generates_single_embedded_assembly_script(self):
         with tempfile.TemporaryDirectory() as tmp:
@@ -322,6 +403,7 @@ class MainFrameAssemblyTest(unittest.TestCase):
                 "COMPONENTS_JSON = r'''%s'''\n" % components.read_text(encoding="utf-8"),
                 encoding="utf-8",
             )
+            fill_purlin_axis_inputs(excel)
 
             result = generate_assembly_scripts_from_workbook(
                 excel,
@@ -333,6 +415,23 @@ class MainFrameAssemblyTest(unittest.TestCase):
             self.assertIsNone(result.assembly_json_path)
             self.assertEqual(Path(result.copied_components_json_path or "").name, "SP_SC_ANG20_create_parts_in_cae.py")
             self.assertEqual({"SP_SC_ANG20_assembly_frame.py"}, {Path(path).name for path in result.script_paths})
+            expected_summary = tmp_path / "assembly_out" / "SP_SC_ANG20_assembly_summary.json"
+            self.assertEqual(Path(result.summary_path or ""), expected_summary)
+            with expected_summary.open("r", encoding="utf-8") as handle:
+                summary = json.load(handle)
+            payload = build_payload(excel, part_script, project_code="SP_SC_ANG20", model_name="SP_SC_ANG20")
+            self.assertEqual(summary["project_id"], "SP_SC_ANG20")
+            self.assertEqual(summary["model_name"], "SP_SC_ANG20")
+            self.assertEqual(summary["structure_type"], "SP_SC")
+            self.assertEqual(len(summary["instances"]), len(payload["instance_plan"]))
+            support = next(item for item in summary["instances"] if item["instance_name"] == "PURLIN_SUPPORT_01")
+            local = next(item for item in summary["instances"] if item["instance_name"] == "PURLIN_LOCAL_01")
+            self.assertEqual(support["connection_group"], "P01")
+            self.assertEqual(local["connection_group"], "P01")
+            self.assertEqual(support["placement"]["translation"], next(item for item in payload["instance_plan"] if item["instance_id"] == "PURLIN_SUPPORT_01")["translation"])
+            self.assertIn("P1", summary["assembly_points"])
+            assembly_script = Path(result.script_paths[0]).read_text(encoding="utf-8")
+            self.assertNotIn("assembly_summary", assembly_script)
             expected_report = tmp_path / "assembly_out" / "过程文件" / "调试文件" / "SP_SC_ANG20_step04_assembly_script_report.json"
             self.assertEqual(Path(result.report_path), expected_report)
             self.assertTrue(expected_report.exists())

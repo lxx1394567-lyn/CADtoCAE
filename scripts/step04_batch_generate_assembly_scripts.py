@@ -79,6 +79,8 @@ def main() -> int:
                 print("      Assembly data: embedded in generated .py")
             for script in item.script_paths:
                 print("      Abaqus script: %s" % script)
+            if item.summary_path:
+                print("      Assembly summary: %s" % item.summary_path)
             print("      Debug report: %s" % item.report_path)
         else:
             print("[%s] %s -> no assembly script; report: %s" % (item.status, Path(item.coordinate_workbook_path).name, item.report_path))

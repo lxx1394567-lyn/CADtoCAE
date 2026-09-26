@@ -4,7 +4,7 @@ import argparse
 import json
 import math
 import re
-from dataclasses import dataclass
+from dataclasses import asdict, dataclass
 from pathlib import Path
 from string import Template
 from typing import Any
@@ -32,6 +32,8 @@ PURLIN_AXIS_INPUT_NAMES = ("HF_mm", "HS_mm", "HP_mm", "HQ_mm", "HR_mm")
 PURLIN_AXIS_POINT_NAMES = ("S", "P", "Q", "R")
 PURLIN_SHORT_LENGTH_M = 0.05
 PURLIN_GROUP_Y_OFFSET_M = 0.025
+PURLIN_BEAM_GAP_M = 0.010
+PURLIN_STATION_POINT_NAMES = ("P1", "P2", "P3", "P4")
 SPQR_COLLINEAR_TOLERANCE_M = 1.0e-6
 
 
@@ -44,6 +46,31 @@ class ExcelInput:
     status: str
     note: str
     row: int
+
+
+@dataclass(frozen=True)
+class InstanceSpec:
+    instance_id: str
+    component_code: str
+    part_name: str
+    placement_mode: str
+    start_point: list[float] | None = None
+    end_point: list[float] | None = None
+    origin: list[float] | None = None
+    axis_direction: list[float] | None = None
+    roll_deg: float = 0.0
+    required: bool = True
+    source: str = ""
+
+
+STRUCTURE_TYPES = ("SP_SC", "SP_DC")
+PROJECT_ID_SUFFIXES = (
+    "_coordinate_formula_simple_fixed",
+    "_coordinate_formula_full_fixed",
+    "_coordinate",
+    "_create_parts_in_cae",
+    "_components",
+)
 
 
 def _float(value: Any, name: str) -> float:
@@ -213,27 +240,32 @@ def read_excel_inputs(excel_path: str | Path) -> tuple[dict[str, ExcelInput], di
     path = Path(excel_path)
     wb_values = load_workbook(path, data_only=True)
 
-    ws_values, input_header, input_cols = _find_table_header(
-        wb_values,
-        ("参数名", "参数含义", "数值", "单位", "校核状态", "备注"),
-        preferred_sheets=("关键尺寸输入",),
-    )
+    input_headers = ("参数名", "参数含义", "数值", "单位", "校核状态", "备注")
     inputs: dict[str, ExcelInput] = {}
-    row = input_header + 1
-    while row <= ws_values.max_row:
-        name = ws_values.cell(row, input_cols["参数名"]).value
-        if not name:
-            break
-        inputs[str(name)] = ExcelInput(
-            name=str(name),
-            meaning=str(ws_values.cell(row, input_cols["参数含义"]).value or ""),
-            value=ws_values.cell(row, input_cols["数值"]).value,
-            unit=str(ws_values.cell(row, input_cols["单位"]).value or ""),
-            status=str(ws_values.cell(row, input_cols["校核状态"]).value or ""),
-            note=str(ws_values.cell(row, input_cols["备注"]).value or ""),
-            row=row,
-        )
-        row += 1
+    for ws_values in wb_values.worksheets:
+        for input_header in range(1, ws_values.max_row + 1):
+            values = [ws_values.cell(input_header, column).value for column in range(1, ws_values.max_column + 1)]
+            input_cols = {str(value): index + 1 for index, value in enumerate(values) if value is not None}
+            if not all(header in input_cols for header in input_headers):
+                continue
+            row = input_header + 1
+            while row <= ws_values.max_row:
+                name = ws_values.cell(row, input_cols["参数名"]).value
+                if not name:
+                    break
+                key = str(name)
+                inputs[key] = ExcelInput(
+                    name=key,
+                    meaning=str(ws_values.cell(row, input_cols["参数含义"]).value or ""),
+                    value=ws_values.cell(row, input_cols["数值"]).value,
+                    unit=str(ws_values.cell(row, input_cols["单位"]).value or ""),
+                    status=str(ws_values.cell(row, input_cols["校核状态"]).value or ""),
+                    note=str(ws_values.cell(row, input_cols["备注"]).value or ""),
+                    row=row,
+                )
+                row += 1
+    if not inputs:
+        raise ValueError("Cannot find parameter table headers: %s" % (input_headers,))
 
     point_ws, output_header, point_cols = _find_table_header(
         wb_values,
@@ -514,6 +546,32 @@ def read_components_payload(path: str | Path) -> dict[str, Any]:
     return json.loads(text)
 
 
+def project_id_from_path(path: str | Path) -> str:
+    stem = Path(path).stem
+    lowered = stem.lower()
+    for suffix in PROJECT_ID_SUFFIXES:
+        if lowered.endswith(suffix):
+            return stem[: -len(suffix)]
+    return stem
+
+
+def detect_structure_type(project_id: str) -> str:
+    upper = str(project_id).upper()
+    for structure_type in STRUCTURE_TYPES:
+        if upper.startswith(structure_type + "_"):
+            return structure_type
+    raise ValueError("Unsupported structure_type for project_id %s. Expected SP_SC or SP_DC." % project_id)
+
+
+def read_step02_model_name(path: str | Path) -> str | None:
+    source = Path(path)
+    if source.suffix.lower() != ".py":
+        return None
+    text = source.read_text(encoding="utf-8")
+    match = re.search(r'^MODEL_NAME\s*=\s*[\"\'](?P<name>[^\"\']+)[\"\']', text, re.MULTILINE)
+    return match.group("name") if match else None
+
+
 def load_components(path: str | Path) -> dict[str, dict[str, Any]]:
     payload = read_components_payload(path)
     by_code: dict[str, dict[str, Any]] = {}
@@ -532,6 +590,32 @@ def _component(by_code: dict[str, dict[str, Any]], code: str) -> dict[str, Any]:
 
 def _optional_component(by_code: dict[str, dict[str, Any]], code: str) -> dict[str, Any] | None:
     return by_code.get(code)
+
+
+HOOP_ASSEMBLY_CODE_RE = re.compile(r"^HOOP_ASSEMBLY_(\d+)$")
+
+
+def resolve_hoop_component_code(code: str) -> tuple[str, int | None] | None:
+    normalized = str(code or "").strip().upper()
+    if normalized == "HOOP":
+        return "HOOP", None
+    match = HOOP_ASSEMBLY_CODE_RE.fullmatch(normalized)
+    if match:
+        return "HOOP", int(match.group(1))
+    return None
+
+
+def is_hoop_component_code(code: str) -> bool:
+    return resolve_hoop_component_code(code) is not None
+
+
+def _resolve_hoop_component(
+    components: dict[str, dict[str, Any]], group_index: int
+) -> dict[str, Any] | None:
+    numbered = components.get("HOOP_ASSEMBLY_%d" % group_index)
+    if numbered is not None:
+        return numbered
+    return components.get("HOOP")
 
 
 def compare_cached_points(points: dict[str, dict[str, Any]], cached_points: dict[str, dict[str, Any]]) -> list[str]:
@@ -916,7 +1000,33 @@ def _member(
     return member
 
 
-def build_payload(
+def _add_sp_sc_station_points(
+    points: dict[str, dict[str, Any]],
+    inputs: dict[str, ExcelInput],
+    cached_points: dict[str, dict[str, Any]],
+    beam_tangent: list[float],
+) -> None:
+    beam_origin = _coords(points["G_global"])
+    for index, point_name in enumerate(PURLIN_STATION_POINT_NAMES, start=1):
+        cached = cached_points.get(point_name) or {}
+        cached_coords = cached.get("coords")
+        if isinstance(cached_coords, list) and len(cached_coords) == 3 and all(value not in (None, "") for value in cached_coords):
+            try:
+                coords = _finite_point(cached_coords, point_name)
+            except (TypeError, ValueError):
+                coords = []
+            if coords:
+                points[point_name] = _point(*coords, status=str(cached.get("status") or ""), note="Excel final purlin station point")
+                continue
+        input_name = "GP%d_mm" % index
+        row = inputs.get(input_name)
+        if row is None or row.value in (None, ""):
+            continue
+        station = _add(beam_origin, _scale(beam_tangent, _float(row.value, input_name) / 1000.0))
+        points[point_name] = _point(*station, status=row.status, note="Derived from G + %s * beam_tangent" % input_name)
+
+
+def _build_sp_sc_payload(
     excel_path: str | Path,
     components_path: str | Path,
     project_code: str = DEFAULT_PROJECT_CODE,
@@ -929,8 +1039,6 @@ def build_payload(
     column_down_component = _optional_component(components, "COLUMN_DOWN")
     column_up_component = _optional_component(components, "COLUMN_UP")
     single_column_component = _optional_component(components, "COLUMN")
-    purlin_component = _optional_component(components, "PURLIN")
-    purlin_support_component = _optional_component(components, "PURLIN_SUPPORT")
     if not (column_down_component and column_up_component) and not single_column_component and not column_up_component:
         raise ValueError("Missing column components. Expected COLUMN_DOWN+COLUMN_UP, COLUMN, or COLUMN_UP in components JSON.")
     beam_component = main_components["INCLINED_BEAM"]
@@ -951,6 +1059,7 @@ def build_payload(
     rotate_beam_y = 90.0 - theta_deg
     u = [math.cos(theta_rad), 0.0, math.sin(theta_rad)]
     n = [-math.sin(theta_rad), 0.0, math.cos(theta_rad)]
+    _add_sp_sc_station_points(points, inputs, cached_points, u)
     beam_roll = _default_roll_about_axis_deg("INCLINED_BEAM", beam_component)
     front_brace_roll = _default_roll_about_axis_deg("BRACE_FRONT", main_components["BRACE_FRONT"])
     rear_brace_roll = _default_roll_about_axis_deg("BRACE_REAR", main_components["BRACE_REAR"])
@@ -1113,29 +1222,28 @@ def build_payload(
             },
         }
     )
-    purlin_axis_metadata: dict[str, Any] = {"enabled": False, "reason": "PURLIN/PURLIN_SUPPORT components or S/P/Q/R points are not available."}
-    purlin_points_available = all(name in points for name in PURLIN_AXIS_POINT_NAMES)
-    if purlin_component and purlin_support_component and purlin_points_available:
-        purlin_members, purlin_axis_metadata, purlin_checks, purlin_warnings = _build_purlin_members(
-            purlin_component,
-            purlin_support_component,
-            points,
-            theta_deg,
-            u,
-            n,
-        )
-        members.extend(purlin_members)
-        member_checks.update(purlin_checks)
-        warnings.extend(purlin_warnings)
-    elif purlin_component or purlin_support_component:
-        missing = []
-        if not purlin_component:
-            missing.append("PURLIN")
-        if not purlin_support_component:
-            missing.append("PURLIN_SUPPORT")
-        if not purlin_points_available:
-            missing.append("S/P/Q/R")
-        warnings.append("Purlin assembly skipped because %s is unavailable." % ", ".join(missing))
+    skipped_instances: list[dict[str, str]] = []
+    purlin_nodes, purlin_checks = _add_purlin_nodes(
+        members,
+        components,
+        {name: _coords(point) for name, point in points.items()},
+        u,
+        "SP_SC adapter: P1/P2/P3/P4 purlin station points",
+        warnings,
+        skipped_instances,
+        beam_origin=_coords(points["G_global"]),
+    )
+    member_checks.update(purlin_checks)
+    purlin_axis_metadata: dict[str, Any] = {
+        "enabled": bool(purlin_nodes),
+        "point_names": [node["station"] for node in purlin_nodes],
+        "purlin_support_part_name": components.get("PURLIN_SUPPORT", {}).get("part_name"),
+        "purlin_local_part_name": components.get("PURLIN_LOCAL", {}).get("part_name"),
+        "axis_unit": u,
+        "normal_unit": n,
+        "beam_to_purlin_gap_m": PURLIN_BEAM_GAP_M,
+        "placement": "One PURLIN_SUPPORT and one PURLIN_LOCAL per P1/P2/P3/P4 station.",
+    }
 
     beam_reference = _section_reference_xy(beam_component)
     beam_local_point = _local_reference_point(beam_component, gf)
@@ -1203,8 +1311,679 @@ def build_payload(
         "member_checks": member_checks,
         "warnings": warnings,
         "errors": errors,
+        "skipped_instances": skipped_instances,
+        "purlin_nodes": purlin_nodes,
     }
     return payload
+
+
+def _finite_point(value: Any, name: str) -> list[float]:
+    if not isinstance(value, (list, tuple)) or len(value) != 3:
+        raise ValueError("Control point %s must contain X/Y/Z coordinates." % name)
+    point = [float(item) for item in value]
+    if not all(math.isfinite(item) for item in point):
+        raise ValueError("Control point %s contains NaN or infinite values." % name)
+    return point
+
+
+def _read_named_points(workbook_path: str | Path) -> tuple[dict[str, list[float]], dict[str, str]]:
+    workbook = load_workbook(workbook_path, data_only=True, read_only=True)
+    points: dict[str, list[float]] = {}
+    statuses: dict[str, str] = {}
+    try:
+        for sheet in workbook.worksheets:
+            for row in range(1, sheet.max_row + 1):
+                headers = [sheet.cell(row, column).value for column in range(1, sheet.max_column + 1)]
+                header_map = {str(value).strip(): index + 1 for index, value in enumerate(headers) if value not in (None, "")}
+                if not all(name in header_map for name in ("X_m", "Y_m", "Z_m")):
+                    continue
+                name_col = header_map.get("点名") or header_map.get("名称")
+                if not name_col:
+                    continue
+                status_col = header_map.get("校核状态") or header_map.get("状态")
+                current = row + 1
+                while current <= sheet.max_row:
+                    name = sheet.cell(current, name_col).value
+                    if name in (None, ""):
+                        current += 1
+                        continue
+                    values = [
+                        sheet.cell(current, header_map["X_m"]).value,
+                        sheet.cell(current, header_map["Y_m"]).value,
+                        sheet.cell(current, header_map["Z_m"]).value,
+                    ]
+                    try:
+                        points[str(name).strip()] = _finite_point(values, str(name))
+                    except (TypeError, ValueError):
+                        current += 1
+                        continue
+                    statuses[str(name).strip()] = str(sheet.cell(current, status_col).value or "") if status_col else ""
+                    current += 1
+                if points:
+                    return points, statuses
+    finally:
+        workbook.close()
+    raise ValueError("Cannot find a control-point table with 点名/X_m/Y_m/Z_m in %s." % workbook_path)
+
+
+def _read_named_value(workbook_path: str | Path, name: str) -> float | None:
+    workbook = load_workbook(workbook_path, data_only=True, read_only=True)
+    try:
+        for sheet in workbook.worksheets:
+            for row in range(1, sheet.max_row + 1):
+                if str(sheet.cell(row, 1).value or "").strip() != name:
+                    continue
+                value = sheet.cell(row, 3).value
+                if value not in (None, ""):
+                    return float(value)
+    finally:
+        workbook.close()
+    return None
+
+
+def _instance_id(value: str) -> str:
+    cleaned = re.sub(r"[^A-Za-z0-9_]", "_", str(value).upper())
+    cleaned = re.sub(r"_+", "_", cleaned).strip("_")
+    if not cleaned:
+        raise ValueError("Instance id cannot be empty.")
+    if cleaned[0].isdigit():
+        cleaned = "I_" + cleaned
+    return cleaned
+
+
+def _normalize_instance_member(
+    member: dict[str, Any],
+    instance_id: str,
+    placement_mode: str,
+    required: bool,
+    source: str,
+    start_point: list[float] | None = None,
+    end_point: list[float] | None = None,
+    origin: list[float] | None = None,
+    axis_direction: list[float] | None = None,
+) -> dict[str, Any]:
+    normalized = dict(member)
+    spec = InstanceSpec(
+        instance_id=_instance_id(instance_id),
+        component_code=str(member.get("component_code") or member.get("name") or ""),
+        part_name=str(member["part_name"]),
+        placement_mode=placement_mode,
+        start_point=start_point,
+        end_point=end_point,
+        origin=origin,
+        axis_direction=axis_direction,
+        roll_deg=float(member.get("roll_about_axis_deg") or 0.0),
+        required=required,
+        source=source,
+    )
+    normalized.update(asdict(spec))
+    normalized["instance_name"] = spec.instance_id
+    return normalized
+
+
+def _point_orient_member(
+    name: str,
+    component: dict[str, Any],
+    origin: list[float],
+    instance_id: str,
+    rotation_sequence: list[dict[str, Any]] | None = None,
+    local_anchor: list[float] | None = None,
+    source: str = "",
+) -> dict[str, Any]:
+    sequence = list(rotation_sequence or [])
+    anchor = list(local_anchor or [0.0, 0.0, 0.0])
+    member = _member_with_rotation_sequence(
+        name=name,
+        phase="step04_initial_assembly",
+        component=component,
+        part_name=str(component["part_name"]),
+        instance_name=instance_id,
+        local_anchor=anchor,
+        global_anchor_name=name,
+        global_anchor=origin,
+        rotation_sequence=sequence,
+        part_length_m=component.get("length_m"),
+        section_reference=_section_reference_xy(component),
+    )
+    return _normalize_instance_member(
+        member,
+        instance_id,
+        "POINT_ORIENT",
+        False,
+        source,
+        origin=origin,
+        axis_direction=[0.0, 0.0, 1.0],
+    )
+
+
+def _create_hoop_pair(
+    primary_component: dict[str, Any],
+    center: list[float],
+    group_index: int,
+    source: str,
+    secondary_component: dict[str, Any] | None = None,
+) -> tuple[list[dict[str, Any]], dict[str, Any]]:
+    center = _finite_point(center, "H%d" % group_index)
+    column_axis = [0.0, 0.0, 1.0]
+    if _norm(column_axis) <= 1.0e-12:
+        raise ValueError("HOOP group %02d has an invalid column axis." % group_index)
+    components = (primary_component, secondary_component or primary_component)
+    pair: list[dict[str, Any]] = []
+    for half_index, component in enumerate(components):
+        half_name = "A" if half_index == 0 else "B"
+        width = float((component.get("section_params_m") or {}).get("width_m") or component.get("length_m") or 0.0)
+        instance_id = "HOOP_%02d_%s" % (group_index, half_name)
+        member = _point_orient_member(
+            instance_id,
+            component,
+            center,
+            instance_id,
+            local_anchor=[0.0, 0.0, width / 2.0],
+            source=source,
+        )
+        source_code = str(component.get("component_code") or "HOOP")
+        resolved = resolve_hoop_component_code(source_code)
+        member["component_code"] = source_code if resolved else "HOOP"
+        member["source_component_code"] = source_code
+        member["canonical_role"] = "HOOP"
+        member["assembly_index"] = resolved[1] if resolved else None
+        member["hoop_group_id"] = "HOOP_%02d" % group_index
+        member["hoop_half"] = half_name
+        if half_name == "B":
+            member["post_rotation"] = {
+                "axis_point": list(center),
+                "axis_direction": column_axis,
+                "angle_deg": 180.0,
+            }
+        pair.append(member)
+    group = {
+        "group_id": "HOOP_%02d" % group_index,
+        "source_component_code": pair[0]["component_code"],
+        "canonical_role": "HOOP",
+        "assembly_index": pair[0].get("assembly_index"),
+        "center": list(center),
+        "part_a": pair[0]["part_name"],
+        "part_b": pair[1]["part_name"],
+        "instance_a": pair[0]["instance_id"],
+        "instance_b": pair[1]["instance_id"],
+        "pair_rotation": {"axis_point": list(center), "axis_direction": column_axis, "angle_deg": 180.0},
+    }
+    return pair, group
+
+
+def _create_purlin_node_pair(
+    support_component: dict[str, Any],
+    local_purlin_component: dict[str, Any],
+    station_name: str,
+    station_point: list[float],
+    node_index: int,
+    beam_tangent: list[float],
+    beam_surface_offset: float,
+    beam_center_offset: float,
+    source: str,
+    beam_origin: list[float] | None = None,
+) -> tuple[list[dict[str, Any]], dict[str, Any], dict[str, dict[str, Any]]]:
+    station = _finite_point(station_point, station_name)
+    if support_component.get("component_code") != "PURLIN_SUPPORT":
+        raise ValueError("Purlin node %s requires component_code PURLIN_SUPPORT." % station_name)
+    if local_purlin_component.get("component_code") != "PURLIN_LOCAL":
+        raise ValueError("Purlin node %s requires component_code PURLIN_LOCAL; ordinary PURLIN is not allowed." % station_name)
+    if support_component.get("section_kind") != "ANGLE":
+        raise ValueError("PURLIN_SUPPORT at %s must use an ANGLE section." % station_name)
+    if local_purlin_component.get("section_kind") != "C_CHANNEL":
+        raise ValueError("PURLIN_LOCAL at %s must use a C_CHANNEL section." % station_name)
+
+    tangent_norm = _norm(beam_tangent)
+    if tangent_norm <= 1.0e-12:
+        raise ValueError("Purlin node %s has an invalid beam tangent." % station_name)
+    e_s = _scale(beam_tangent, 1.0 / tangent_norm)
+    e_y = [0.0, 1.0, 0.0]
+    e_n = _cross(e_s, e_y)
+    normal_norm = _norm(e_n)
+    if normal_norm <= 1.0e-12:
+        raise ValueError("Purlin node %s has an invalid beam local frame." % station_name)
+    e_n = _scale(e_n, 1.0 / normal_norm)
+    if e_n[2] < 0.0:
+        e_n = _scale(e_n, -1.0)
+
+    theta_deg = math.degrees(math.atan2(e_s[2], e_s[0]))
+    support_rotation = _purlin_support_rotation_sequence(theta_deg)
+    purlin_rotation = _purlin_rotation_sequence(theta_deg)
+    support_length = float(support_component.get("length_m") or 0.0)
+    purlin_length = float(local_purlin_component.get("length_m") or 0.0)
+    if support_length <= 0.0 or purlin_length <= 0.0:
+        raise ValueError("Purlin node %s requires positive Part lengths." % station_name)
+
+    support_anchor = [0.0, 0.0, support_length / 2.0]
+    purlin_anchor = [0.0, 0.0, purlin_length / 2.0]
+    purlin_thickness = float(local_purlin_component.get("thickness_m") or (local_purlin_component.get("section_params_m") or {}).get("t_m") or 0.0)
+    purlin_midplane_offset = PURLIN_BEAM_GAP_M + purlin_thickness / 2.0
+    beam_section_center = _add(station, _scale(e_y, beam_center_offset))
+    support_global_anchor = _add(beam_section_center, _scale(e_n, beam_surface_offset))
+    purlin_global_anchor = _add(beam_section_center, _scale(e_n, beam_surface_offset + purlin_midplane_offset))
+
+    support = _member_with_rotation_sequence(
+        "PURLIN_SUPPORT_%02d" % node_index,
+        "step04_purlins",
+        support_component,
+        support_component["part_name"],
+        "PURLIN_SUPPORT_%02d" % node_index,
+        support_anchor,
+        station_name,
+        support_global_anchor,
+        support_rotation,
+        part_length_m=support_length,
+        source_part_name=support_component["part_name"],
+        section_reference={
+            "x_m": 0.0,
+            "y_m": 0.0,
+            "z_m": support_length / 2.0,
+            "rule": "ANGLE_OUTER_ROOT_SURFACE",
+            "local_origin": [0.0, 0.0, 0.0],
+            "local_anchor_offset": [0.0, 0.0, support_length / 2.0],
+        },
+        axis_checks=[
+            {"name": "long_leg_axis", "local_vector": [1.0, 0.0, 0.0], "expected_global": e_n, "tolerance": 1.0e-6},
+            {"name": "short_leg_axis", "local_vector": [0.0, 1.0, 0.0], "expected_global": _scale(e_s, -1.0), "tolerance": 1.0e-6},
+            {"name": "length_axis_parallel_y", "local_vector": [0.0, 0.0, 1.0], "expected_global": [0.0, -1.0, 0.0], "tolerance": 1.0e-6},
+        ],
+        placement_note="ANGLE lower outer surface maps to the beam top-flange outer surface at %s; its long-leg outer face contacts the PURLIN_LOCAL web." % station_name,
+    )
+    local_purlin = _member_with_rotation_sequence(
+        "PURLIN_LOCAL_%02d" % node_index,
+        "step04_purlins",
+        local_purlin_component,
+        local_purlin_component["part_name"],
+        "PURLIN_LOCAL_%02d" % node_index,
+        purlin_anchor,
+        station_name + "_PURLIN_LOWER_FLANGE_MIDPLANE",
+        purlin_global_anchor,
+        purlin_rotation,
+        part_length_m=purlin_length,
+        source_part_name=local_purlin_component["part_name"],
+        section_reference={"x_m": 0.0, "y_m": 0.0, "z_m": purlin_length / 2.0, "rule": "C_CHANNEL_LOWER_FLANGE_AT_CENTER_Y"},
+        axis_checks=[
+            {"name": "flange_axis", "local_vector": [1.0, 0.0, 0.0], "expected_global": e_s, "tolerance": 1.0e-6},
+            {"name": "web_axis", "local_vector": [0.0, 1.0, 0.0], "expected_global": e_n, "tolerance": 1.0e-6},
+            {"name": "length_axis_parallel_y", "local_vector": [0.0, 0.0, 1.0], "expected_global": [0.0, -1.0, 0.0], "tolerance": 1.0e-6},
+        ],
+        placement_note="PURLIN_LOCAL length midpoint aligns with the INCLINED_BEAM section center plane; its lower-flange physical surface is 0.010 m above the beam upper flange.",
+    )
+    for member, code in ((support, "PURLIN_SUPPORT"), (local_purlin, "PURLIN_LOCAL")):
+        member["component_code"] = code
+        member["instance_id"] = "%s_%02d" % (code, node_index)
+        member["placement_mode"] = "POINT_ORIENT"
+        member["required"] = True
+        member["placement_source"] = source
+        member["origin"] = list(member["global_anchor"])
+
+    gp_m = _dot(_sub(station, beam_origin), e_s) if beam_origin is not None else None
+    support_matrix = [e_n, _scale(e_s, -1.0), [0.0, -1.0, 0.0]]
+    purlin_matrix = [e_s, e_n, [0.0, -1.0, 0.0]]
+    alignment_error = max(
+        abs(_dot(_sub(support_global_anchor, beam_section_center), e_y)),
+        abs(_dot(_sub(purlin_global_anchor, beam_section_center), e_y)),
+    )
+    node = {
+        "node_id": "PURLIN_NODE_%02d" % node_index,
+        "station": station_name,
+        "gp_m": gp_m,
+        "station_xyz": station,
+        "beam_tangent": e_s,
+        "beam_normal": e_n,
+        "beam_surface_offset_m": beam_surface_offset,
+        "beam_section_center_offset_m": beam_center_offset,
+        "beam_section_center": beam_section_center,
+        "support_part": support["part_name"],
+        "support_instance": support["instance_id"],
+        "local_purlin_part": local_purlin["part_name"],
+        "local_purlin_instance": local_purlin["instance_id"],
+        "beam_to_purlin_gap_m": PURLIN_BEAM_GAP_M,
+        "purlin_shell_midplane_offset_m": purlin_midplane_offset,
+        "support_local_origin": [0.0, 0.0, 0.0],
+        "support_local_anchor": support_anchor,
+        "support_anchor_xyz": support_global_anchor,
+        "support_length_midpoint": support_global_anchor,
+        "local_purlin_local_anchor": purlin_anchor,
+        "local_purlin_center": purlin_global_anchor,
+        "local_purlin_length_midpoint": purlin_global_anchor,
+        "support_rotation_matrix_columns": support_matrix,
+        "local_purlin_rotation_matrix_columns": purlin_matrix,
+        "support_translation": list(support["translation"]),
+        "local_purlin_translation": list(local_purlin["translation"]),
+        "web_contact_side": "outer",
+        "y_offset_support_m": _dot(_sub(support_global_anchor, station), e_y),
+        "y_offset_local_m": _dot(_sub(purlin_global_anchor, station), e_y),
+        "alignment_error_m": alignment_error,
+    }
+    checks = {
+        "%s_SUPPORT_SURFACE" % station_name: {
+            "station": station,
+            "beam_surface_offset_m": beam_surface_offset,
+            "expected": support_global_anchor,
+            "actual": list(support["global_anchor"]),
+            "passed": PASSED,
+        },
+        "%s_PURLIN_GAP" % station_name: {
+            "gap_m": PURLIN_BEAM_GAP_M,
+            "beam_surface_offset_m": beam_surface_offset,
+            "shell_midplane_offset_m": purlin_midplane_offset,
+            "passed": PASSED,
+        },
+        "%s_TRANSVERSE_ALIGNMENT" % station_name: {
+            "beam_section_center": beam_section_center,
+            "support_length_midpoint": support_global_anchor,
+            "local_purlin_length_midpoint": purlin_global_anchor,
+            "alignment_error_m": alignment_error,
+            "passed": PASSED,
+        },
+    }
+    return [support, local_purlin], node, checks
+
+
+def _beam_top_surface_offset(component: dict[str, Any]) -> float:
+    params = component.get("section_params_m") or {}
+    section_height = component.get("section_height_m") or params.get("section_height_m") or params.get("h_m")
+    if section_height in (None, ""):
+        raise ValueError("INCLINED_BEAM metadata does not define section height.")
+    height = float(section_height)
+    thickness = float(component.get("thickness_m") or params.get("t_m") or 0.0)
+    reference_y = float(_section_reference_xy(component)["y_m"])
+    offset = height + thickness / 2.0 - reference_y
+    if not math.isfinite(offset) or offset <= 0.0:
+        raise ValueError("INCLINED_BEAM top-flange surface offset is invalid.")
+    return offset
+
+
+def _beam_section_center_offset(component: dict[str, Any]) -> float:
+    params = component.get("section_params_m") or {}
+    section_width = component.get("section_width_m") or params.get("section_width_m") or params.get("b_m")
+    if section_width in (None, ""):
+        raise ValueError("INCLINED_BEAM metadata does not define section width.")
+    width = float(section_width)
+    reference_x = float(_section_reference_xy(component)["x_m"])
+    offset = width / 2.0 - reference_x
+    if not math.isfinite(offset):
+        raise ValueError("INCLINED_BEAM section-center offset is invalid.")
+    return offset
+
+
+def _add_purlin_nodes(
+    plan: list[dict[str, Any]],
+    components: dict[str, dict[str, Any]],
+    points: dict[str, list[float]],
+    beam_tangent: list[float],
+    source: str,
+    warnings: list[str],
+    skipped: list[dict[str, str]],
+    beam_origin: list[float] | None = None,
+) -> tuple[list[dict[str, Any]], dict[str, dict[str, Any]]]:
+    support = components.get("PURLIN_SUPPORT")
+    local_purlin = components.get("PURLIN_LOCAL")
+    beam = components.get("INCLINED_BEAM")
+    if not support or not local_purlin:
+        for code, component in (("PURLIN_SUPPORT", support), ("PURLIN_LOCAL", local_purlin)):
+            if not component:
+                warnings.append("%s skipped: PART_MISSING." % code)
+                skipped.append({"component_code": code, "reason": "PART_MISSING"})
+        return [], {}
+    if not beam:
+        raise ValueError("Purlin placement requires INCLINED_BEAM component metadata.")
+    beam_surface_offset = _beam_top_surface_offset(beam)
+    beam_center_offset = _beam_section_center_offset(beam)
+
+    nodes: list[dict[str, Any]] = []
+    checks: dict[str, dict[str, Any]] = {}
+    for index, point_name in enumerate(PURLIN_STATION_POINT_NAMES, start=1):
+        if point_name not in points:
+            warnings.append("Purlin node %02d skipped: PLACEMENT_DATA_MISSING (%s)." % (index, point_name))
+            skipped.extend([
+                {"component_code": "PURLIN_SUPPORT", "reason": "PLACEMENT_DATA_MISSING", "station": point_name},
+                {"component_code": "PURLIN_LOCAL", "reason": "PLACEMENT_DATA_MISSING", "station": point_name},
+            ])
+            continue
+        pair, node, node_checks = _create_purlin_node_pair(
+            support,
+            local_purlin,
+            point_name,
+            points[point_name],
+            index,
+            beam_tangent,
+            beam_surface_offset,
+            beam_center_offset,
+            source,
+            beam_origin=beam_origin,
+        )
+        plan.extend(pair)
+        nodes.append(node)
+        checks.update(node_checks)
+    return nodes, checks
+
+
+def _line_member_from_points(
+    name: str,
+    component: dict[str, Any],
+    start: list[float],
+    end: list[float],
+    instance_id: str,
+    source: str,
+    required: bool = True,
+) -> dict[str, Any]:
+    if distance(start, end) <= 1.0e-12:
+        raise ValueError("LINE placement %s has identical start and end points." % instance_id)
+    rotation = rotate_y_for_local_z_to_vector(start, end)
+    member = _member(
+        name,
+        "step04_initial_assembly",
+        component,
+        _local_reference_point(component, 0.0),
+        name + "_START",
+        {name + "_START": _point(*start)},
+        rotation,
+        roll_about_axis_deg=_default_roll_about_axis_deg(name, component),
+    )
+    member["target_point_name"] = name + "_END"
+    member["target_point"] = list(end)
+    axis = _scale(_sub(end, start), 1.0 / distance(start, end))
+    return _normalize_instance_member(member, instance_id, "LINE", required, source, start, end, start, axis)
+
+
+def _finalize_instance_plan(payload: dict[str, Any], source: str) -> dict[str, Any]:
+    plan: list[dict[str, Any]] = []
+    counters: dict[str, int] = {}
+    point_names = ("S", "P", "Q", "R")
+    for member in payload.get("members", []):
+        name = str(member.get("name") or member.get("component_code") or "INSTANCE")
+        code = str(member.get("component_code") or name)
+        if name.startswith("PURLIN_SUPPORT_"):
+            code = "PURLIN_SUPPORT"
+        elif name.startswith("PURLIN_"):
+            code = "PURLIN_LOCAL"
+            member["component_code"] = code
+        counters[code] = counters.get(code, 0) + 1
+        instance_id = "%s_%02d" % (code, counters[code])
+        start = list(member.get("global_anchor") or []) or None
+        end = list(member.get("target_point") or []) or None
+        if code == "INCLINED_BEAM" and "G_global" in payload.get("points", {}):
+            start = _coords(payload["points"]["G_global"])
+            theta = math.radians(float(payload.get("inputs", {}).get("theta_deg") or 0.0))
+            beam_length = float(member.get("part_length_m") or 0.0)
+            end = _add(start, _scale([math.cos(theta), 0.0, math.sin(theta)], beam_length))
+        elif code == "COLUMN_DOWN" and start:
+            end = _add(start, [0.0, 0.0, float(member.get("part_length_m") or 0.0)])
+        elif code in ("COLUMN_UP", "COLUMN") and start:
+            end = list(start)
+            start = _add(end, [0.0, 0.0, -float(member.get("part_length_m") or 0.0)])
+        placement = "LINE" if end is not None else "POINT_ORIENT"
+        axis = _scale(_sub(end, start), 1.0 / distance(start, end)) if start and end and distance(start, end) > 1.0e-12 else None
+        plan.append(_normalize_instance_member(member, instance_id, placement, True, source, start, end, start, axis))
+
+    components = payload.get("_components_by_code") or {}
+    hoop = _resolve_hoop_component(components, 1)
+    if hoop and not any(item.get("canonical_role") == "HOOP" or is_hoop_component_code(item.get("component_code", "")) for item in plan):
+        points = payload.get("points", {})
+        if "H1" in points or ("B" in points and "D" in points):
+            center = _coords(points["H1"]) if "H1" in points else _scale(_add(_coords(points["B"]), _coords(points["D"])), 0.5)
+            pair, group = _create_hoop_pair(hoop, center, 1, source)
+            plan.extend(pair)
+            payload.setdefault("hoop_groups", []).append(group)
+
+    payload.pop("_components_by_code", None)
+    payload["instance_plan"] = plan
+    payload["members"] = plan
+    payload["required_part_names"] = sorted({item["part_name"] for item in plan})
+    payload["skipped_instances"] = payload.get("skipped_instances", [])
+    ids = [item["instance_id"] for item in plan]
+    if len(ids) != len(set(ids)):
+        payload.setdefault("errors", []).append("Instance ids are not unique.")
+    return payload
+
+
+def _build_sp_dc_payload(
+    excel_path: str | Path,
+    components_path: str | Path,
+    project_code: str,
+    model_name: str,
+) -> dict[str, Any]:
+    points_raw, statuses = _read_named_points(excel_path)
+    components = load_components(components_path)
+    required_points = ("O", "L_TOP", "F", "G", "UF0", "UF1", "UR0", "UR1", "B", "C", "D", "E")
+    missing_points = [name for name in required_points if name not in points_raw]
+    if missing_points:
+        raise ValueError("SP_DC missing required control points: %s" % ", ".join(missing_points))
+    required_codes = ("COLUMN_DOWN", "COLUMN_FRONT", "COLUMN_REAR", "BRACE_FRONT", "BRACE_REAR", "INCLINED_BEAM")
+    missing_codes = [code for code in required_codes if code not in components]
+    if missing_codes:
+        raise ValueError("SP_DC Step02 missing required component_code: %s" % ", ".join(missing_codes))
+
+    points = {name: _point(*coords, status=statuses.get(name, ""), note="Excel final control point") for name, coords in points_raw.items()}
+    points["G_global"] = dict(points["G"])
+    source = "SP_DC adapter: Excel final control points"
+    plan = [
+        _line_member_from_points("COLUMN_DOWN", components["COLUMN_DOWN"], points_raw["O"], points_raw["L_TOP"], "COLUMN_DOWN_01", source),
+        _line_member_from_points("COLUMN_FRONT", components["COLUMN_FRONT"], points_raw["UF0"], points_raw["UF1"], "COLUMN_FRONT_01", source),
+        _line_member_from_points("COLUMN_REAR", components["COLUMN_REAR"], points_raw["UR0"], points_raw["UR1"], "COLUMN_REAR_01", source),
+        _line_member_from_points("BRACE_FRONT", components["BRACE_FRONT"], points_raw["B"], points_raw["C"], "BRACE_FRONT_01", source),
+        _line_member_from_points("BRACE_REAR", components["BRACE_REAR"], points_raw["D"], points_raw["E"], "BRACE_REAR_01", source),
+        _line_member_from_points("INCLINED_BEAM", components["INCLINED_BEAM"], points_raw["G"], points_raw["F"], "INCLINED_BEAM_01", source),
+    ]
+    warnings: list[str] = []
+    skipped: list[dict[str, str]] = []
+
+    hoop_points = [name for name in ("H1", "H2", "H3") if name in points_raw]
+    legacy_hoop_components = [components[code] for code in ("HOOP_1", "HOOP_2") if code in components]
+    has_canonical_hoop = any(is_hoop_component_code(code) for code in components)
+    hoop_groups = []
+    if hoop_points and (has_canonical_hoop or legacy_hoop_components):
+        for index, point_name in enumerate(hoop_points, start=1):
+            primary = _resolve_hoop_component(components, index) if has_canonical_hoop else legacy_hoop_components[0]
+            if primary is None:
+                continue
+            secondary = None if has_canonical_hoop else (legacy_hoop_components[1] if len(legacy_hoop_components) > 1 else None)
+            pair, group = _create_hoop_pair(primary, points_raw[point_name], index, source, secondary)
+            plan.extend(pair)
+            hoop_groups.append(group)
+    elif has_canonical_hoop or legacy_hoop_components:
+        warnings.append("HOOP skipped: PLACEMENT_DATA_MISSING (H1/H2/H3).")
+        skipped.append({"component_code": "HOOP", "reason": "PLACEMENT_DATA_MISSING"})
+
+    checks: dict[str, Any] = {}
+    tolerance = (_read_named_value(excel_path, "length_tolerance_mm") or 10.0) / 1000.0
+    for code, start_name, end_name in (
+        ("COLUMN_DOWN", "O", "L_TOP"),
+        ("COLUMN_FRONT", "UF0", "UF1"),
+        ("COLUMN_REAR", "UR0", "UR1"),
+        ("BRACE_FRONT", "B", "C"),
+        ("BRACE_REAR", "D", "E"),
+    ):
+        component = components[code]
+        checks[code + "_LENGTH"] = member_length_check(points, start_name, end_name, component.get("length_m"), tolerance)
+        if checks[code + "_LENGTH"]["passed"] == FAILED:
+            warnings.append("%s control-point length differs from Step02 Part length; Part will not be scaled." % code)
+
+    beam_direction = _scale(_sub(points_raw["F"], points_raw["G"]), 1.0 / distance(points_raw["F"], points_raw["G"]))
+    purlin_nodes, purlin_checks = _add_purlin_nodes(
+        plan,
+        components,
+        points_raw,
+        beam_direction,
+        source,
+        warnings,
+        skipped,
+        beam_origin=points_raw["G"],
+    )
+    checks.update(purlin_checks)
+    theta_deg = _read_named_value(excel_path, "theta_deg")
+    payload = {
+        "meta": {
+            "project_code": project_code,
+            "project_id": project_code,
+            "structure_type": "SP_DC",
+            "model_name": model_name,
+            "source_excel": str(Path(excel_path).as_posix()),
+            "source_components": str(Path(components_path).as_posix()),
+            "coordinate_system": "X right, Y out of elevation plane, Z up; units m-kg-N-Pa",
+            "adapter": "SP_DC",
+        },
+        "units": {"length": "m", "mass": "kg", "force": "N", "stress": "Pa"},
+        "inputs": {"theta_deg": theta_deg},
+        "points": points,
+        "beam_anchor": {
+            "part_name": components["INCLINED_BEAM"]["part_name"],
+            "stations": {
+                "C": distance(points_raw["G"], points_raw["C"]),
+                "F": distance(points_raw["G"], points_raw["F"]),
+                "E": distance(points_raw["G"], points_raw["E"]),
+            },
+            "section_sets": {"C": "SET_BEAM_SEC_C", "F": "SET_BEAM_SEC_F", "E": "SET_BEAM_SEC_E"},
+            "reference_local_origin": _local_reference_point(components["INCLINED_BEAM"], 0.0),
+            "direction_u": beam_direction,
+        },
+        "instance_plan": plan,
+        "members": plan,
+        "required_part_names": sorted({item["part_name"] for item in plan}),
+        "checks": checks,
+        "member_checks": checks,
+        "warnings": warnings,
+        "errors": [],
+        "skipped_instances": skipped,
+        "hoop_groups": hoop_groups,
+        "purlin_nodes": purlin_nodes,
+    }
+    ids = [item["instance_id"] for item in plan]
+    if len(ids) != len(set(ids)):
+        payload["errors"].append("Instance ids are not unique.")
+    return payload
+
+
+def build_payload(
+    excel_path: str | Path,
+    components_path: str | Path,
+    project_code: str = DEFAULT_PROJECT_CODE,
+    model_name: str | None = None,
+) -> dict[str, Any]:
+    coordinate_project_id = project_id_from_path(excel_path)
+    effective_project_id = coordinate_project_id if project_code == DEFAULT_PROJECT_CODE else project_code
+    step02_filename_id = project_id_from_path(components_path)
+    step02_has_project_filename = step02_filename_id != Path(components_path).stem
+    step02_model_name = read_step02_model_name(components_path)
+    actual_model_name = step02_model_name or model_name or effective_project_id
+    expected_model_name = model_name or effective_project_id
+    if coordinate_project_id != effective_project_id:
+        raise ValueError("Coordinate project_id %s does not match requested project_id %s." % (coordinate_project_id, effective_project_id))
+    if Path(components_path).suffix.lower() == ".py" and step02_has_project_filename and step02_filename_id != effective_project_id:
+        raise ValueError("Step02 project_id %s does not match coordinate project_id %s." % (step02_filename_id, effective_project_id))
+    if actual_model_name != effective_project_id or expected_model_name != effective_project_id:
+        raise ValueError("Step02 MODEL_NAME %s must exactly match coordinate project_id %s." % (actual_model_name, effective_project_id))
+
+    structure_type = detect_structure_type(effective_project_id)
+    if structure_type == "SP_DC":
+        return _build_sp_dc_payload(excel_path, components_path, effective_project_id, effective_project_id)
+
+    payload = _build_sp_sc_payload(excel_path, components_path, project_code=effective_project_id, model_name=effective_project_id)
+    payload["meta"].update({"project_id": effective_project_id, "structure_type": "SP_SC", "adapter": "SP_SC"})
+    payload["_components_by_code"] = load_components(components_path)
+    return _finalize_instance_plan(payload, "SP_SC adapter: existing A/B/C/D/E/F/G control-point logic")
 
 
 def write_json(payload: dict[str, Any], output_path: str | Path) -> Path:
@@ -1457,14 +2236,23 @@ def _member_axis_direction(member):
 def _transform_member(local_point, member):
     if member.get("rotation_sequence"):
         rotated = _apply_rotation_sequence(tuple(float(v) for v in local_point), member.get("rotation_sequence"))
-        return _add3(rotated, tuple(float(v) for v in member.get("translation", (0.0, 0.0, 0.0))))
-    rotated = _rotate_y(tuple(float(v) for v in local_point), float(member.get("rotate_y_deg") or 0.0))
-    translated = _add3(rotated, tuple(float(v) for v in member.get("translation", (0.0, 0.0, 0.0))))
-    roll_about_axis_deg = float(member.get("roll_about_axis_deg") or 0.0)
-    if abs(roll_about_axis_deg) <= 1.0e-12:
-        return translated
-    axis_point = tuple(float(v) for v in member.get("global_anchor", (0.0, 0.0, 0.0)))
-    return _rotate_about_axis(translated, axis_point, _member_axis_direction(member), roll_about_axis_deg)
+        transformed = _add3(rotated, tuple(float(v) for v in member.get("translation", (0.0, 0.0, 0.0))))
+    else:
+        rotated = _rotate_y(tuple(float(v) for v in local_point), float(member.get("rotate_y_deg") or 0.0))
+        transformed = _add3(rotated, tuple(float(v) for v in member.get("translation", (0.0, 0.0, 0.0))))
+        roll_about_axis_deg = float(member.get("roll_about_axis_deg") or 0.0)
+        if abs(roll_about_axis_deg) > 1.0e-12:
+            axis_point = tuple(float(v) for v in member.get("global_anchor", (0.0, 0.0, 0.0)))
+            transformed = _rotate_about_axis(transformed, axis_point, _member_axis_direction(member), roll_about_axis_deg)
+    post_rotation = member.get("post_rotation") or {}
+    if abs(float(post_rotation.get("angle_deg") or 0.0)) > 1.0e-12:
+        transformed = _rotate_about_axis(
+            transformed,
+            tuple(float(v) for v in post_rotation.get("axis_point", (0.0, 0.0, 0.0))),
+            tuple(float(v) for v in post_rotation.get("axis_direction", (0.0, 0.0, 1.0))),
+            float(post_rotation["angle_deg"]),
+        )
+    return transformed
 
 
 def _ensure_material(model, material):
@@ -1638,6 +2426,15 @@ def _instance(model, member):
             axisDirection=_member_axis_direction(member),
             angle=roll_about_axis_deg,
         )
+    post_rotation = member.get("post_rotation") or {}
+    post_angle = float(post_rotation.get("angle_deg") or 0.0)
+    if abs(post_angle) > 1.0e-12:
+        assembly.rotate(
+            instanceList=(inst_name,),
+            axisPoint=tuple(float(v) for v in post_rotation.get("axis_point", (0.0, 0.0, 0.0))),
+            axisDirection=tuple(float(v) for v in post_rotation.get("axis_direction", (0.0, 0.0, 1.0))),
+            angle=post_angle,
+        )
     return {
         "instance_name": member["instance_name"],
         "part_name": member["part_name"],
@@ -1649,6 +2446,7 @@ def _instance(model, member):
         "section_reference": member.get("section_reference"),
         "open_side_global": member.get("open_side_global"),
         "placement_note": member.get("placement_note"),
+        "post_rotation": post_rotation or None,
     }
 
 
@@ -1690,6 +2488,7 @@ def _partition_beam(model, data):
 
 
 def _members_for_phase(data):
+    all_members = data.get("instance_plan") or data.get("members", [])
     if PHASE == "step01_columns":
         names = set(["COLUMN_DOWN", "COLUMN_UP", "COLUMN"])
     elif PHASE == "step02_beam":
@@ -1697,16 +2496,25 @@ def _members_for_phase(data):
     elif PHASE == "step03_main_frame":
         names = set(["COLUMN_DOWN", "COLUMN_UP", "COLUMN", "INCLINED_BEAM", "BRACE_FRONT", "BRACE_REAR"])
     elif PHASE == "step04_purlins":
-        names = set(member.get("name") for member in data.get("members", []) if member.get("phase") == "step04_purlins")
+        names = set(member.get("name") for member in all_members if member.get("phase") == "step04_purlins")
     else:
-        return list(data.get("members", []))
-    return [member for member in data.get("members", []) if member.get("name") in names]
+        return list(all_members)
+    return [member for member in all_members if member.get("name") in names]
 
 
 def _transform_member_vector(local_vector, member):
     if member.get("rotation_sequence"):
-        return _unit(_apply_rotation_sequence(tuple(float(v) for v in local_vector), member.get("rotation_sequence")))
-    rotated = _rotate_y(_rotate_z(tuple(float(v) for v in local_vector), float(member.get("roll_about_axis_deg") or 0.0)), float(member.get("rotate_y_deg") or 0.0))
+        rotated = _unit(_apply_rotation_sequence(tuple(float(v) for v in local_vector), member.get("rotation_sequence")))
+    else:
+        rotated = _rotate_y(_rotate_z(tuple(float(v) for v in local_vector), float(member.get("roll_about_axis_deg") or 0.0)), float(member.get("rotate_y_deg") or 0.0))
+    post_rotation = member.get("post_rotation") or {}
+    if abs(float(post_rotation.get("angle_deg") or 0.0)) > 1.0e-12:
+        rotated = _rotate_about_axis(
+            rotated,
+            (0.0, 0.0, 0.0),
+            tuple(float(v) for v in post_rotation.get("axis_direction", (0.0, 0.0, 1.0))),
+            float(post_rotation["angle_deg"]),
+        )
     return _unit(rotated)
 
 
@@ -1746,7 +2554,7 @@ def _validate_member(member, data):
 
 def _validate_beam(data):
     beam_member = None
-    for member in data.get("members", []):
+    for member in data.get("instance_plan") or data.get("members", []):
         if member.get("name") == "INCLINED_BEAM":
             beam_member = member
             break
@@ -1769,10 +2577,16 @@ def _validate_beam(data):
 
 def main():
     data = ASSEMBLY_DATA
+    if data.get("errors"):
+        raise RuntimeError("Step04 preflight failed: %s" % "; ".join(str(item) for item in data.get("errors", [])))
     model = _model(data)
     assembly = model.rootAssembly
-    report = {"phase": PHASE, "warnings": list(data.get("warnings", [])), "instances": [], "partition": None, "validation": {}}
+    report = {"phase": PHASE, "warnings": list(data.get("warnings", [])), "instances": [], "partition": None, "validation": {}, "hoop_groups": list(data.get("hoop_groups", [])), "purlin_nodes": list(data.get("purlin_nodes", []))}
     phase_members = _members_for_phase(data)
+
+    instance_names = [_ascii(member.get("instance_id") or member.get("instance_name")) for member in phase_members]
+    if len(instance_names) != len(set(instance_names)):
+        raise RuntimeError("Step04 preflight failed: instance_id values are not unique.")
 
     missing = []
     for name in sorted(set(member.get("source_part_name") or member["part_name"] for member in phase_members)):
@@ -1781,6 +2595,53 @@ def main():
     if missing:
         project = data.get("meta", {}).get("project_code") or "project"
         raise RuntimeError("Missing required Parts for %s: %s. Run %s_create_parts_in_cae.py first." % (PHASE, ", ".join(missing), project))
+
+    for group in data.get("hoop_groups", []):
+        center = tuple(float(value) for value in group.get("center", ()))
+        rotation = group.get("pair_rotation") or {}
+        axis = tuple(float(value) for value in rotation.get("axis_direction", ()))
+        if len(center) != 3 or len(axis) != 3 or math.sqrt(_dot(axis, axis)) <= 1.0e-12:
+            raise RuntimeError("Step04 preflight failed: invalid HOOP center or rotation axis for %s." % group.get("group_id"))
+        print("HOOP group %s:" % str(group.get("group_id") or "").replace("HOOP_", ""))
+        print("  center = %s" % (center,))
+        print("  part = %s" % group.get("part_a"))
+        print("  instance A = %s" % group.get("instance_a"))
+        print("  instance B = %s" % group.get("instance_b"))
+        print("  pair rotation = 180 deg about column axis")
+
+    for node in data.get("purlin_nodes", []):
+        station = tuple(float(value) for value in node.get("station_xyz", ()))
+        tangent = tuple(float(value) for value in node.get("beam_tangent", ()))
+        normal = tuple(float(value) for value in node.get("beam_normal", ()))
+        if len(station) != 3 or len(tangent) != 3 or len(normal) != 3 or math.sqrt(_dot(tangent, tangent)) <= 1.0e-12 or math.sqrt(_dot(normal, normal)) <= 1.0e-12:
+            raise RuntimeError("Step04 preflight failed: invalid station or beam frame for %s." % node.get("node_id"))
+        print("PURLIN NODE %s" % str(node.get("node_id") or "").replace("PURLIN_NODE_", ""))
+        print("  GP = %s m" % node.get("gp_m"))
+        print("  station = %s" % node.get("station"))
+        print("  P = %s" % (station,))
+        print("  beam_tangent = %s" % (tangent,))
+        print("  beam_normal = %s" % (normal,))
+        print("  beam_surface_offset = %s m" % node.get("beam_surface_offset_m"))
+        print("  support_part = %s" % node.get("support_part"))
+        print("  support_instance = %s" % node.get("support_instance"))
+        print("  local_purlin_part = %s" % node.get("local_purlin_part"))
+        print("  local_purlin_instance = %s" % node.get("local_purlin_instance"))
+        print("  support_anchor = %s" % (tuple(node.get("support_anchor_xyz") or ()),))
+        print("  support_local_anchor = %s" % (tuple(node.get("support_local_anchor") or ()),))
+        print("  local_anchor = %s" % (tuple(node.get("local_purlin_local_anchor") or ()),))
+        print("  support_rotation = %s" % (node.get("support_rotation_matrix_columns"),))
+        print("  local_purlin_rotation_matrix = %s" % (node.get("local_purlin_rotation_matrix_columns"),))
+        print("  support_translation = %s" % (tuple(node.get("support_translation") or ()),))
+        print("  local_purlin_translation = %s" % (tuple(node.get("local_purlin_translation") or ()),))
+        print("  local_purlin_center = %s" % (tuple(node.get("local_purlin_center") or ()),))
+        print("  beam_section_center = %s" % (tuple(node.get("beam_section_center") or ()),))
+        print("  support_length_midpoint = %s" % (tuple(node.get("support_length_midpoint") or ()),))
+        print("  local_purlin_length_midpoint = %s" % (tuple(node.get("local_purlin_length_midpoint") or ()),))
+        print("  Y_offset_support = %s m" % node.get("y_offset_support_m"))
+        print("  Y_offset_local = %s m" % node.get("y_offset_local_m"))
+        print("  alignment_error = %s m" % node.get("alignment_error_m"))
+        print("  web contact side = %s" % node.get("web_contact_side"))
+        print("  gap = 0.010 m")
 
     if PHASE in ("step02_beam", "step03_main_frame", "full_main_frame"):
         report["partition"] = _partition_beam(model, data)
