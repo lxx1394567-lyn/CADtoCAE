@@ -4,9 +4,8 @@ import queue
 import sys
 import threading
 from pathlib import Path
-from tkinter import BooleanVar, StringVar, Text, Tk, filedialog, messagebox
+from tkinter import StringVar, Text, Tk, filedialog, messagebox
 from tkinter import ttk
-
 
 if not getattr(sys, "frozen", False):
     PROJECT_ROOT = Path(__file__).resolve().parents[1]
@@ -14,107 +13,81 @@ if not getattr(sys, "frozen", False):
 else:
     PROJECT_ROOT = Path(getattr(sys, "_MEIPASS", Path(sys.executable).resolve().parent))
 
-from cadtocae.assembly_script import AssemblyScriptOutput, batch_generate_assembly_scripts  # noqa: E402
-
-
-COORDINATE_WORKBOOK_PATTERN = "*_coordinate_formula_simple_fixed.xlsx"
+from cadtocae.assembly_script import AssemblyScriptOutput, generate_assembly_scripts_from_workbook  # noqa: E402
 
 
 class Step04AssemblyScriptApp(Tk):
     def __init__(self) -> None:
         super().__init__()
         self.title("CADtoCAE Step04 Assembly 建模脚本生成")
-        self.geometry("920x620")
-        self.minsize(760, 500)
-
-        self.folder = StringVar(value="")
-        self.overwrite = BooleanVar(value=True)
-        self.workbook_paths: list[Path] = []
+        self.geometry("960x650")
+        self.minsize(800, 540)
+        self.coordinate_path = StringVar(value="")
+        self.part_script_path = StringVar(value="")
+        self.output_folder = StringVar(value="")
         self.events: queue.Queue[tuple[str, object]] = queue.Queue()
         self.worker: threading.Thread | None = None
-
         self._build_ui()
         self.after(100, self._poll_events)
 
     def _build_ui(self) -> None:
         self.columnconfigure(0, weight=1)
-        self.rowconfigure(2, weight=1)
+        self.rowconfigure(1, weight=1)
+        inputs = ttk.LabelFrame(self, text="Step04 输入", padding=12)
+        inputs.grid(row=0, column=0, sticky="ew", padx=12, pady=(12, 8))
+        inputs.columnconfigure(1, weight=1)
+        rows = (
+            ("Step02 Part Script", self.part_script_path, self._choose_part_script),
+            ("Coordinate Excel", self.coordinate_path, self._choose_coordinate),
+            ("输出目录", self.output_folder, self._choose_output_folder),
+        )
+        for row, (label, variable, command) in enumerate(rows):
+            ttk.Label(inputs, text=label).grid(row=row, column=0, sticky="w", pady=4)
+            ttk.Entry(inputs, textvariable=variable).grid(row=row, column=1, sticky="ew", padx=8, pady=4)
+            ttk.Button(inputs, text="选择", command=command).grid(row=row, column=2, pady=4)
 
-        top = ttk.Frame(self, padding=12)
-        top.grid(row=0, column=0, sticky="ew")
-        top.columnconfigure(1, weight=1)
-
-        ttk.Label(top, text="坐标表文件夹").grid(row=0, column=0, sticky="w")
-        ttk.Entry(top, textvariable=self.folder).grid(row=0, column=1, sticky="ew", padx=(8, 8))
-        ttk.Button(top, text="选择", command=self._choose_folder).grid(row=0, column=2, padx=(0, 8))
-        ttk.Button(top, text="扫描", command=self._scan_folder).grid(row=0, column=3)
-
-        options = ttk.Frame(self, padding=(12, 0, 12, 8))
-        options.grid(row=1, column=0, sticky="ew")
-        ttk.Checkbutton(options, text="覆盖同名脚本和报告", variable=self.overwrite).pack(side="left")
-
-        middle = ttk.PanedWindow(self, orient="vertical")
-        middle.grid(row=2, column=0, sticky="nsew", padx=12)
-
-        file_frame = ttk.LabelFrame(middle, text="待处理坐标表")
-        file_frame.columnconfigure(0, weight=1)
-        file_frame.rowconfigure(0, weight=1)
-        self.file_list = Text(file_frame, height=8, wrap="none")
-        self.file_list.grid(row=0, column=0, sticky="nsew")
-        file_scroll = ttk.Scrollbar(file_frame, orient="vertical", command=self.file_list.yview)
-        file_scroll.grid(row=0, column=1, sticky="ns")
-        self.file_list.configure(yscrollcommand=file_scroll.set, state="disabled")
-
-        log_frame = ttk.LabelFrame(middle, text="处理日志")
+        log_frame = ttk.LabelFrame(self, text="处理日志")
+        log_frame.grid(row=1, column=0, sticky="nsew", padx=12)
         log_frame.columnconfigure(0, weight=1)
         log_frame.rowconfigure(0, weight=1)
-        self.log = Text(log_frame, height=14, wrap="word")
+        self.log = Text(log_frame, wrap="word")
         self.log.grid(row=0, column=0, sticky="nsew")
-        log_scroll = ttk.Scrollbar(log_frame, orient="vertical", command=self.log.yview)
-        log_scroll.grid(row=0, column=1, sticky="ns")
-        self.log.configure(yscrollcommand=log_scroll.set, state="disabled")
-
-        middle.add(file_frame, weight=1)
-        middle.add(log_frame, weight=2)
+        scrollbar = ttk.Scrollbar(log_frame, orient="vertical", command=self.log.yview)
+        scrollbar.grid(row=0, column=1, sticky="ns")
+        self.log.configure(yscrollcommand=scrollbar.set, state="disabled")
 
         bottom = ttk.Frame(self, padding=12)
-        bottom.grid(row=3, column=0, sticky="ew")
+        bottom.grid(row=2, column=0, sticky="ew")
         bottom.columnconfigure(0, weight=1)
-        self.progress = ttk.Progressbar(bottom, mode="determinate")
+        self.progress = ttk.Progressbar(bottom, mode="indeterminate")
         self.progress.grid(row=0, column=0, sticky="ew", padx=(0, 12))
         self.start_button = ttk.Button(bottom, text="生成 Assembly 脚本", command=self._start)
         self.start_button.grid(row=0, column=1)
 
-    def _choose_folder(self) -> None:
-        selected = filedialog.askdirectory(title="选择坐标表所在文件夹")
+    def _choose_part_script(self) -> None:
+        selected = filedialog.askopenfilename(
+            title="选择 Step02 Part Script",
+            filetypes=(("Step02 Python", "*_create_parts_in_cae.py"), ("Python", "*.py")),
+        )
         if selected:
-            self.folder.set(selected)
-            self._scan_folder()
+            self.part_script_path.set(selected)
+            if not self.output_folder.get().strip():
+                self.output_folder.set(str(Path(selected).parent))
 
-    def _scan_folder(self) -> None:
-        folder_text = self.folder.get().strip()
-        if not folder_text:
-            messagebox.showwarning("缺少文件夹", "请先选择坐标表所在文件夹。")
-            return
-        folder = Path(folder_text)
-        if not folder.exists() or not folder.is_dir():
-            messagebox.showwarning("文件夹不存在", "请选择有效的文件夹。")
-            return
+    def _choose_coordinate(self) -> None:
+        selected = filedialog.askopenfilename(
+            title="选择 Coordinate Excel",
+            filetypes=(("Coordinate Excel", "*_coordinate*.xlsx"), ("Excel", "*.xlsx")),
+        )
+        if selected:
+            self.coordinate_path.set(selected)
+            if not self.output_folder.get().strip():
+                self.output_folder.set(str(Path(selected).parent))
 
-        self.workbook_paths = [
-            path
-            for path in sorted(folder.glob(COORDINATE_WORKBOOK_PATTERN))
-            if path.is_file() and not path.name.startswith("~$")
-        ]
-        self._refresh_file_list()
-        self._append_log("扫描到 %s 个坐标表。" % len(self.workbook_paths))
-
-    def _refresh_file_list(self) -> None:
-        self.file_list.configure(state="normal")
-        self.file_list.delete("1.0", "end")
-        for index, path in enumerate(self.workbook_paths, start=1):
-            self.file_list.insert("end", "%02d. %s\n" % (index, path.name))
-        self.file_list.configure(state="disabled")
+    def _choose_output_folder(self) -> None:
+        selected = filedialog.askdirectory(title="选择输出目录")
+        if selected:
+            self.output_folder.set(selected)
 
     def _append_log(self, message: str) -> None:
         self.log.configure(state="normal")
@@ -122,50 +95,59 @@ class Step04AssemblyScriptApp(Tk):
         self.log.see("end")
         self.log.configure(state="disabled")
 
+    def _validated_paths(self) -> tuple[Path, Path, Path] | None:
+        coordinate = Path(self.coordinate_path.get().strip())
+        part_script = Path(self.part_script_path.get().strip())
+        output = Path(self.output_folder.get().strip())
+        if not coordinate.is_file():
+            messagebox.showwarning("缺少 Coordinate Excel", "请选择有效的 *_coordinate.xlsx。")
+            return None
+        if not part_script.is_file():
+            messagebox.showwarning("缺少 Step02 Script", "请选择有效的 *_create_parts_in_cae.py。")
+            return None
+        if not output.exists() or not output.is_dir():
+            messagebox.showwarning("输出目录无效", "请选择已经存在的输出目录。")
+            return None
+        return coordinate, part_script, output
+
     def _start(self) -> None:
         if self.worker and self.worker.is_alive():
             return
-        if not self.workbook_paths:
-            self._scan_folder()
-        if not self.workbook_paths:
-            messagebox.showwarning("没有坐标表", "文件夹内没有找到 *_coordinate_formula_simple_fixed.xlsx。")
+        paths = self._validated_paths()
+        if paths is None:
             return
-
-        self.progress.configure(maximum=len(self.workbook_paths), value=0)
         self.start_button.configure(state="disabled")
-        self._append_log("开始处理 %s 个坐标表。" % len(self.workbook_paths))
-        self.worker = threading.Thread(target=self._run_batch, daemon=True)
+        self.progress.start(12)
+        self._append_log("开始 Step04 preflight 和 Assembly Script 生成。")
+        self.worker = threading.Thread(target=self._run, args=paths, daemon=True)
         self.worker.start()
 
-    def _run_batch(self) -> None:
-        outputs: list[AssemblyScriptOutput] = []
+    def _run(self, coordinate: Path, part_script: Path, output: Path) -> None:
         try:
-            output_dir = Path(self.folder.get().strip())
-            for index, workbook_path in enumerate(self.workbook_paths, start=1):
-                self.events.put(("log", "[%s/%s] %s" % (index, len(self.workbook_paths), workbook_path.name)))
-                result = batch_generate_assembly_scripts(
-                    [workbook_path],
-                    output_dir,
-                    overwrite=self.overwrite.get(),
-                )[0]
-                outputs.append(result)
-                if result.script_paths:
-                    self.events.put(("log", "  项目: %s" % result.project_prefix))
-                    if result.assembly_json_path:
-                        self.events.put(("log", "  Assembly JSON: %s" % Path(result.assembly_json_path).name))
-                    else:
-                        self.events.put(("log", "  Assembly 数据: 已嵌入 py 脚本"))
-                    for script in result.script_paths:
-                        self.events.put(("log", "  Abaqus 脚本: %s" % Path(script).name))
-                    self.events.put(("log", "  调试报告: %s" % result.report_path))
-                else:
-                    self.events.put(("log", "  未生成脚本，请查看报告: %s" % Path(result.report_path).name))
-                for message in result.messages:
-                    self.events.put(("log", "  - %s" % message))
-                self.events.put(("progress", index))
-            self.events.put(("done", outputs))
+            result = generate_assembly_scripts_from_workbook(
+                coordinate,
+                output,
+                components_json=part_script,
+                overwrite=True,
+            )
+            self.events.put(("done", result))
         except Exception as exc:
             self.events.put(("error", str(exc)))
+
+    def _show_result(self, result: AssemblyScriptOutput) -> None:
+        self._append_log("project_id: %s" % result.project_prefix)
+        self._append_log("status: %s" % result.status)
+        for script in result.script_paths:
+            self._append_log("Abaqus Script: %s" % script)
+        if result.summary_path:
+            self._append_log("Assembly Summary: %s" % result.summary_path)
+        self._append_log("Debug Report: %s" % result.report_path)
+        for message in result.messages:
+            self._append_log(message)
+        if result.status == "failed":
+            messagebox.showerror("生成失败", "Preflight 未通过，请查看日志和调试报告。")
+        else:
+            messagebox.showinfo("生成完成", "Assembly Script 已生成，请在 Abaqus/CAE 中人工验证。")
 
     def _poll_events(self) -> None:
         while True:
@@ -173,19 +155,12 @@ class Step04AssemblyScriptApp(Tk):
                 kind, payload = self.events.get_nowait()
             except queue.Empty:
                 break
-            if kind == "log":
-                self._append_log(str(payload))
-            elif kind == "progress":
-                self.progress.configure(value=int(payload))
-            elif kind == "done":
-                outputs = list(payload)  # type: ignore[arg-type]
-                ok_count = sum(1 for item in outputs if item.status == "ok")
-                review_count = sum(1 for item in outputs if item.status == "needs_review")
-                failed_count = sum(1 for item in outputs if item.status == "failed")
+            if kind == "done":
+                self.progress.stop()
                 self.start_button.configure(state="normal")
-                self._append_log("处理完成：成功 %s 个，需复核 %s 个，失败 %s 个。" % (ok_count, review_count, failed_count))
-                messagebox.showinfo("处理完成", "成功 %s 个；需复核 %s 个；失败 %s 个。" % (ok_count, review_count, failed_count))
+                self._show_result(payload)  # type: ignore[arg-type]
             elif kind == "error":
+                self.progress.stop()
                 self.start_button.configure(state="normal")
                 self._append_log("错误: %s" % payload)
                 messagebox.showerror("处理失败", str(payload))
