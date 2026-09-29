@@ -63,7 +63,8 @@ class InstanceSpec:
     source: str = ""
 
 
-STRUCTURE_TYPES = ("SP_SC", "SP_DC")
+STRUCTURE_TYPES = ("SP_SC", "SP_DC", "DP")
+DP_POINT_NAMES = ("F", "G", "CF0", "CF1", "CR0", "CR1", "HF", "B", "C", "HR", "D", "E", "P1", "P2", "P3", "P4")
 PROJECT_ID_SUFFIXES = (
     "_coordinate_formula_simple_fixed",
     "_coordinate_formula_full_fixed",
@@ -560,7 +561,7 @@ def detect_structure_type(project_id: str) -> str:
     for structure_type in STRUCTURE_TYPES:
         if upper.startswith(structure_type + "_"):
             return structure_type
-    raise ValueError("Unsupported structure_type for project_id %s. Expected SP_SC or SP_DC." % project_id)
+    raise ValueError("Unsupported structure_type for project_id %s. Expected %s." % (project_id, ", ".join(STRUCTURE_TYPES)))
 
 
 def read_step02_model_name(path: str | Path) -> str | None:
@@ -1326,7 +1327,9 @@ def _finite_point(value: Any, name: str) -> list[float]:
     return point
 
 
-def _read_named_points(workbook_path: str | Path) -> tuple[dict[str, list[float]], dict[str, str]]:
+def _read_named_points(
+    workbook_path: str | Path, allowed_names: tuple[str, ...] | None = None,
+) -> tuple[dict[str, list[float]], dict[str, str]]:
     workbook = load_workbook(workbook_path, data_only=True, read_only=True)
     points: dict[str, list[float]] = {}
     statuses: dict[str, str] = {}
@@ -1345,6 +1348,13 @@ def _read_named_points(workbook_path: str | Path) -> tuple[dict[str, list[float]
                 while current <= sheet.max_row:
                     name = sheet.cell(current, name_col).value
                     if name in (None, ""):
+                        current += 1
+                        continue
+                    name = str(name).strip()
+                    # A coordinate table may share its worksheet with a following QA table.
+                    if name.startswith(("校验", "校核")):
+                        break
+                    if allowed_names is not None and name not in allowed_names:
                         current += 1
                         continue
                     values = [
@@ -1462,9 +1472,12 @@ def _create_hoop_pair(
     group_index: int,
     source: str,
     secondary_component: dict[str, Any] | None = None,
+    *,
+    initial_orientation: list[dict[str, Any]] | None = None,
+    pair_axis_direction: list[float] | None = None,
 ) -> tuple[list[dict[str, Any]], dict[str, Any]]:
     center = _finite_point(center, "H%d" % group_index)
-    column_axis = [0.0, 0.0, 1.0]
+    column_axis = _finite_point(pair_axis_direction, "HOOP pair axis") if pair_axis_direction is not None else [0.0, 0.0, 1.0]
     if _norm(column_axis) <= 1.0e-12:
         raise ValueError("HOOP group %02d has an invalid column axis." % group_index)
     components = (primary_component, secondary_component or primary_component)
@@ -1479,6 +1492,7 @@ def _create_hoop_pair(
             center,
             instance_id,
             local_anchor=[0.0, 0.0, width / 2.0],
+            rotation_sequence=initial_orientation,
             source=source,
         )
         source_code = str(component.get("component_code") or "HOOP")
@@ -1956,6 +1970,214 @@ def _build_sp_dc_payload(
     return payload
 
 
+def _resolve_hoop_for_column(
+    components: dict[str, dict[str, Any]], column: dict[str, Any],
+) -> dict[str, Any]:
+    """Resolve by inner diameter, never by assembly number or front/rear order."""
+    od = float((column.get("section_params_m") or {}).get("od_m") or 0.0)
+    if column.get("section_kind") != "PIPE" or not math.isfinite(od) or od <= 0.0:
+        raise ValueError("HOOP matching requires a positive pipe OD for %s." % column["component_code"])
+    matches = []
+    for code, component in components.items():
+        if not is_hoop_component_code(code):
+            continue
+        params = component.get("section_params_m") or {}
+        diameter = float(params.get("diameter_m") or 2.0 * float(params.get("inner_radius_m") or 0.0))
+        if component.get("section_kind") != "HOOP_BAND" or not math.isfinite(diameter) or diameter <= 0.0:
+            raise ValueError("HOOP %s has no valid inner diameter / HOOP_BAND metadata." % code)
+        if abs(diameter - od) <= 1.0e-6:
+            matches.append(component)
+    if len(matches) != 1:
+        raise ValueError(
+            "HOOP mapping %s for %s (OD %.6g m): matching Parts %s. Explicit unambiguous diameter data required."
+            % ("ambiguous" if matches else "missing", column["component_code"], od,
+               [item["part_name"] for item in matches])
+        )
+    return matches[0]
+
+
+def _resolve_dp_hoop_sides(component: dict[str, Any]) -> dict[str, Any]:
+    # Step02 HOOP_BAND: arc in XY, convex +Y, extrusion +Z;
+    # left/right are geometric labels, not assembly inside/outside roles.
+    params = component.get("section_params_m") or {}
+    left = float(params.get("left_extension_m") or 0.0)
+    right = float(params.get("right_extension_m") or 0.0)
+    width = float(params.get("width_m") or 0.0)
+    if not all(math.isfinite(v) and v > 0.0 for v in (left, right, width)):
+        raise ValueError("DP HOOP requires finite positive width_m, left_extension_m and right_extension_m.")
+    # One micrometre in metre-based Part metadata; no arbitrary side for symmetric hoops.
+    if abs(right - left) <= 1.0e-6:
+        raise ValueError("DP HOOP asymmetric long-plate direction cannot be resolved: left/right extensions are equal within 1e-6 m.")
+    sign = 1.0 if right > left else -1.0
+    return {"left_extension_m": left, "right_extension_m": right,
+            "local_long_plate_direction": [sign, 0.0, 0.0],
+            "local_short_plate_direction": [-sign, 0.0, 0.0]}
+
+
+def _dp_hoop_orientation(
+    component: dict[str, Any], column_base: list[float], other_base: list[float],
+) -> tuple[list[dict[str, Any]], list[float], dict[str, Any]]:
+    geometry = _resolve_dp_hoop_sides(component)
+    horizontal = [other_base[0] - column_base[0], other_base[1] - column_base[1], 0.0]
+    length = _norm(horizontal)
+    if not math.isfinite(length) or length <= POINT_COMPARE_TOLERANCE_M:
+        raise ValueError("DP HOOP inward direction is undefined: column horizontal positions coincide.")
+    inward = _scale(horizontal, 1.0 / length)
+    local_long = geometry["local_long_plate_direction"]
+    yaw = math.degrees(math.atan2(inward[1], inward[0]) - math.atan2(local_long[1], local_long[0])) % 360.0
+    return [{"axis": "Z", "angle_deg": yaw}], inward, geometry
+
+
+def _build_dp_payload(
+    excel_path: str | Path, components_path: str | Path, project_code: str, model_name: str,
+) -> dict[str, Any]:
+    """Stage one: map final DP control points to the shared nine-instance skeleton."""
+    raw, statuses = _read_named_points(excel_path, allowed_names=DP_POINT_NAMES)
+    missing = [name for name in DP_POINT_NAMES[:12] if name not in raw]
+    if missing:
+        raise ValueError("DP missing required control points: %s" % ", ".join(missing))
+    components = load_components(components_path)
+    lines = (
+        ("COLUMN_FRONT", "CF0", "CF1"), ("COLUMN_REAR", "CR0", "CR1"),
+        ("INCLINED_BEAM", "G", "F"), ("BRACE_FRONT", "B", "C"), ("BRACE_REAR", "D", "E"),
+    )
+    for code, start, end in lines:
+        component = _component(components, code)
+        length = float(component.get("length_m") or 0.0)
+        if not component.get("part_name") or not math.isfinite(length) or length <= 0.0:
+            raise ValueError("DP %s requires a Part name and positive Step02 Part length." % code)
+        if abs(raw[end][1] - raw[start][1]) > POINT_COMPARE_TOLERANCE_M:
+            raise ValueError("DP %s control line must lie in an XZ plane for LINE placement." % code)
+    for code, start, end in lines[:2]:
+        vector = _sub(raw[end], raw[start])
+        if abs(vector[0]) > POINT_COMPARE_TOLERANCE_M or vector[2] <= 0.0:
+            raise ValueError("DP %s must have an upward vertical control line." % code)
+
+    def parameter(name: str, default: float | None = None) -> float:
+        value = _read_named_value(excel_path, name)
+        value = default if value is None else value
+        if value is None or not math.isfinite(value):
+            raise ValueError("DP missing or invalid numeric parameter: %s." % name)
+        return value
+
+    theta = parameter("theta_deg")
+    length_tolerance = parameter("length_tolerance_mm", 10.0) / 1000.0
+    angle_tolerance = parameter("angle_tolerance_deg", 0.1)
+    if length_tolerance < 0.0 or angle_tolerance < 0.0:
+        raise ValueError("DP validation tolerances must be nonnegative.")
+    source = "DP adapter: Excel final control points; Step02 Part geometry; main skeleton only"
+    points = {name: _point(*value, status=statuses.get(name, ""), note="Excel final control point") for name, value in raw.items()}
+    points["G_global"] = dict(points["G"])
+    plan = [_line_member_from_points(code, components[code], raw[start], raw[end], code + "_01", source)
+            for code, start, end in lines]
+    warnings: list[str] = []
+    checks: dict[str, Any] = {}
+    for code, start, end in (*lines[:2], *lines[3:]):
+        check = member_length_check(points, start, end, components[code]["length_m"], length_tolerance)
+        checks[code + "_LENGTH"] = check
+        if check["passed"] == FAILED:
+            label = {"BRACE_FRONT": "FRONT_BRACE_LENGTH", "BRACE_REAR": "REAR_BRACE_LENGTH"}.get(code, code + "_LENGTH")
+            warnings.append(
+                "%s: coordinate %.9f m, Step02 Part %.9f m, error %+.3f mm (tolerance %.3f mm); Part will not be scaled."
+                % (label, check["axis_length_m"], check["part_length_m"], check["error_m"] * 1000.0, length_tolerance * 1000.0)
+            )
+    for side, start, end in (("front", "B", "C"), ("rear", "D", "E")):
+        drawing_length = parameter("L_%s_brace_mm" % side) / 1000.0
+        check = member_length_check(points, start, end, drawing_length, length_tolerance)
+        check["drawing_length_m"] = check.pop("part_length_m")
+        label = side.upper() + "_BRACE_LENGTH"
+        checks[label] = check
+        if check["passed"] == FAILED and abs(drawing_length - components["BRACE_" + side.upper()]["length_m"]) > 1.0e-12:
+            warnings.append(
+                "%s drawing QA: coordinate %.9f m, drawing %.9f m, error %+.3f mm (tolerance %.3f mm); manual confirmation only."
+                % (label, check["axis_length_m"], drawing_length, check["error_m"] * 1000.0, length_tolerance * 1000.0)
+            )
+    top_vector = _sub(raw["CR1"], raw["CF1"])
+    top_angle = math.degrees(math.atan2(top_vector[2], top_vector[0]))
+    angle_error = _angle_error_deg(top_angle, theta)
+    checks["COLUMN_TOP_LINE_ANGLE"] = {
+        "actual_deg": top_angle, "reference_deg": theta, "error_deg": angle_error,
+        "tolerance_deg": angle_tolerance, "passed": _pass_fail(angle_error, angle_tolerance),
+    }
+    if checks["COLUMN_TOP_LINE_ANGLE"]["passed"] == FAILED:
+        warnings.append(
+            "COLUMN_TOP_LINE_ANGLE: %.9f deg vs theta %.9f deg, error %+.6f deg (tolerance %.6f deg); Beam remains located by F/G."
+            % (top_angle, theta, angle_error, angle_tolerance)
+        )
+
+    groups = []
+    for index, (code, center_name, start, end) in enumerate((
+        ("COLUMN_FRONT", "HF", "CF0", "CF1"), ("COLUMN_REAR", "HR", "CR0", "CR1"),
+    ), start=1):
+        if _point_line_distance(raw[center_name], raw[start], raw[end]) > POINT_COMPARE_TOLERANCE_M:
+            raise ValueError("DP %s must lie on its own %s axis." % (center_name, code))
+        hoop = _resolve_hoop_for_column(components, components[code])
+        front = code == "COLUMN_FRONT"
+        orientation, inward, geometry = _dp_hoop_orientation(hoop, raw[start], raw["CR0" if front else "CF0"])
+        long_direction = transform_rotation_sequence(geometry["local_long_plate_direction"], orientation)
+        pair, group = _create_hoop_pair(
+            hoop, raw[center_name], index, source,
+            initial_orientation=orientation, pair_axis_direction=long_direction,
+        )
+        brace_role = "BRACE_FRONT" if front else "BRACE_REAR"
+        brace_vector = _sub(raw["B" if front else "D"], raw[center_name])
+        brace_side = _dot(long_direction, brace_vector)
+        orientation_ok = brace_side > 0.0
+        check_name = "HOOP_%02d_ORIENTATION" % index
+        checks[check_name] = {"passed": PASSED if orientation_ok else FAILED, "brace_side_dot_product": brace_side}
+        if not orientation_ok:
+            warnings.append("%s: %s connection point is not on the long-plate side (dot=%.9g m; expected > 0)."
+                            % (check_name, brace_role, brace_side))
+        group.update({
+            **geometry, "initial_orientation": orientation,
+            "long_plate_direction_global": long_direction, "pair_axis_direction": long_direction,
+            "brace_side_vector": brace_vector,
+            "column_role": "FRONT" if front else "REAR", "part_name": hoop["part_name"],
+            "inward_direction": inward, "long_plate_direction": long_direction,
+            "short_plate_direction": _scale(long_direction, -1.0),
+            "pair_transform_rule": "DP_ASYMMETRIC_HORIZONTAL_FLIP", "brace_role": brace_role,
+            "brace_side_dot_product": brace_side, "orientation_check": "PASS" if orientation_ok else "WARNING",
+        })
+        group.update({"control_point": center_name, "column_instance": code + "_01"})
+        for member in pair:
+            member.update({"required": True, "control_point": center_name, "column_instance": code + "_01"})
+        plan.extend(pair)
+        groups.append(group)
+
+    beam_direction = _scale(_sub(raw["F"], raw["G"]), 1.0 / distance(raw["F"], raw["G"]))
+    skipped: list[dict[str, str]] = []
+    purlin_start = len(plan)
+    purlin_nodes, purlin_checks = _add_purlin_nodes(
+        plan, components, raw, beam_direction, source, warnings, skipped, beam_origin=raw["G"],
+    )
+    checks.update(purlin_checks)
+    for member in plan[purlin_start:]:
+        member["connection_group"] = "P" + member["instance_id"].rsplit("_", 1)[1]
+    stations = [_dot(_sub(raw[name], raw["G"]), beam_direction) for name in PURLIN_STATION_POINT_NAMES]
+    ordered = all(b > a for a, b in zip(stations, stations[1:]))
+    checks["PURLIN_STATION_ORDER"] = {"gp_m": stations, "passed": PASSED if ordered else FAILED}
+    if not ordered:
+        warnings.append("PURLIN_STATION_ORDER: expected P1 < P2 < P3 < P4 along the beam from G; saved coordinates were preserved.")
+    return {
+        "meta": {"project_code": project_code, "project_id": project_code, "model_name": model_name,
+                 "structure_type": "DP", "adapter": "DP", "assembly_stage": "main_frame_with_purlin_nodes",
+                 "source_excel": str(Path(excel_path).as_posix()), "source_components": str(Path(components_path).as_posix()),
+                 "coordinate_system": "X right, Y out of elevation plane, Z up; units m-kg-N-Pa"},
+        "units": {"length": "m", "mass": "kg", "force": "N", "stress": "Pa"},
+        "inputs": {"theta_deg": theta}, "points": points,
+        "beam_anchor": {"part_name": components["INCLINED_BEAM"]["part_name"],
+                        "stations": {name: distance(raw["G"], raw[name]) for name in ("C", "F", "E")},
+                        "section_sets": {name: "SET_BEAM_SEC_" + name for name in ("C", "F", "E")},
+                        "reference_local_origin": _local_reference_point(components["INCLINED_BEAM"], 0.0),
+                        "direction_u": beam_direction},
+        "instance_plan": plan, "members": plan,
+        "required_part_names": sorted({item["part_name"] for item in plan}),
+        "checks": checks, "member_checks": checks, "warnings": warnings, "errors": [],
+        "hoop_groups": groups, "purlin_nodes": purlin_nodes,
+        "skipped_instances": skipped,
+    }
+
+
 def build_payload(
     excel_path: str | Path,
     components_path: str | Path,
@@ -1977,6 +2199,8 @@ def build_payload(
         raise ValueError("Step02 MODEL_NAME %s must exactly match coordinate project_id %s." % (actual_model_name, effective_project_id))
 
     structure_type = detect_structure_type(effective_project_id)
+    if structure_type == "DP":
+        return _build_dp_payload(excel_path, components_path, effective_project_id, effective_project_id)
     if structure_type == "SP_DC":
         return _build_sp_dc_payload(excel_path, components_path, effective_project_id, effective_project_id)
 
@@ -2607,7 +2831,12 @@ def main():
         print("  part = %s" % group.get("part_a"))
         print("  instance A = %s" % group.get("instance_a"))
         print("  instance B = %s" % group.get("instance_b"))
-        print("  pair rotation = 180 deg about column axis")
+        if group.get("pair_transform_rule"):
+            print("  pair rule = %s" % group.get("pair_transform_rule"))
+            print("  pair rotation = %s deg about axis %s through %s" % (rotation.get("angle_deg"), axis, center))
+            print("  long plate = %s; brace-side dot = %s; orientation = %s" % (group.get("long_plate_direction"), group.get("brace_side_dot_product"), group.get("orientation_check")))
+        else:
+            print("  pair rotation = 180 deg about column axis")
 
     for node in data.get("purlin_nodes", []):
         station = tuple(float(value) for value in node.get("station_xyz", ()))
