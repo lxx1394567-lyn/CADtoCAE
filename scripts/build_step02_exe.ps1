@@ -44,9 +44,21 @@ if ($PyInstallerStatus -ne 0) {
     exit 2
 }
 
+# Fail before packaging when tkinter cannot load in the selected interpreter.
+# The probe resolves DLLs loaded by that interpreter; no machine paths are baked in.
+$RuntimeJson = & $Python (Join-Path $PSScriptRoot "step02_tk_runtime.py")
+if ($LASTEXITCODE -ne 0) {
+    throw "Selected build Python cannot provide a complete Tcl/Tk runtime."
+}
+$Runtime = $RuntimeJson | ConvertFrom-Json
+$RuntimeJson | Set-Content -LiteralPath (Join-Path $BuildRoot "tk-runtime.json") -Encoding UTF8
+Write-Host "Build Python: $($Runtime.python)"
+Write-Host "PyInstaller: $($Runtime.pyinstaller); Tk: $($Runtime.tk_version)"
+
 $PyInstallerArgs = @(
     "-m", "PyInstaller",
     "--noconfirm",
+    "--clean",
     "--onedir",
     "--windowed",
     "--name", $Name,
@@ -56,13 +68,23 @@ $PyInstallerArgs = @(
     "--paths", "src",
     "--paths", "scripts",
     "--add-data", "$ConfigSource;config",
-    "--collect-all", "openpyxl",
-    "scripts\step02_part_script_gui.py"
+    "--collect-all", "openpyxl"
 )
+foreach ($Binary in $Runtime.binaries) {
+    Write-Host "Including runtime DLL: $Binary"
+    $PyInstallerArgs += @("--add-binary", "$Binary;.")
+}
+$PyInstallerArgs += "scripts\step02_part_script_gui.py"
 
 & $Python @PyInstallerArgs
 if ($LASTEXITCODE -ne 0) {
     exit $LASTEXITCODE
+}
+
+# PyInstaller's Tk hook supplies the data directories; do not duplicate them.
+& $Python (Join-Path $PSScriptRoot "step02_tk_runtime.py") --package (Join-Path $RepoRoot "dist\$Name")
+if ($LASTEXITCODE -ne 0) {
+    throw "Step02 package is missing Tcl/Tk dependencies."
 }
 
 $ReadmeSource = Join-Path $RepoRoot "docs\step02_part_script_usage.md"
