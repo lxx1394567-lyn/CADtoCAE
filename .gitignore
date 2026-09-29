@@ -63,3 +63,6 @@ real_tests/**/*_components.json
 real_tests/*_承德*/
 real_tests/*_洋县*/
 real_tests/test_assets_private/
+
+# Local Step05 validation inputs and generated artifacts
+/examples/step05/
