@@ -28,6 +28,7 @@ Unit system:
 from __future__ import print_function
 
 import json
+import math
 from abaqus import mdb
 from abaqusConstants import C3D8R, CLOCKWISE, COPLANAR_EDGES, COUNTERCLOCKWISE, DEFORMABLE_BODY, OFF, RIGHT, S4R, SIDE1, STANDARD, SUPERIMPOSE, THREE_D, UNIFORM
 import mesh
@@ -282,83 +283,93 @@ def _cut_clamp_slots(model, part, component, top_y):
 
 
 def _hoop_band_dimensions(component):
+    """RF is the small bend radius, not the functional inner-face radius."""
     params = component.get("section_params_m") or {}
-    diameter = float(params.get("diameter_m", 0.0) or 0.0)
-    width = float(params.get("width_m", 0.0) or 0.0)
-    thickness = float(params.get("t_m", 0.0) or 0.0)
-    left = float(params.get("left_extension_m", 0.0) or 0.0)
-    right = float(params.get("right_extension_m", 0.0) or 0.0)
-    fillet = float(params.get("transition_fillet_m", 0.0) or 0.0)
-    if diameter <= 0.0 or width <= 0.0 or thickness <= 0.0 or left <= 0.0 or right <= 0.0:
-        raise ValueError("HOOP_BAND requires positive diameter_m, width_m, t_m, left_extension_m, and right_extension_m.")
-    inner_radius = diameter / 2.0
+    names = ("diameter_m", "width_m", "t_m", "left_extension_m",
+             "right_extension_m", "transition_fillet_m")
+    values = [float(params.get(name, 0.0) or 0.0) for name in names]
+    if any(math.isnan(value) or math.isinf(value) for value in values):
+        raise ValueError("HOOP_BAND dimensions must be finite.")
+    diameter, width, thickness, left, right, fillet = values
+    if min(diameter, width, thickness, left, right) <= 0.0 or fillet < 0.0:
+        raise ValueError("HOOP_BAND requires positive D/W/T/L/R and nonnegative RF.")
+    rin = diameter / 2.0
+    rout = rin + thickness
+    # Reverse bend: the functional inner chain has the LARGER bend radius.
+    bend_radius = fillet + thickness
+    tangent_x = math.sqrt(rin * (rin + 2.0 * bend_radius))
+    left_end = -rout - left
+    right_end = rout + right
+    tolerance = max(rout, left, right, bend_radius) * 1.0e-10
+    if min(-left_end, right_end) - tangent_x <= tolerance:
+        raise ValueError("HOOP_BAND RF leaves no straight plate: increase L/R or reduce RF.")
     return {
-        "inner_radius_m": inner_radius,
-        "outer_radius_m": inner_radius + thickness,
-        "width_m": width,
-        "thickness_m": thickness,
-        "left_extension_m": left,
-        "right_extension_m": right,
+        "inner_radius_m": rin, "outer_radius_m": rout,
+        "width_m": width, "thickness_m": thickness,
+        "left_extension_m": left, "right_extension_m": right,
         "transition_fillet_m": fillet,
+        "inner_chain_bend_radius_m": bend_radius,
+        "outer_chain_bend_radius_m": fillet,
+        "bend_center_y_m": bend_radius, "straight_tangent_x_m": tangent_x,
+        # Preserve legacy L/R reference: unfilleted outer-circle endpoints.
+        "left_end_x_m": left_end, "right_end_x_m": right_end,
+        "left_straight_length_m": -left_end - tangent_x,
+        "right_straight_length_m": right_end - tangent_x,
     }
 
 
-def _draw_hoop_band_profile(sketch, component):
+def _hoop_band_profile_geometry(component):
+    """Explicit tangent chains, both directed left to right; no sketch offset.
+
+    XY profile is convex toward +Y, with mating lines at Y=0 and material
+    at +Y. Extrusion is +Z. RF=0 retains the T-radius functional inner bend
+    and omits the zero-radius outer bend. RF=T needs no special fallback.
+    """
     dims = _hoop_band_dimensions(component)
-    rin = dims["inner_radius_m"]
-    rout = dims["outer_radius_m"]
-    left = dims["left_extension_m"]
-    right = dims["right_extension_m"]
-    # Local axes: X = left/right extensions, Y = arc convex direction,
-    # Z = extrusion/band width. Arc center O = (0, 0).
-    outer_left_end = (-rout - left, 0.0)
-    outer_right_end = (rout + right, 0.0)
-    left_line = sketch.Line(point1=outer_left_end, point2=(-rout, 0.0))
-    outer_arc = sketch.ArcByCenterEnds(center=(0.0, 0.0), point1=(-rout, 0.0), point2=(rout, 0.0), direction=CLOCKWISE)
-    right_line = sketch.Line(point1=(rout, 0.0), point2=outer_right_end)
-    fillet = dims["transition_fillet_m"]
-    if fillet > 0.0:
-        geometry_count = len(sketch.geometry)
-        sketch.FilletByRadius(radius=fillet, curve1=left_line, nearPoint1=(-rout - fillet, 0.0),
-                              curve2=outer_arc, nearPoint2=(-rout + fillet, fillet))
-        if len(sketch.geometry) <= geometry_count:
-            raise ValueError("HOOP left transition fillet did not create new sketch geometry.")
-        geometry_count = len(sketch.geometry)
-        sketch.FilletByRadius(radius=fillet, curve1=outer_arc, nearPoint1=(rout - fillet, fillet),
-                              curve2=right_line, nearPoint2=(rout + fillet, 0.0))
-        if len(sketch.geometry) <= geometry_count:
-            raise ValueError("HOOP right transition fillet did not create new sketch geometry.")
-    outer = tuple(sketch.geometry[key] for key in sketch.geometry.keys())
-    before = set(sketch.geometry.keys())
-    try:
-        sketch.offset(distance=dims["thickness_m"], objectList=outer, side=RIGHT)
-        created = set(sketch.geometry.keys()) - before
-        if len(created) < 3:
-            raise ValueError("Abaqus Sketch offset did not create the expected inner Line+Arc+Line chain.")
-        offset_points = []
-        for key in created:
-            for vertex in sketch.geometry[key].getVertices():
-                sketch_vertex = vertex if hasattr(vertex, "coords") else sketch.vertices[vertex]
-                offset_points.append(tuple(sketch_vertex.coords))
-        if not offset_points:
-            raise ValueError("Abaqus Sketch offset did not expose inner-chain endpoints.")
-        inner_left_end = min(offset_points, key=lambda point: point[0])
-        inner_right_end = max(offset_points, key=lambda point: point[0])
-    except Exception:
-        if fillet > 0.0:
-            raise ValueError("HOOP transition fillet/offset failed; no sharp-corner fallback is allowed when RF is specified.")
-        created = set(sketch.geometry.keys()) - before
-        if created:
-            sketch.delete(objectList=tuple(sketch.geometry[key] for key in created))
-        inner_left_end = (-rout - left, -dims["thickness_m"])
-        inner_right_end = (rout + right, -dims["thickness_m"])
-        sketch.Line(point1=inner_left_end, point2=(-rin, -dims["thickness_m"]))
-        sketch.Line(point1=(-rin, -dims["thickness_m"]), point2=(-rin, 0.0))
-        sketch.ArcByCenterEnds(center=(0.0, 0.0), point1=(rin, 0.0), point2=(-rin, 0.0), direction=COUNTERCLOCKWISE)
-        sketch.Line(point1=(rin, 0.0), point2=(rin, -dims["thickness_m"]))
-        sketch.Line(point1=(rin, -dims["thickness_m"]), point2=inner_right_end)
-    sketch.Line(point1=outer_left_end, point2=inner_left_end)
-    sketch.Line(point1=outer_right_end, point2=inner_right_end)
+    r = dims["inner_radius_m"]
+    t = dims["thickness_m"]
+    f = dims["inner_chain_bend_radius_m"]
+    a = dims["straight_tangent_x_m"]
+    centers = ((-a, f), (a, f))
+
+    def line(start, end):
+        return {"kind": "LINE", "start": start, "end": end}
+
+    def arc(center, start, end, direction):
+        return {"kind": "ARC", "center": center, "start": start,
+                "end": end, "direction": direction}
+
+    def chain(radius, y, bend_radius):
+        scale = radius / (r + f)
+        left_tangent = (-a * scale, f * scale)
+        right_tangent = (a * scale, f * scale)
+        segments = [line((dims["left_end_x_m"], y), (-a, y))]
+        if bend_radius > 0.0:
+            segments.append(arc(centers[0], (-a, y), left_tangent, "COUNTERCLOCKWISE"))
+        segments.append(arc((0.0, 0.0), left_tangent, right_tangent, "CLOCKWISE"))
+        if bend_radius > 0.0:
+            segments.append(arc(centers[1], right_tangent, (a, y), "COUNTERCLOCKWISE"))
+        segments.append(line((a, y), (dims["right_end_x_m"], y)))
+        return segments
+
+    inner = chain(r, 0.0, f)
+    outer = chain(r + t, t, dims["outer_chain_bend_radius_m"])
+    return {"dimensions": dims, "inner": inner, "outer": outer}
+
+
+def _draw_hoop_band_profile(sketch, component):
+    profile = _hoop_band_profile_geometry(component)
+    for chain in (profile["inner"], profile["outer"]):
+        for segment in chain:
+            if segment["kind"] == "LINE":
+                sketch.Line(point1=segment["start"], point2=segment["end"])
+            else:
+                sketch.ArcByCenterEnds(center=segment["center"],
+                                      point1=segment["start"], point2=segment["end"],
+                                      direction=CLOCKWISE if segment["direction"] == "CLOCKWISE" else COUNTERCLOCKWISE)
+    for endpoint, index in (("start", 0), ("end", -1)):
+        sketch.Line(point1=profile["inner"][index][endpoint],
+                    point2=profile["outer"][index][endpoint])
 
 
 def _float_text(value):
