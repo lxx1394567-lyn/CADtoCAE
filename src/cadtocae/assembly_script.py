@@ -149,7 +149,7 @@ def build_assembly_summary(payload: dict[str, Any]) -> dict[str, Any]:
             points[str(name)] = [float(value) for value in coords]
 
     meta = payload.get("meta", {})
-    return {
+    summary = {
         "project_id": meta.get("project_id") or meta.get("project_code"),
         "model_name": meta.get("model_name"),
         "structure_type": meta.get("structure_type"),
@@ -164,6 +164,13 @@ def build_assembly_summary(payload: dict[str, Any]) -> dict[str, Any]:
         "instances": instances,
         "assembly_points": points,
     }
+    # Optional diagnostic/association fields preserve the existing instance schema.
+    summary["warnings"] = list(payload.get("warnings", []))
+    summary["checks"] = payload.get("checks", {})
+    summary["hoop_groups"] = list(payload.get("hoop_groups", []))
+    if meta.get("structure_type") == "DP":
+        summary["purlin_nodes"] = list(payload.get("purlin_nodes", []))
+    return summary
 
 
 def export_assembly_summary(payload: dict[str, Any], output_path: str | Path) -> Path:
@@ -326,6 +333,7 @@ def generate_assembly_scripts_from_workbook(
                 "control_point_count": len(payload.get("points", {})),
                 "planned_instances": [item.get("instance_id") for item in payload.get("instance_plan", [])],
                 "skipped_instances": payload.get("skipped_instances", []),
+                **({"hoop_groups": payload.get("hoop_groups", [])} if payload.get("meta", {}).get("structure_type") == "DP" else {}),
                 "warnings": warnings,
                 "errors": errors,
                 "messages": messages,

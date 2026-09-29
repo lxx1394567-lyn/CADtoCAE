@@ -1,176 +1,152 @@
+"""Step04 folder GUI; no placement logic."""
 from __future__ import annotations
-
+import argparse
+import json
 import queue
 import sys
 import threading
 from pathlib import Path
-from tkinter import StringVar, Text, Tk, filedialog, messagebox
-from tkinter import ttk
-
-if not getattr(sys, "frozen", False):
-    PROJECT_ROOT = Path(__file__).resolve().parents[1]
-    sys.path.insert(0, str(PROJECT_ROOT / "src"))
-else:
-    PROJECT_ROOT = Path(getattr(sys, "_MEIPASS", Path(sys.executable).resolve().parent))
-
-from cadtocae.assembly_script import AssemblyScriptOutput, generate_assembly_scripts_from_workbook  # noqa: E402
-
+from tkinter import BooleanVar, StringVar, Text, Tk, filedialog, ttk
+if not getattr(sys, 'frozen', False):
+    sys.path.insert(0, str(Path(__file__).resolve().parents[1] / 'src'))
+from cadtocae.assembly_projects import can_generate, generate_batch, project_details, scan_projects
 
 class Step04AssemblyScriptApp(Tk):
-    def __init__(self) -> None:
+    def __init__(self):
         super().__init__()
-        self.title("CADtoCAE Step04 Assembly 建模脚本生成")
-        self.geometry("960x650")
-        self.minsize(800, 540)
-        self.coordinate_path = StringVar(value="")
-        self.part_script_path = StringVar(value="")
-        self.output_folder = StringVar(value="")
-        self.events: queue.Queue[tuple[str, object]] = queue.Queue()
-        self.worker: threading.Thread | None = None
-        self._build_ui()
-        self.after(100, self._poll_events)
+        self.title('CADtoCAE Step04 vNext — Assembly Script Generator')
+        self.geometry('1280x780'); self.minsize(1000,640)
+        self.folder=StringVar(); self.recursive=BooleanVar(value=False)
+        self.status=StringVar(value='Select a Project Folder, then Scan Projects.')
+        self.scan=None; self.busy=False; self.events=queue.Queue()
+        top=ttk.Frame(self,padding=12); top.pack(fill='x'); top.columnconfigure(1,weight=1)
+        ttk.Label(top,text='Project Folder:').grid(row=0,column=0)
+        entry=ttk.Entry(top,textvariable=self.folder); entry.grid(row=0,column=1,sticky='ew',padx=10)
+        select=ttk.Button(top,text='Select Folder',command=self.choose_folder); select.grid(row=0,column=2)
+        recursive=ttk.Checkbutton(top,text='Include Subfolders (default OFF)',variable=self.recursive)
+        recursive.grid(row=1,column=1,sticky='w',pady=8)
+        self.inputs=[entry,select,recursive]
+        self.scan_button=ttk.Button(top,text='Scan Projects',command=self.start_scan); self.scan_button.grid(row=1,column=2)
+        frame=ttk.Frame(self); frame.pack(fill='both',expand=True,padx=12)
+        frame.columnconfigure(0,weight=1); frame.rowconfigure(0,weight=1)
+        columns=('project','structure','input','capability','generation','result')
+        self.table=ttk.Treeview(frame,columns=columns,show='headings',selectmode='browse',height=12)
+        for key,label,width in zip(columns,('Project ID','Structure','Input','Capability','Generation','Result'),(360,85,160,110,110,340)):
+            self.table.heading(key,text=label); self.table.column(key,width=width,minwidth=70,stretch=False)
+        self.table.grid(row=0,column=0,sticky='nsew')
+        vertical=ttk.Scrollbar(frame,orient='vertical',command=self.table.yview); vertical.grid(row=0,column=1,sticky='ns')
+        horizontal=ttk.Scrollbar(frame,orient='horizontal',command=self.table.xview); horizontal.grid(row=1,column=0,sticky='ew')
+        self.table.configure(yscrollcommand=vertical.set,xscrollcommand=horizontal.set)
+        self.table.bind('<<TreeviewSelect>>',self.details)
+        actions=ttk.Frame(self,padding=12); actions.pack(fill='x')
+        self.selected_button=ttk.Button(actions,text='Generate Selected',command=lambda:self.start_generate(True)); self.selected_button.pack(side='left')
+        self.all_button=ttk.Button(actions,text='Generate All Ready',command=lambda:self.start_generate(False)); self.all_button.pack(side='left',padx=10)
+        self.progress=ttk.Progressbar(actions,mode='indeterminate',length=100); self.progress.pack(side='left',padx=10)
+        ttk.Label(actions,textvariable=self.status).pack(side='left')
+        logs=ttk.LabelFrame(self,text='Process Log',padding=5); logs.pack(fill='both',expand=True,padx=12,pady=(0,12))
+        self.log=Text(logs,height=12,wrap='word',state='disabled'); self.log.pack(side='left',fill='both',expand=True)
+        scroll=ttk.Scrollbar(logs,command=self.log.yview); scroll.pack(side='right',fill='y'); self.log.configure(yscrollcommand=scroll.set)
+        self.folder.trace_add('write',self.invalidate); self.recursive.trace_add('write',self.invalidate)
+        self.protocol('WM_DELETE_WINDOW',self.close); self.buttons(); self.after(100,self.poll)
 
-    def _build_ui(self) -> None:
-        self.columnconfigure(0, weight=1)
-        self.rowconfigure(1, weight=1)
-        inputs = ttk.LabelFrame(self, text="Step04 输入", padding=12)
-        inputs.grid(row=0, column=0, sticky="ew", padx=12, pady=(12, 8))
-        inputs.columnconfigure(1, weight=1)
-        rows = (
-            ("Step02 Part Script", self.part_script_path, self._choose_part_script),
-            ("Coordinate Excel", self.coordinate_path, self._choose_coordinate),
-            ("输出目录", self.output_folder, self._choose_output_folder),
-        )
-        for row, (label, variable, command) in enumerate(rows):
-            ttk.Label(inputs, text=label).grid(row=row, column=0, sticky="w", pady=4)
-            ttk.Entry(inputs, textvariable=variable).grid(row=row, column=1, sticky="ew", padx=8, pady=4)
-            ttk.Button(inputs, text="选择", command=command).grid(row=row, column=2, pady=4)
+    def choose_folder(self):
+        value=filedialog.askdirectory(parent=self,title='Select Project Folder')
+        if value:self.folder.set(value)
 
-        log_frame = ttk.LabelFrame(self, text="处理日志")
-        log_frame.grid(row=1, column=0, sticky="nsew", padx=12)
-        log_frame.columnconfigure(0, weight=1)
-        log_frame.rowconfigure(0, weight=1)
-        self.log = Text(log_frame, wrap="word")
-        self.log.grid(row=0, column=0, sticky="nsew")
-        scrollbar = ttk.Scrollbar(log_frame, orient="vertical", command=self.log.yview)
-        scrollbar.grid(row=0, column=1, sticky="ns")
-        self.log.configure(yscrollcommand=scrollbar.set, state="disabled")
+    def invalidate(self,*_):
+        self.scan=None; self.table.delete(*self.table.get_children())
+        self.status.set('Folder settings changed. Scan Projects to refresh.'); self.buttons()
 
-        bottom = ttk.Frame(self, padding=12)
-        bottom.grid(row=2, column=0, sticky="ew")
-        bottom.columnconfigure(0, weight=1)
-        self.progress = ttk.Progressbar(bottom, mode="indeterminate")
-        self.progress.grid(row=0, column=0, sticky="ew", padx=(0, 12))
-        self.start_button = ttk.Button(bottom, text="生成 Assembly 脚本", command=self._start)
-        self.start_button.grid(row=0, column=1)
+    def buttons(self):
+        self.scan_button.configure(state='disabled' if self.busy else 'normal')
+        for widget in self.inputs:widget.configure(state='disabled' if self.busy else 'normal')
+        available=self.scan is not None and not self.busy
+        self.selected_button.configure(state='normal' if available and self.table.selection() else 'disabled')
+        self.all_button.configure(state='normal' if available and any(can_generate(r) for r in self.scan['projects']) else 'disabled')
 
-    def _choose_part_script(self) -> None:
-        selected = filedialog.askopenfilename(
-            title="选择 Step02 Part Script",
-            filetypes=(("Step02 Python", "*_create_parts_in_cae.py"), ("Python", "*.py")),
-        )
-        if selected:
-            self.part_script_path.set(selected)
-            if not self.output_folder.get().strip():
-                self.output_folder.set(str(Path(selected).parent))
+    def append_log(self,text):
+        self.log.configure(state='normal'); self.log.insert('end',text.rstrip()+'\n'); self.log.see('end'); self.log.configure(state='disabled')
 
-    def _choose_coordinate(self) -> None:
-        selected = filedialog.askopenfilename(
-            title="选择 Coordinate Excel",
-            filetypes=(("Coordinate Excel", "*_coordinate*.xlsx"), ("Excel", "*.xlsx")),
-        )
-        if selected:
-            self.coordinate_path.set(selected)
-            if not self.output_folder.get().strip():
-                self.output_folder.set(str(Path(selected).parent))
+    @staticmethod
+    def row_values(row):
+        return tuple(row[k] for k in ('project_id','structure_type','input_status','capability','generation_status','result'))
 
-    def _choose_output_folder(self) -> None:
-        selected = filedialog.askdirectory(title="选择输出目录")
-        if selected:
-            self.output_folder.set(selected)
+    def run(self,operation,action):
+        if self.busy:return
+        self.busy=True; self.buttons(); self.progress.start(12)
+        def work():
+            try:self.events.put((operation,action()))
+            except Exception as exc:self.events.put(('error',str(exc)))
+        threading.Thread(target=work,daemon=True).start()
 
-    def _append_log(self, message: str) -> None:
-        self.log.configure(state="normal")
-        self.log.insert("end", message.rstrip() + "\n")
-        self.log.see("end")
-        self.log.configure(state="disabled")
+    def start_scan(self):
+        if self.busy:return
+        folder,recursive=self.folder.get().strip(),self.recursive.get()
+        if not folder:self.append_log('Select a Project Folder first.'); return
+        self.invalidate(); self.status.set('Scanning and checking project inputs...'); self.append_log('Scanning: '+folder)
+        self.run('scan',lambda:scan_projects(folder,recursive))
 
-    def _validated_paths(self) -> tuple[Path, Path, Path] | None:
-        coordinate = Path(self.coordinate_path.get().strip())
-        part_script = Path(self.part_script_path.get().strip())
-        output = Path(self.output_folder.get().strip())
-        if not coordinate.is_file():
-            messagebox.showwarning("缺少 Coordinate Excel", "请选择有效的 *_coordinate.xlsx。")
-            return None
-        if not part_script.is_file():
-            messagebox.showwarning("缺少 Step02 Script", "请选择有效的 *_create_parts_in_cae.py。")
-            return None
-        if not output.exists() or not output.is_dir():
-            messagebox.showwarning("输出目录无效", "请选择已经存在的输出目录。")
-            return None
-        return coordinate, part_script, output
+    def start_generate(self,selected):
+        if not self.scan or self.busy:return
+        ids={self.scan['projects'][int(i)]['project_id'] for i in self.table.selection()} if selected else None
+        if selected and not ids:return
+        snapshot=self.scan; self.status.set('Generating...')
+        self.run('generated',lambda:generate_batch(snapshot,ids,lambda event:self.events.put(('progress',event))))
 
-    def _start(self) -> None:
-        if self.worker and self.worker.is_alive():
-            return
-        paths = self._validated_paths()
-        if paths is None:
-            return
-        self.start_button.configure(state="disabled")
-        self.progress.start(12)
-        self._append_log("开始 Step04 preflight 和 Assembly Script 生成。")
-        self.worker = threading.Thread(target=self._run, args=paths, daemon=True)
-        self.worker.start()
+    def details(self,*_):
+        if self.scan and self.table.selection():self.append_log(project_details(self.scan['projects'][int(self.table.selection()[0])]))
+        self.buttons()
 
-    def _run(self, coordinate: Path, part_script: Path, output: Path) -> None:
+    def poll(self):
         try:
-            result = generate_assembly_scripts_from_workbook(
-                coordinate,
-                output,
-                components_json=part_script,
-                overwrite=True,
-            )
-            self.events.put(("done", result))
-        except Exception as exc:
-            self.events.put(("error", str(exc)))
+            while True:
+                kind,value=self.events.get_nowait()
+                if kind=='progress':
+                    row=value['row']
+                    for index,old in enumerate(self.scan['projects']):
+                        if old['project_id']==row['project_id']:
+                            self.scan['projects'][index]=row; self.table.item(str(index),values=self.row_values(row)); break
+                    if value['event']=='started':self.append_log('[%d/%d] %s\nRechecking files, metadata and InstancePlan...' % (value['index'],value['total'],row['project_id']))
+                    elif value['event']=='preflight':self.append_log('Preflight complete. Generating Assembly Script and Summary...')
+                    elif value['event'] in ('finished','skipped'):self.append_log(project_details(row))
+                    continue
+                self.busy=False; self.progress.stop()
+                if kind=='error':self.append_log('ERROR: '+value); self.status.set('Failed. See Process Log.')
+                else:
+                    selection=self.table.selection(); self.scan=value; self.table.delete(*self.table.get_children())
+                    for index,row in enumerate(value['projects']):self.table.insert('','end',iid=str(index),values=self.row_values(row))
+                    for item in selection:
+                        if self.table.exists(item):self.table.selection_set(item)
+                    if kind=='scan':
+                        ready=sum(can_generate(r) for r in value['projects'])
+                        message='Found %d projects | Ready %d | Blocked %d' % (len(value['projects']),ready,len(value['projects'])-ready)
+                        self.status.set(message); self.append_log(message)
+                        for row in value['projects']:self.append_log(row['project_id']+': '+row['input_status']+' — '+row['result'])
+                    else:
+                        message='Total %(total)d | Success %(success)d | Warning %(warning)d | Failed %(failed)d | Skipped %(skipped)d' % value['generation_counts']
+                        self.status.set(message); self.append_log(message+'\nSuccess = generated without warnings; Warning = generated with warnings.')
+                self.buttons()
+        except queue.Empty:pass
+        self.after(100,self.poll)
 
-    def _show_result(self, result: AssemblyScriptOutput) -> None:
-        self._append_log("project_id: %s" % result.project_prefix)
-        self._append_log("status: %s" % result.status)
-        for script in result.script_paths:
-            self._append_log("Abaqus Script: %s" % script)
-        if result.summary_path:
-            self._append_log("Assembly Summary: %s" % result.summary_path)
-        self._append_log("Debug Report: %s" % result.report_path)
-        for message in result.messages:
-            self._append_log(message)
-        if result.status == "failed":
-            messagebox.showerror("生成失败", "Preflight 未通过，请查看日志和调试报告。")
-        else:
-            messagebox.showinfo("生成完成", "Assembly Script 已生成，请在 Abaqus/CAE 中人工验证。")
+    def close(self):
+        if self.busy:self.append_log('Please wait for the current operation to finish before closing.')
+        else:self.destroy()
 
-    def _poll_events(self) -> None:
-        while True:
-            try:
-                kind, payload = self.events.get_nowait()
-            except queue.Empty:
-                break
-            if kind == "done":
-                self.progress.stop()
-                self.start_button.configure(state="normal")
-                self._show_result(payload)  # type: ignore[arg-type]
-            elif kind == "error":
-                self.progress.stop()
-                self.start_button.configure(state="normal")
-                self._append_log("错误: %s" % payload)
-                messagebox.showerror("处理失败", str(payload))
-        self.after(100, self._poll_events)
-
-
-def main() -> None:
-    app = Step04AssemblyScriptApp()
+def main():
+    parser=argparse.ArgumentParser(description=__doc__)
+    parser.add_argument('--scan',help='Read-only folder scan for development/CLI checks')
+    parser.add_argument('--include-subfolders',action='store_true')
+    parser.add_argument('--scan-report',help='Optional JSON destination for --scan')
+    parser.add_argument('--ui-smoke',action='store_true')
+    args=parser.parse_args()
+    if args.scan:
+        result=json.dumps(scan_projects(args.scan,args.include_subfolders),ensure_ascii=False,indent=2)
+        if args.scan_report:Path(args.scan_report).write_text(result,encoding='utf-8')
+        if sys.stdout:print(result)
+        return
+    app=Step04AssemblyScriptApp()
+    if args.ui_smoke:app.after(700,app.destroy)
     app.mainloop()
 
-
-if __name__ == "__main__":
-    main()
+if __name__=='__main__':main()
