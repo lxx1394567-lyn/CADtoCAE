@@ -1,0 +1,19 @@
+{
+  "snapshot_date": "2026-11-23",
+  "base_commit": "a0092c033675dd5dffb7ad58d5c7acc19e2ac660",
+  "branch": "backup/step01-step07-20261123",
+  "tag": "snapshot-step01-step07-20261123",
+  "runtime_asset_count": 9,
+  "runtime_package_count": 9,
+  "runtime_asset_bytes": 327275426,
+  "step03_standalone_exe": false,
+  "step07_v3_manifest_entries": 108,
+  "step07_v3_matches": 108,
+  "step07_v3_missing": 0,
+  "step07_general_manifest_entries": 34,
+  "step07_general_matches": 34,
+  "step07_general_missing": 0,
+  "exe_execution_performed": false,
+  "abaqus_execution_performed": false,
+  "exe_rebuild_performed": false
+}

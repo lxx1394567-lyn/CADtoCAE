@@ -1,0 +1,18 @@
+ M docs/step05_batch_usage.md
+ M scripts/step05_analysis_script_gui.py
+ M src/cadtocae/analysis_batch.py
+ M src/cadtocae/analysis_discovery.py
+ M src/cadtocae/beam_brace_tie.py
+ M src/cadtocae/beam_brace_tie_runtime.py
+ M src/cadtocae/column_beam_coupling.py
+ M src/cadtocae/column_beam_coupling_runtime.py
+ M src/cadtocae/column_hoop_tie.py
+ M src/cadtocae/runtime_compatibility.py
+ M tests/test_analysis_batch.py
+ M tests/test_analysis_runtime_compatibility.py
+ M tests/test_step05_batch_gui.py
+?? src/cadtocae/dp_rules.py
+?? src/cadtocae/dp_runtime.py
+?? src/cadtocae/dp_setup.py
+?? tests/test_analysis_dp.py
+?? tests/test_analysis_legacy_contract.py

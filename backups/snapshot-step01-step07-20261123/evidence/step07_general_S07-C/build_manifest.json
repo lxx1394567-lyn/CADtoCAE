@@ -1,0 +1,144 @@
+{
+  "baseline": "ff322e1fda786378aa17f5f31690d280537c9928",
+  "exe": "F:\\Codex\\Wind Resistance of PV Support Structures\\CADtoCAE-Step07-Development\\dist\\CADtoCAE_Step07_AnalysisSetup\\CADtoCAE_Step07_AnalysisSetup.exe",
+  "status": "BUILT_PENDING_EXE_UI_TEST",
+  "branch": "feature/step07-analysis-setup",
+  "sources": [
+    {
+      "sha256": "5E26C347782F9200BFC52FAF5D2C1103EF7ED7C3F655AA0380BFB0F100E76BD3",
+      "path": "src/cadtocae/step07_setup.py"
+    },
+    {
+      "sha256": "E75DE857F43CE1AEFB50B74D10E457F7C4910F818CBD505B1BE9A55506BDA03A",
+      "path": "src/cadtocae/step07_runtime.py"
+    },
+    {
+      "sha256": "9728230EFBF47BC8A5FA1AA9B457B9752E1AB27E9F689A7B84D8D992BBEF5B2D",
+      "path": "src/cadtocae/step07_desktop.py"
+    },
+    {
+      "sha256": "78EBA7DB299225E40BB07B54523A79627C65D111127B29E1D2C131BC767B07B7",
+      "path": "src/cadtocae/step07_batch.py"
+    },
+    {
+      "sha256": "E97D5BF01A5DE5404D728193E774BB3074B0F4D501C5452717E9500419830C66",
+      "path": "src/cadtocae/step07_rules.py"
+    },
+    {
+      "sha256": "F6CB7F904AFCB097EF64A28C140CA9093242BCE6966D6E747E0D825F84768C76",
+      "path": "scripts/step07_analysis_setup_gui.py"
+    },
+    {
+      "sha256": "EE0667B37CCC44ABEC09C201F38094C465C7CEF4401126A51E56ED80416B1C26",
+      "path": "src/cadtocae/step07_mesh_setup.py"
+    },
+    {
+      "sha256": "97270C319020674FBE1608A03C7B949F1422618EEBF5B83B4A9B58708925E182",
+      "path": "src/cadtocae/step07_mesh_runtime.py"
+    },
+    {
+      "sha256": "86F2479E832185C08C2F408A9DFAA537F0BC45D1A28CC8BFC3F09C0CDA693080",
+      "path": "src/cadtocae/step07_mesh_rules.py"
+    },
+    {
+      "sha256": "6A811216F57C32571D26D65AD9E109D18488F3673656D2749765D9484C71883F",
+      "path": "src/cadtocae/step07_mesh_desktop.py"
+    },
+    {
+      "sha256": "E7339BE27888B5EDE5DCD0FEE7245A4E00F66C867332822F0C20E92E80C2B737",
+      "path": "src/cadtocae/step07_pipeline.py"
+    },
+    {
+      "sha256": "294D91BDCCDC3D15FC3910F194261EB562BDBD2578A4946A27246FBD0B109906",
+      "path": "src/cadtocae/step07_pipeline_runtime.py"
+    },
+    {
+      "sha256": "4FFC8F26CEA63DFADBCFCECA836734394DB9757BC9C7BBD8A43D8B232F8C0444",
+      "path": "src/cadtocae/step07_pipeline_desktop.py"
+    },
+    {
+      "sha256": "CF497B439F27BECEA9C0D6597CF6FF33386D144957A21F0B6EB17E1229D4B1A6",
+      "path": "src/cadtocae/step07_tie_runtime.py"
+    },
+    {
+      "sha256": "E7E014F3C8A5C3A13527B82FE8DD557673FE67A7BE2D07A85A4C015329485282",
+      "path": "src/cadtocae/step07_bc_runtime.py"
+    },
+    {
+      "sha256": "224CB2127AE548F676352F81058A2C1A2F32363F76CEC587EB9B6EB999F97DA8",
+      "path": "src/cadtocae/step07_mesh_cleanup_runtime.py"
+    },
+    {
+      "sha256": "678F930D1C7B97B5475475CBF3D06C6A30F467A0BF1E16BFEC35514E59ED9CDF",
+      "path": "src/cadtocae/step07_runtime_bundle.py"
+    },
+    {
+      "sha256": "770938E05CAC558547DF2A73C80D41FB414DEB2295DAC179FCFF5ABF54FB4202",
+      "path": "src/cadtocae/step07_quality_runtime.py"
+    },
+    {
+      "sha256": "56AD9309AA45CC938E3EE705B4E245E07C3D6A1586197A0F00BF0687006216A6",
+      "path": "src/cadtocae/step07_source_guard_runtime.py"
+    },
+    {
+      "sha256": "E05EA00311FAAF8096D5CD8AEA3C4314C37B9BB198026F0CB2CD8CB53CA26153",
+      "path": "src/cadtocae/step07_inplace.py"
+    },
+    {
+      "sha256": "D57C14B3CCF576F41FA422AFE29BC091249FE3A4DBEA7BD733197D8CAC27CFB6",
+      "path": "src/cadtocae/step07_inplace_runtime.py"
+    },
+    {
+      "sha256": "DABCC5CAD1E836B45E89B3370339D45C7E7F6234A34CC3CB7AEC32AD5C156306",
+      "path": "src/cadtocae/step07_load_input.py"
+    },
+    {
+      "sha256": "E4FF147A20D487056FB7F066B628AB60561CFA763B096CA44B3E0456E3EDB461",
+      "path": "src/cadtocae/step07_load_runtime.py"
+    },
+    {
+      "sha256": "57DD0E5085C75D5C316F9262F1FD15FF41DC21F6BEA2DACA4CC5C4C81D124EB9",
+      "path": "src/cadtocae/step07_tributary.py"
+    },
+    {
+      "sha256": "CD1058B014F76153ECAD003FF079150D7CA547180B40E226FB7D8BFF5595D897",
+      "path": "src/cadtocae/step07_inp_runtime.py"
+    },
+    {
+      "sha256": "120139123F86F372B678F4D96D98F8941740969D8026CB9D5A4F2AF181BBAA29",
+      "path": "src/cadtocae/step07_multitype_runtime.py"
+    },
+    {
+      "sha256": "7D8247619961E9BA33A85FAF519B2B8877C08A5D179872AEED69929C61D94E83",
+      "path": "src/cadtocae/step07_identity_runtime.py"
+    },
+    {
+      "sha256": "0CF3608A8978EB8080C10C2846A87576A217FB6D724BB3A324B1D7F9EFB739D9",
+      "path": "src/cadtocae/step07_projects.py"
+    },
+    {
+      "sha256": "F820485DDFB54DE3BCF343A67F32FC7CDCBD6B4651960B3F9AC16E77EE207D20",
+      "path": "src/cadtocae/step07_output.py"
+    },
+    {
+      "sha256": "52F9BCFC6A8565E3EFCC04267E81444A3B35340ADA0D8BD25C0455C3B5D46226",
+      "path": "src/cadtocae/step07_hoop_region_runtime.py"
+    },
+    {
+      "sha256": "0BBBC314EE7AB1D30830A529E80EA23691CA3711AEAD0FE6F1484EE1C3942FBA",
+      "path": "src/cadtocae/step07_luan_load.py"
+    },
+    {
+      "sha256": "0389E679E5408D0EA3E856CFEBE0671ADAD306D531970FDAB1D1EDF2CBA7C029",
+      "path": "src/cadtocae/step07_postprocess.py"
+    },
+    {
+      "sha256": "ADB20EF7CCDC5ACABF62B1D7307D8481C24A1F51B3C0239B1FCE7B75F987914C",
+      "path": "src/cadtocae/step07_postprocess_runtime.py"
+    },
+    {
+      "sha256": "A28722029E05C589411503198E3AB20FF835FECE874B58D5C25F5C4EA6B49A87",
+      "path": "src/cadtocae/step07_postprocess_desktop.py"
+    }
+  ]
+}

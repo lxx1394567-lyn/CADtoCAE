@@ -1,0 +1,5 @@
+ff322e1 feat(step05): stabilize SP_SC and SP_DC connection setup
+0a237b1 Merge pull request #6 from lxx1394567-lyn/feature/step04-development
+e906b6b feat(step04): finalize assembly planning and summary export
+6e31f72 Merge pull request #5 from lxx1394567-lyn/feature/step2-part-abaqus
+c3f68d4 feat(step02): expand parametric Abaqus part generation

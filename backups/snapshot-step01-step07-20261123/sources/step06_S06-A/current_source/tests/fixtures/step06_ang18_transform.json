@@ -1,0 +1,866 @@
+{
+  "project_id": "SP_SC_ANG18_11042210101041S-T0202",
+  "assembly_points": {
+    "O": [
+      0.0,
+      0.0,
+      0.0
+    ],
+    "A": [
+      0.0,
+      0.0,
+      3.0
+    ],
+    "F": [
+      0.015,
+      0.0,
+      3.1
+    ],
+    "B": [
+      -0.1,
+      0.0,
+      1.1
+    ],
+    "D": [
+      0.1,
+      0.0,
+      1.1
+    ],
+    "C": [
+      -1.5913344560225142,
+      0.0,
+      2.578070296500714
+    ],
+    "E": [
+      1.5557115563981487,
+      0.0,
+      3.600607530887415
+    ],
+    "G_global": [
+      -1.8956725412369635,
+      0.0,
+      2.479184858300731
+    ],
+    "P1": [
+      -1.7530140637926905,
+      0.0,
+      2.525537407456973
+    ],
+    "P2": [
+      -0.516640592608991,
+      0.0,
+      2.927259500144405
+    ],
+    "P3": [
+      0.3393102720566472,
+      0.0,
+      3.205374795081857
+    ],
+    "P4": [
+      1.6707893948698622,
+      0.0,
+      3.6379985872067837
+    ]
+  },
+  "instances": [
+    {
+      "instance_name": "INCLINED_BEAM_01",
+      "component_code": "INCLINED_BEAM",
+      "canonical_role": "INCLINED_BEAM",
+      "part_name": "P_SP_SC_ANG18_INCLINED_BEAM",
+      "category": "main_frame",
+      "required": true,
+      "connection_group": null,
+      "placement": {
+        "mode": "LINE",
+        "translation": [
+          -1.8956725412369635,
+          -0.0375,
+          2.4791848583007305
+        ],
+        "rotation_axis": null,
+        "rotation_angle": null,
+        "rotation_steps": [
+          {
+            "axis_point": [
+              0.0,
+              0.0,
+              0.0
+            ],
+            "axis_direction": [
+              0.0,
+              1.0,
+              0.0
+            ],
+            "angle_deg": 72.0
+          },
+          {
+            "axis_point": [
+              0.015,
+              0.0,
+              3.1
+            ],
+            "axis_direction": [
+              0.9510565162951535,
+              0.0,
+              0.3090169943749474
+            ],
+            "angle_deg": 90.0
+          }
+        ]
+      },
+      "geometry_info": {
+        "length": 3.948,
+        "section_kind": "C_CHANNEL"
+      }
+    },
+    {
+      "instance_name": "BRACE_FRONT_01",
+      "component_code": "BRACE_FRONT",
+      "canonical_role": "BRACE_FRONT",
+      "part_name": "P_SP_SC_ANG18_BRACE_FRONT",
+      "category": "main_frame",
+      "required": true,
+      "connection_group": null,
+      "placement": {
+        "mode": "LINE",
+        "translation": [
+          -0.1,
+          -0.035,
+          1.1
+        ],
+        "rotation_axis": null,
+        "rotation_angle": null,
+        "rotation_steps": [
+          {
+            "axis_point": [
+              0.0,
+              0.0,
+              0.0
+            ],
+            "axis_direction": [
+              0.0,
+              1.0,
+              0.0
+            ],
+            "angle_deg": -45.255935235513995
+          },
+          {
+            "axis_point": [
+              -0.1,
+              0.0,
+              1.1
+            ],
+            "axis_direction": [
+              -0.7102583002767633,
+              0.0,
+              0.7039411530007056
+            ],
+            "angle_deg": -90.0
+          }
+        ]
+      },
+      "geometry_info": {
+        "length": 2.114,
+        "section_kind": "C_CHANNEL"
+      }
+    },
+    {
+      "instance_name": "BRACE_REAR_01",
+      "component_code": "BRACE_REAR",
+      "canonical_role": "BRACE_REAR",
+      "part_name": "P_SP_SC_ANG18_BRACE_REAR",
+      "category": "main_frame",
+      "required": true,
+      "connection_group": null,
+      "placement": {
+        "mode": "LINE",
+        "translation": [
+          0.1,
+          -0.035,
+          1.1
+        ],
+        "rotation_axis": null,
+        "rotation_angle": null,
+        "rotation_steps": [
+          {
+            "axis_point": [
+              0.0,
+              0.0,
+              0.0
+            ],
+            "axis_direction": [
+              0.0,
+              1.0,
+              0.0
+            ],
+            "angle_deg": 30.205531638698933
+          },
+          {
+            "axis_point": [
+              0.1,
+              0.0,
+              1.1
+            ],
+            "axis_direction": [
+              0.5031033859630158,
+              0.0,
+              0.864226233709987
+            ],
+            "angle_deg": -90.0
+          }
+        ]
+      },
+      "geometry_info": {
+        "length": 2.916,
+        "section_kind": "C_CHANNEL"
+      }
+    },
+    {
+      "instance_name": "PURLIN_SUPPORT_01",
+      "component_code": "PURLIN_SUPPORT",
+      "canonical_role": "PURLIN_SUPPORT",
+      "part_name": "P_SP_SC_ANG18_PURLIN_SUPPORT",
+      "category": "purlin_connection",
+      "required": true,
+      "connection_group": "P01",
+      "placement": {
+        "mode": "POINT_ORIENT",
+        "translation": [
+          -1.764911218076126,
+          0.045,
+          2.5621530833343362
+        ],
+        "rotation_axis": null,
+        "rotation_angle": null,
+        "rotation_steps": [
+          {
+            "axis_point": [
+              0.0,
+              0.0,
+              0.0
+            ],
+            "axis_direction": [
+              0.0,
+              0.0,
+              1.0
+            ],
+            "angle_deg": 90.0
+          },
+          {
+            "axis_point": [
+              0.0,
+              0.0,
+              0.0
+            ],
+            "axis_direction": [
+              1.0,
+              0.0,
+              0.0
+            ],
+            "angle_deg": 90.0
+          },
+          {
+            "axis_point": [
+              0.0,
+              0.0,
+              0.0
+            ],
+            "axis_direction": [
+              0.0,
+              1.0,
+              0.0
+            ],
+            "angle_deg": -18.0
+          }
+        ]
+      },
+      "geometry_info": {
+        "length": 0.05,
+        "section_kind": "ANGLE"
+      }
+    },
+    {
+      "instance_name": "PURLIN_LOCAL_01",
+      "component_code": "PURLIN_LOCAL",
+      "canonical_role": "PURLIN_LOCAL",
+      "part_name": "P_SP_SC_ANG18_PURLIN_LOCAL",
+      "category": "purlin_connection",
+      "required": true,
+      "connection_group": "P01",
+      "placement": {
+        "mode": "POINT_ORIENT",
+        "translation": [
+          -1.7683104050142504,
+          0.045,
+          2.5726147050135832
+        ],
+        "rotation_axis": null,
+        "rotation_angle": null,
+        "rotation_steps": [
+          {
+            "axis_point": [
+              0.0,
+              0.0,
+              0.0
+            ],
+            "axis_direction": [
+              1.0,
+              0.0,
+              0.0
+            ],
+            "angle_deg": 90.0
+          },
+          {
+            "axis_point": [
+              0.0,
+              0.0,
+              0.0
+            ],
+            "axis_direction": [
+              0.0,
+              1.0,
+              0.0
+            ],
+            "angle_deg": -18.0
+          }
+        ]
+      },
+      "geometry_info": {
+        "length": 0.05,
+        "section_kind": "C_CHANNEL"
+      }
+    },
+    {
+      "instance_name": "PURLIN_SUPPORT_02",
+      "component_code": "PURLIN_SUPPORT",
+      "canonical_role": "PURLIN_SUPPORT",
+      "part_name": "P_SP_SC_ANG18_PURLIN_SUPPORT",
+      "category": "purlin_connection",
+      "required": true,
+      "connection_group": "P02",
+      "placement": {
+        "mode": "POINT_ORIENT",
+        "translation": [
+          -0.5285377468924265,
+          0.045,
+          2.963875176021768
+        ],
+        "rotation_axis": null,
+        "rotation_angle": null,
+        "rotation_steps": [
+          {
+            "axis_point": [
+              0.0,
+              0.0,
+              0.0
+            ],
+            "axis_direction": [
+              0.0,
+              0.0,
+              1.0
+            ],
+            "angle_deg": 90.0
+          },
+          {
+            "axis_point": [
+              0.0,
+              0.0,
+              0.0
+            ],
+            "axis_direction": [
+              1.0,
+              0.0,
+              0.0
+            ],
+            "angle_deg": 90.0
+          },
+          {
+            "axis_point": [
+              0.0,
+              0.0,
+              0.0
+            ],
+            "axis_direction": [
+              0.0,
+              1.0,
+              0.0
+            ],
+            "angle_deg": -18.0
+          }
+        ]
+      },
+      "geometry_info": {
+        "length": 0.05,
+        "section_kind": "ANGLE"
+      }
+    },
+    {
+      "instance_name": "PURLIN_LOCAL_02",
+      "component_code": "PURLIN_LOCAL",
+      "canonical_role": "PURLIN_LOCAL",
+      "part_name": "P_SP_SC_ANG18_PURLIN_LOCAL",
+      "category": "purlin_connection",
+      "required": true,
+      "connection_group": "P02",
+      "placement": {
+        "mode": "POINT_ORIENT",
+        "translation": [
+          -0.5319369338305509,
+          0.045,
+          2.974336797701015
+        ],
+        "rotation_axis": null,
+        "rotation_angle": null,
+        "rotation_steps": [
+          {
+            "axis_point": [
+              0.0,
+              0.0,
+              0.0
+            ],
+            "axis_direction": [
+              1.0,
+              0.0,
+              0.0
+            ],
+            "angle_deg": 90.0
+          },
+          {
+            "axis_point": [
+              0.0,
+              0.0,
+              0.0
+            ],
+            "axis_direction": [
+              0.0,
+              1.0,
+              0.0
+            ],
+            "angle_deg": -18.0
+          }
+        ]
+      },
+      "geometry_info": {
+        "length": 0.05,
+        "section_kind": "C_CHANNEL"
+      }
+    },
+    {
+      "instance_name": "PURLIN_SUPPORT_03",
+      "component_code": "PURLIN_SUPPORT",
+      "canonical_role": "PURLIN_SUPPORT",
+      "part_name": "P_SP_SC_ANG18_PURLIN_SUPPORT",
+      "category": "purlin_connection",
+      "required": true,
+      "connection_group": "P03",
+      "placement": {
+        "mode": "POINT_ORIENT",
+        "translation": [
+          0.32741311777321175,
+          0.045,
+          3.2419904709592204
+        ],
+        "rotation_axis": null,
+        "rotation_angle": null,
+        "rotation_steps": [
+          {
+            "axis_point": [
+              0.0,
+              0.0,
+              0.0
+            ],
+            "axis_direction": [
+              0.0,
+              0.0,
+              1.0
+            ],
+            "angle_deg": 90.0
+          },
+          {
+            "axis_point": [
+              0.0,
+              0.0,
+              0.0
+            ],
+            "axis_direction": [
+              1.0,
+              0.0,
+              0.0
+            ],
+            "angle_deg": 90.0
+          },
+          {
+            "axis_point": [
+              0.0,
+              0.0,
+              0.0
+            ],
+            "axis_direction": [
+              0.0,
+              1.0,
+              0.0
+            ],
+            "angle_deg": -18.0
+          }
+        ]
+      },
+      "geometry_info": {
+        "length": 0.05,
+        "section_kind": "ANGLE"
+      }
+    },
+    {
+      "instance_name": "PURLIN_LOCAL_03",
+      "component_code": "PURLIN_LOCAL",
+      "canonical_role": "PURLIN_LOCAL",
+      "part_name": "P_SP_SC_ANG18_PURLIN_LOCAL",
+      "category": "purlin_connection",
+      "required": true,
+      "connection_group": "P03",
+      "placement": {
+        "mode": "POINT_ORIENT",
+        "translation": [
+          0.32401393083508734,
+          0.045,
+          3.2524520926384675
+        ],
+        "rotation_axis": null,
+        "rotation_angle": null,
+        "rotation_steps": [
+          {
+            "axis_point": [
+              0.0,
+              0.0,
+              0.0
+            ],
+            "axis_direction": [
+              1.0,
+              0.0,
+              0.0
+            ],
+            "angle_deg": 90.0
+          },
+          {
+            "axis_point": [
+              0.0,
+              0.0,
+              0.0
+            ],
+            "axis_direction": [
+              0.0,
+              1.0,
+              0.0
+            ],
+            "angle_deg": -18.0
+          }
+        ]
+      },
+      "geometry_info": {
+        "length": 0.05,
+        "section_kind": "C_CHANNEL"
+      }
+    },
+    {
+      "instance_name": "PURLIN_SUPPORT_04",
+      "component_code": "PURLIN_SUPPORT",
+      "canonical_role": "PURLIN_SUPPORT",
+      "part_name": "P_SP_SC_ANG18_PURLIN_SUPPORT",
+      "category": "purlin_connection",
+      "required": true,
+      "connection_group": "P04",
+      "placement": {
+        "mode": "POINT_ORIENT",
+        "translation": [
+          1.6588922405864268,
+          0.045,
+          3.674614263084147
+        ],
+        "rotation_axis": null,
+        "rotation_angle": null,
+        "rotation_steps": [
+          {
+            "axis_point": [
+              0.0,
+              0.0,
+              0.0
+            ],
+            "axis_direction": [
+              0.0,
+              0.0,
+              1.0
+            ],
+            "angle_deg": 90.0
+          },
+          {
+            "axis_point": [
+              0.0,
+              0.0,
+              0.0
+            ],
+            "axis_direction": [
+              1.0,
+              0.0,
+              0.0
+            ],
+            "angle_deg": 90.0
+          },
+          {
+            "axis_point": [
+              0.0,
+              0.0,
+              0.0
+            ],
+            "axis_direction": [
+              0.0,
+              1.0,
+              0.0
+            ],
+            "angle_deg": -18.0
+          }
+        ]
+      },
+      "geometry_info": {
+        "length": 0.05,
+        "section_kind": "ANGLE"
+      }
+    },
+    {
+      "instance_name": "PURLIN_LOCAL_04",
+      "component_code": "PURLIN_LOCAL",
+      "canonical_role": "PURLIN_LOCAL",
+      "part_name": "P_SP_SC_ANG18_PURLIN_LOCAL",
+      "category": "purlin_connection",
+      "required": true,
+      "connection_group": "P04",
+      "placement": {
+        "mode": "POINT_ORIENT",
+        "translation": [
+          1.6554930536483023,
+          0.045,
+          3.685075884763394
+        ],
+        "rotation_axis": null,
+        "rotation_angle": null,
+        "rotation_steps": [
+          {
+            "axis_point": [
+              0.0,
+              0.0,
+              0.0
+            ],
+            "axis_direction": [
+              1.0,
+              0.0,
+              0.0
+            ],
+            "angle_deg": 90.0
+          },
+          {
+            "axis_point": [
+              0.0,
+              0.0,
+              0.0
+            ],
+            "axis_direction": [
+              0.0,
+              1.0,
+              0.0
+            ],
+            "angle_deg": -18.0
+          }
+        ]
+      },
+      "geometry_info": {
+        "length": 0.05,
+        "section_kind": "C_CHANNEL"
+      }
+    }
+  ],
+  "components": [
+    {
+      "part_name": "P_SP_SC_ANG18_INCLINED_BEAM",
+      "support_type": "单桩单立柱",
+      "angle": "18",
+      "component_name": "斜梁",
+      "component_code": "INCLINED_BEAM",
+      "spec": "C75×40×15×2.0",
+      "length_m": 3.948,
+      "quantity": "2",
+      "material": {
+        "material_grade": "Q355B",
+        "abaqus_name": "MAT_Q355B",
+        "elastic_modulus_pa": 206000000000.0,
+        "poisson_ratio": 0.3,
+        "density_kg_per_m3": 7850.0
+      },
+      "model_policy": "SHELL",
+      "element_type": "S4R",
+      "section_kind": "C_CHANNEL",
+      "section_params_m": {
+        "h_m": 0.075,
+        "b_m": 0.04,
+        "lip_m": 0.015,
+        "t_m": 0.002
+      },
+      "thickness_m": 0.002,
+      "section_code": "CX75X40X15X2",
+      "model_units": {
+        "length": "m",
+        "mass": "kg",
+        "force": "N",
+        "stress": "Pa"
+      },
+      "validation_warnings": []
+    },
+    {
+      "part_name": "P_SP_SC_ANG18_BRACE_FRONT",
+      "support_type": "单桩单立柱",
+      "angle": "18",
+      "component_name": "前斜撑",
+      "component_code": "BRACE_FRONT",
+      "spec": "C70×40×15×2.0",
+      "length_m": 2.114,
+      "quantity": "2",
+      "material": {
+        "material_grade": "Q355B",
+        "abaqus_name": "MAT_Q355B",
+        "elastic_modulus_pa": 206000000000.0,
+        "poisson_ratio": 0.3,
+        "density_kg_per_m3": 7850.0
+      },
+      "model_policy": "SHELL",
+      "element_type": "S4R",
+      "section_kind": "C_CHANNEL",
+      "section_params_m": {
+        "h_m": 0.07,
+        "b_m": 0.04,
+        "lip_m": 0.015,
+        "t_m": 0.002
+      },
+      "thickness_m": 0.002,
+      "section_code": "CX70X40X15X2",
+      "model_units": {
+        "length": "m",
+        "mass": "kg",
+        "force": "N",
+        "stress": "Pa"
+      },
+      "validation_warnings": []
+    },
+    {
+      "part_name": "P_SP_SC_ANG18_BRACE_REAR",
+      "support_type": "单桩单立柱",
+      "angle": "18",
+      "component_name": "后斜撑",
+      "component_code": "BRACE_REAR",
+      "spec": "C70×40×15×2.0",
+      "length_m": 2.916,
+      "quantity": "2",
+      "material": {
+        "material_grade": "Q355B",
+        "abaqus_name": "MAT_Q355B",
+        "elastic_modulus_pa": 206000000000.0,
+        "poisson_ratio": 0.3,
+        "density_kg_per_m3": 7850.0
+      },
+      "model_policy": "SHELL",
+      "element_type": "S4R",
+      "section_kind": "C_CHANNEL",
+      "section_params_m": {
+        "h_m": 0.07,
+        "b_m": 0.04,
+        "lip_m": 0.015,
+        "t_m": 0.002
+      },
+      "thickness_m": 0.002,
+      "section_code": "CX70X40X15X2",
+      "model_units": {
+        "length": "m",
+        "mass": "kg",
+        "force": "N",
+        "stress": "Pa"
+      },
+      "validation_warnings": []
+    },
+    {
+      "part_name": "P_SP_SC_ANG18_PURLIN_SUPPORT",
+      "support_type": "单桩单立柱",
+      "angle": "18",
+      "component_name": "檩托",
+      "component_code": "PURLIN_SUPPORT",
+      "spec": "L90×56×5",
+      "length_m": 0.05,
+      "quantity": 4,
+      "material": {
+        "material_grade": "Q235B",
+        "abaqus_name": "MAT_Q235B",
+        "elastic_modulus_pa": 206000000000.0,
+        "poisson_ratio": 0.3,
+        "density_kg_per_m3": 7850.0
+      },
+      "model_policy": "SOLID",
+      "element_type": "C3D8R",
+      "section_kind": "ANGLE",
+      "section_params_m": {
+        "leg_a_m": 0.09,
+        "leg_b_m": 0.056,
+        "t_m": 0.005,
+        "inner_root_radius_m": 0.005
+      },
+      "thickness_m": 0.005,
+      "section_code": "LX90X56X5",
+      "model_units": {
+        "length": "m",
+        "mass": "kg",
+        "force": "N",
+        "stress": "Pa"
+      },
+      "validation_warnings": []
+    },
+    {
+      "part_name": "P_SP_SC_ANG18_PURLIN_LOCAL",
+      "support_type": "单桩单立柱",
+      "angle": "18",
+      "component_name": "PURLIN_LOCAL",
+      "component_code": "PURLIN_LOCAL",
+      "spec": "C115X50X15X2.0",
+      "length_m": 0.05,
+      "quantity": 1,
+      "material": {
+        "material_grade": "Q420B",
+        "abaqus_name": "MAT_Q420B",
+        "elastic_modulus_pa": 206000000000.0,
+        "poisson_ratio": 0.3,
+        "density_kg_per_m3": 7850.0
+      },
+      "model_policy": "SHELL",
+      "element_type": "S4R",
+      "section_kind": "C_CHANNEL",
+      "section_params_m": {
+        "h_m": 0.115,
+        "b_m": 0.05,
+        "lip_m": 0.015,
+        "t_m": 0.002
+      },
+      "thickness_m": 0.002,
+      "section_code": "CX115X50X15X2",
+      "model_units": {
+        "length": "m",
+        "mass": "kg",
+        "force": "N",
+        "stress": "Pa"
+      },
+      "validation_warnings": [],
+      "auxiliary_part": true,
+      "source_component_code": "PURLIN",
+      "length_source": "PURLIN_SUPPORT.length_m",
+      "geometry_summary": {
+        "type": "PURLIN_LOCAL",
+        "section": "C_CHANNEL h_m=0.115 b_m=0.05 lip_m=0.015 t_m=0.002",
+        "length_source": "PURLIN_SUPPORT.length_m",
+        "length_m": 0.05
+      }
+    }
+  ]
+}

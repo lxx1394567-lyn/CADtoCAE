@@ -1,0 +1,19 @@
+{
+  "Project_Info": {
+    "project_id": "SYNTHETIC_A2",
+    "schema_version": 1,
+    "length_unit": "m",
+    "geometry_tolerance_m": 0.000001
+  },
+  "Partition_Region": [
+    {
+      "region_id": "REGION_BEAM_BRACE_FRONT",
+      "connection_id": "BEAM_BRACE_FRONT",
+      "target_role": "INCLINED_BEAM",
+      "reference_station": "C",
+      "half_length_m": 0.080,
+      "partition_rule": "BEAM_LOCAL_PATCH",
+      "enabled": true
+    }
+  ]
+}

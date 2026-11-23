@@ -1,0 +1,4038 @@
+{
+  "summary": {
+    "project_id": "SP_SC_ANG18_11042210101041S-T0202",
+    "model_name": "SP_SC_ANG18_11042210101041S-T0202",
+    "structure_type": "SP_SC",
+    "source_files": {
+      "coordinate_excel": "F:/Codex/Wind Resistance of PV Support Structures/CADtoCAE-EXE-Testing/20161017_SPSC/SP_SC_ANG18_11042210101041S-T0202_coordinate.xlsx",
+      "part_script": "F:/Codex/Wind Resistance of PV Support Structures/CADtoCAE-EXE-Testing/20161017_SPSC/SP_SC_ANG18_11042210101041S-T0202_create_parts_in_cae.py"
+    },
+    "assembly_info": {
+      "created_time": "2026-10-18T08:23:00.976758+00:00",
+      "executor_version": "step04-instance-plan-v1"
+    },
+    "instances": [
+      {
+        "instance_name": "COLUMN_DOWN_01",
+        "component_code": "COLUMN_DOWN",
+        "canonical_role": "COLUMN_DOWN",
+        "part_name": "P_SP_SC_ANG18_COLUMN_DOWN",
+        "category": "main_frame",
+        "required": true,
+        "connection_group": null,
+        "placement": {
+          "mode": "LINE",
+          "translation": [
+            0.0,
+            0.0,
+            0.0
+          ],
+          "rotation_axis": null,
+          "rotation_angle": null,
+          "rotation_steps": []
+        },
+        "geometry_info": {
+          "length": 1.7,
+          "section_kind": "PIPE"
+        }
+      },
+      {
+        "instance_name": "COLUMN_UP_01",
+        "component_code": "COLUMN_UP",
+        "canonical_role": "COLUMN_UP",
+        "part_name": "P_SP_SC_ANG18_COLUMN_UP",
+        "category": "main_frame",
+        "required": true,
+        "connection_group": null,
+        "placement": {
+          "mode": "LINE",
+          "translation": [
+            0.0,
+            0.0,
+            0.9500000000000002
+          ],
+          "rotation_axis": null,
+          "rotation_angle": null,
+          "rotation_steps": []
+        },
+        "geometry_info": {
+          "length": 2.05,
+          "section_kind": "PIPE"
+        }
+      },
+      {
+        "instance_name": "INCLINED_BEAM_01",
+        "component_code": "INCLINED_BEAM",
+        "canonical_role": "INCLINED_BEAM",
+        "part_name": "P_SP_SC_ANG18_INCLINED_BEAM",
+        "category": "main_frame",
+        "required": true,
+        "connection_group": null,
+        "placement": {
+          "mode": "LINE",
+          "translation": [
+            -1.8956725412369635,
+            -0.0375,
+            2.4791848583007305
+          ],
+          "rotation_axis": null,
+          "rotation_angle": null,
+          "rotation_steps": [
+            {
+              "axis_point": [
+                0.0,
+                0.0,
+                0.0
+              ],
+              "axis_direction": [
+                0.0,
+                1.0,
+                0.0
+              ],
+              "angle_deg": 72.0
+            },
+            {
+              "axis_point": [
+                0.015,
+                0.0,
+                3.1
+              ],
+              "axis_direction": [
+                0.9510565162951535,
+                0.0,
+                0.3090169943749474
+              ],
+              "angle_deg": 90.0
+            }
+          ]
+        },
+        "geometry_info": {
+          "length": 3.948,
+          "section_kind": "C_CHANNEL"
+        }
+      },
+      {
+        "instance_name": "BRACE_FRONT_01",
+        "component_code": "BRACE_FRONT",
+        "canonical_role": "BRACE_FRONT",
+        "part_name": "P_SP_SC_ANG18_BRACE_FRONT",
+        "category": "main_frame",
+        "required": true,
+        "connection_group": null,
+        "placement": {
+          "mode": "LINE",
+          "translation": [
+            -0.1,
+            -0.035,
+            1.1
+          ],
+          "rotation_axis": null,
+          "rotation_angle": null,
+          "rotation_steps": [
+            {
+              "axis_point": [
+                0.0,
+                0.0,
+                0.0
+              ],
+              "axis_direction": [
+                0.0,
+                1.0,
+                0.0
+              ],
+              "angle_deg": -45.255935235513995
+            },
+            {
+              "axis_point": [
+                -0.1,
+                0.0,
+                1.1
+              ],
+              "axis_direction": [
+                -0.7102583002767633,
+                0.0,
+                0.7039411530007056
+              ],
+              "angle_deg": -90.0
+            }
+          ]
+        },
+        "geometry_info": {
+          "length": 2.114,
+          "section_kind": "C_CHANNEL"
+        }
+      },
+      {
+        "instance_name": "BRACE_REAR_01",
+        "component_code": "BRACE_REAR",
+        "canonical_role": "BRACE_REAR",
+        "part_name": "P_SP_SC_ANG18_BRACE_REAR",
+        "category": "main_frame",
+        "required": true,
+        "connection_group": null,
+        "placement": {
+          "mode": "LINE",
+          "translation": [
+            0.1,
+            -0.035,
+            1.1
+          ],
+          "rotation_axis": null,
+          "rotation_angle": null,
+          "rotation_steps": [
+            {
+              "axis_point": [
+                0.0,
+                0.0,
+                0.0
+              ],
+              "axis_direction": [
+                0.0,
+                1.0,
+                0.0
+              ],
+              "angle_deg": 30.205531638698933
+            },
+            {
+              "axis_point": [
+                0.1,
+                0.0,
+                1.1
+              ],
+              "axis_direction": [
+                0.5031033859630158,
+                0.0,
+                0.864226233709987
+              ],
+              "angle_deg": -90.0
+            }
+          ]
+        },
+        "geometry_info": {
+          "length": 2.916,
+          "section_kind": "C_CHANNEL"
+        }
+      },
+      {
+        "instance_name": "PURLIN_SUPPORT_01",
+        "component_code": "PURLIN_SUPPORT",
+        "canonical_role": "PURLIN_SUPPORT",
+        "part_name": "P_SP_SC_ANG18_PURLIN_SUPPORT",
+        "category": "purlin_connection",
+        "required": true,
+        "connection_group": "P01",
+        "placement": {
+          "mode": "POINT_ORIENT",
+          "translation": [
+            -1.764911218076126,
+            0.045,
+            2.5621530833343362
+          ],
+          "rotation_axis": null,
+          "rotation_angle": null,
+          "rotation_steps": [
+            {
+              "axis_point": [
+                0.0,
+                0.0,
+                0.0
+              ],
+              "axis_direction": [
+                0.0,
+                0.0,
+                1.0
+              ],
+              "angle_deg": 90.0
+            },
+            {
+              "axis_point": [
+                0.0,
+                0.0,
+                0.0
+              ],
+              "axis_direction": [
+                1.0,
+                0.0,
+                0.0
+              ],
+              "angle_deg": 90.0
+            },
+            {
+              "axis_point": [
+                0.0,
+                0.0,
+                0.0
+              ],
+              "axis_direction": [
+                0.0,
+                1.0,
+                0.0
+              ],
+              "angle_deg": -18.0
+            }
+          ]
+        },
+        "geometry_info": {
+          "length": 0.05,
+          "section_kind": "ANGLE"
+        }
+      },
+      {
+        "instance_name": "PURLIN_LOCAL_01",
+        "component_code": "PURLIN_LOCAL",
+        "canonical_role": "PURLIN_LOCAL",
+        "part_name": "P_SP_SC_ANG18_PURLIN_LOCAL",
+        "category": "purlin_connection",
+        "required": true,
+        "connection_group": "P01",
+        "placement": {
+          "mode": "POINT_ORIENT",
+          "translation": [
+            -1.7683104050142504,
+            0.045,
+            2.5726147050135832
+          ],
+          "rotation_axis": null,
+          "rotation_angle": null,
+          "rotation_steps": [
+            {
+              "axis_point": [
+                0.0,
+                0.0,
+                0.0
+              ],
+              "axis_direction": [
+                1.0,
+                0.0,
+                0.0
+              ],
+              "angle_deg": 90.0
+            },
+            {
+              "axis_point": [
+                0.0,
+                0.0,
+                0.0
+              ],
+              "axis_direction": [
+                0.0,
+                1.0,
+                0.0
+              ],
+              "angle_deg": -18.0
+            }
+          ]
+        },
+        "geometry_info": {
+          "length": 0.05,
+          "section_kind": "C_CHANNEL"
+        }
+      },
+      {
+        "instance_name": "PURLIN_SUPPORT_02",
+        "component_code": "PURLIN_SUPPORT",
+        "canonical_role": "PURLIN_SUPPORT",
+        "part_name": "P_SP_SC_ANG18_PURLIN_SUPPORT",
+        "category": "purlin_connection",
+        "required": true,
+        "connection_group": "P02",
+        "placement": {
+          "mode": "POINT_ORIENT",
+          "translation": [
+            -0.5285377468924265,
+            0.045,
+            2.963875176021768
+          ],
+          "rotation_axis": null,
+          "rotation_angle": null,
+          "rotation_steps": [
+            {
+              "axis_point": [
+                0.0,
+                0.0,
+                0.0
+              ],
+              "axis_direction": [
+                0.0,
+                0.0,
+                1.0
+              ],
+              "angle_deg": 90.0
+            },
+            {
+              "axis_point": [
+                0.0,
+                0.0,
+                0.0
+              ],
+              "axis_direction": [
+                1.0,
+                0.0,
+                0.0
+              ],
+              "angle_deg": 90.0
+            },
+            {
+              "axis_point": [
+                0.0,
+                0.0,
+                0.0
+              ],
+              "axis_direction": [
+                0.0,
+                1.0,
+                0.0
+              ],
+              "angle_deg": -18.0
+            }
+          ]
+        },
+        "geometry_info": {
+          "length": 0.05,
+          "section_kind": "ANGLE"
+        }
+      },
+      {
+        "instance_name": "PURLIN_LOCAL_02",
+        "component_code": "PURLIN_LOCAL",
+        "canonical_role": "PURLIN_LOCAL",
+        "part_name": "P_SP_SC_ANG18_PURLIN_LOCAL",
+        "category": "purlin_connection",
+        "required": true,
+        "connection_group": "P02",
+        "placement": {
+          "mode": "POINT_ORIENT",
+          "translation": [
+            -0.5319369338305509,
+            0.045,
+            2.974336797701015
+          ],
+          "rotation_axis": null,
+          "rotation_angle": null,
+          "rotation_steps": [
+            {
+              "axis_point": [
+                0.0,
+                0.0,
+                0.0
+              ],
+              "axis_direction": [
+                1.0,
+                0.0,
+                0.0
+              ],
+              "angle_deg": 90.0
+            },
+            {
+              "axis_point": [
+                0.0,
+                0.0,
+                0.0
+              ],
+              "axis_direction": [
+                0.0,
+                1.0,
+                0.0
+              ],
+              "angle_deg": -18.0
+            }
+          ]
+        },
+        "geometry_info": {
+          "length": 0.05,
+          "section_kind": "C_CHANNEL"
+        }
+      },
+      {
+        "instance_name": "PURLIN_SUPPORT_03",
+        "component_code": "PURLIN_SUPPORT",
+        "canonical_role": "PURLIN_SUPPORT",
+        "part_name": "P_SP_SC_ANG18_PURLIN_SUPPORT",
+        "category": "purlin_connection",
+        "required": true,
+        "connection_group": "P03",
+        "placement": {
+          "mode": "POINT_ORIENT",
+          "translation": [
+            0.32741311777321175,
+            0.045,
+            3.2419904709592204
+          ],
+          "rotation_axis": null,
+          "rotation_angle": null,
+          "rotation_steps": [
+            {
+              "axis_point": [
+                0.0,
+                0.0,
+                0.0
+              ],
+              "axis_direction": [
+                0.0,
+                0.0,
+                1.0
+              ],
+              "angle_deg": 90.0
+            },
+            {
+              "axis_point": [
+                0.0,
+                0.0,
+                0.0
+              ],
+              "axis_direction": [
+                1.0,
+                0.0,
+                0.0
+              ],
+              "angle_deg": 90.0
+            },
+            {
+              "axis_point": [
+                0.0,
+                0.0,
+                0.0
+              ],
+              "axis_direction": [
+                0.0,
+                1.0,
+                0.0
+              ],
+              "angle_deg": -18.0
+            }
+          ]
+        },
+        "geometry_info": {
+          "length": 0.05,
+          "section_kind": "ANGLE"
+        }
+      },
+      {
+        "instance_name": "PURLIN_LOCAL_03",
+        "component_code": "PURLIN_LOCAL",
+        "canonical_role": "PURLIN_LOCAL",
+        "part_name": "P_SP_SC_ANG18_PURLIN_LOCAL",
+        "category": "purlin_connection",
+        "required": true,
+        "connection_group": "P03",
+        "placement": {
+          "mode": "POINT_ORIENT",
+          "translation": [
+            0.32401393083508734,
+            0.045,
+            3.2524520926384675
+          ],
+          "rotation_axis": null,
+          "rotation_angle": null,
+          "rotation_steps": [
+            {
+              "axis_point": [
+                0.0,
+                0.0,
+                0.0
+              ],
+              "axis_direction": [
+                1.0,
+                0.0,
+                0.0
+              ],
+              "angle_deg": 90.0
+            },
+            {
+              "axis_point": [
+                0.0,
+                0.0,
+                0.0
+              ],
+              "axis_direction": [
+                0.0,
+                1.0,
+                0.0
+              ],
+              "angle_deg": -18.0
+            }
+          ]
+        },
+        "geometry_info": {
+          "length": 0.05,
+          "section_kind": "C_CHANNEL"
+        }
+      },
+      {
+        "instance_name": "PURLIN_SUPPORT_04",
+        "component_code": "PURLIN_SUPPORT",
+        "canonical_role": "PURLIN_SUPPORT",
+        "part_name": "P_SP_SC_ANG18_PURLIN_SUPPORT",
+        "category": "purlin_connection",
+        "required": true,
+        "connection_group": "P04",
+        "placement": {
+          "mode": "POINT_ORIENT",
+          "translation": [
+            1.6588922405864268,
+            0.045,
+            3.674614263084147
+          ],
+          "rotation_axis": null,
+          "rotation_angle": null,
+          "rotation_steps": [
+            {
+              "axis_point": [
+                0.0,
+                0.0,
+                0.0
+              ],
+              "axis_direction": [
+                0.0,
+                0.0,
+                1.0
+              ],
+              "angle_deg": 90.0
+            },
+            {
+              "axis_point": [
+                0.0,
+                0.0,
+                0.0
+              ],
+              "axis_direction": [
+                1.0,
+                0.0,
+                0.0
+              ],
+              "angle_deg": 90.0
+            },
+            {
+              "axis_point": [
+                0.0,
+                0.0,
+                0.0
+              ],
+              "axis_direction": [
+                0.0,
+                1.0,
+                0.0
+              ],
+              "angle_deg": -18.0
+            }
+          ]
+        },
+        "geometry_info": {
+          "length": 0.05,
+          "section_kind": "ANGLE"
+        }
+      },
+      {
+        "instance_name": "PURLIN_LOCAL_04",
+        "component_code": "PURLIN_LOCAL",
+        "canonical_role": "PURLIN_LOCAL",
+        "part_name": "P_SP_SC_ANG18_PURLIN_LOCAL",
+        "category": "purlin_connection",
+        "required": true,
+        "connection_group": "P04",
+        "placement": {
+          "mode": "POINT_ORIENT",
+          "translation": [
+            1.6554930536483023,
+            0.045,
+            3.685075884763394
+          ],
+          "rotation_axis": null,
+          "rotation_angle": null,
+          "rotation_steps": [
+            {
+              "axis_point": [
+                0.0,
+                0.0,
+                0.0
+              ],
+              "axis_direction": [
+                1.0,
+                0.0,
+                0.0
+              ],
+              "angle_deg": 90.0
+            },
+            {
+              "axis_point": [
+                0.0,
+                0.0,
+                0.0
+              ],
+              "axis_direction": [
+                0.0,
+                1.0,
+                0.0
+              ],
+              "angle_deg": -18.0
+            }
+          ]
+        },
+        "geometry_info": {
+          "length": 0.05,
+          "section_kind": "C_CHANNEL"
+        }
+      },
+      {
+        "instance_name": "HOOP_01_A",
+        "component_code": "HOOP",
+        "canonical_role": "HOOP",
+        "part_name": "P_SP_SC_ANG18_HOOP",
+        "category": "hoop",
+        "required": false,
+        "connection_group": "HOOP_01",
+        "placement": {
+          "mode": "POINT_ORIENT",
+          "translation": [
+            0.0,
+            0.0,
+            1.06
+          ],
+          "rotation_axis": null,
+          "rotation_angle": null,
+          "rotation_steps": []
+        },
+        "geometry_info": {
+          "length": 1.42,
+          "section_kind": "HOOP_BAND"
+        }
+      },
+      {
+        "instance_name": "HOOP_01_B",
+        "component_code": "HOOP",
+        "canonical_role": "HOOP",
+        "part_name": "P_SP_SC_ANG18_HOOP",
+        "category": "hoop",
+        "required": false,
+        "connection_group": "HOOP_01",
+        "placement": {
+          "mode": "POINT_ORIENT",
+          "translation": [
+            0.0,
+            0.0,
+            1.06
+          ],
+          "rotation_axis": [
+            0.0,
+            0.0,
+            1.0
+          ],
+          "rotation_angle": 180.0,
+          "rotation_steps": [
+            {
+              "axis_point": [
+                0.0,
+                0.0,
+                1.1
+              ],
+              "axis_direction": [
+                0.0,
+                0.0,
+                1.0
+              ],
+              "angle_deg": 180.0
+            }
+          ]
+        },
+        "geometry_info": {
+          "length": 1.42,
+          "section_kind": "HOOP_BAND"
+        }
+      }
+    ],
+    "assembly_points": {
+      "O": [
+        0.0,
+        0.0,
+        0.0
+      ],
+      "A": [
+        0.0,
+        0.0,
+        3.0
+      ],
+      "F": [
+        0.015,
+        0.0,
+        3.1
+      ],
+      "B": [
+        -0.1,
+        0.0,
+        1.1
+      ],
+      "D": [
+        0.1,
+        0.0,
+        1.1
+      ],
+      "C": [
+        -1.5913344560225142,
+        0.0,
+        2.578070296500714
+      ],
+      "E": [
+        1.5557115563981487,
+        0.0,
+        3.600607530887415
+      ],
+      "G_global": [
+        -1.8956725412369635,
+        0.0,
+        2.479184858300731
+      ],
+      "P1": [
+        -1.7530140637926905,
+        0.0,
+        2.525537407456973
+      ],
+      "P2": [
+        -0.516640592608991,
+        0.0,
+        2.927259500144405
+      ],
+      "P3": [
+        0.3393102720566472,
+        0.0,
+        3.205374795081857
+      ],
+      "P4": [
+        1.6707893948698622,
+        0.0,
+        3.6379985872067837
+      ]
+    },
+    "warnings": [
+      "Input X_F_mm status is \u9700\u4eba\u5de5\u786e\u8ba4.",
+      "Input Z_F_mm status is \u9700\u4eba\u5de5\u786e\u8ba4.",
+      "Input R_hoop_mm status is \u9700\u4eba\u5de5\u786e\u8ba4.",
+      "Input GC_mm status is \u9700\u4eba\u5de5\u786e\u8ba4.",
+      "Input GF_mm status is \u9700\u4eba\u5de5\u786e\u8ba4.",
+      "Input GE_mm status is \u9700\u4eba\u5de5\u786e\u8ba4.",
+      "Input GP1_mm status is \u9700\u4eba\u5de5\u586b\u5199.",
+      "Input GP2_mm status is \u9700\u4eba\u5de5\u586b\u5199.",
+      "Input GP3_mm status is \u9700\u4eba\u5de5\u586b\u5199.",
+      "Input GP4_mm status is \u9700\u4eba\u5de5\u586b\u5199.",
+      "control_tolerance_m is 0.010000 m; this is wider than +/-1 mm."
+    ],
+    "checks": {
+      "GC_GF_GE_ORDER": {
+        "calc_value": "GC=0.320000, GF=2.009000, GE=3.629000",
+        "reference_value": "0 < GC < GF < GE < beam_length",
+        "error": null,
+        "tolerance": null,
+        "passed": "\u901a\u8fc7",
+        "status": "\u9700\u4eba\u5de5\u786e\u8ba4"
+      },
+      "CF_LOCAL": {
+        "calc_value": 1.6889999999999998,
+        "reference_value": "GF-GC",
+        "error": null,
+        "tolerance": null,
+        "passed": "\u901a\u8fc7",
+        "status": "\u9700\u4eba\u5de5\u786e\u8ba4"
+      },
+      "FE_LOCAL": {
+        "calc_value": 1.62,
+        "reference_value": "GE-GF",
+        "error": null,
+        "tolerance": null,
+        "passed": "\u901a\u8fc7",
+        "status": "\u9700\u4eba\u5de5\u786e\u8ba4"
+      },
+      "CE_ANGLE": {
+        "calc_value": 18.0,
+        "reference_value": 18.0,
+        "error": 0.0,
+        "tolerance": 0.05,
+        "passed": "\u901a\u8fc7",
+        "status": "\u9700\u4eba\u5de5\u786e\u8ba4"
+      },
+      "BC": {
+        "calc_value": 2.0997071846135302,
+        "reference_value": 2.105,
+        "error": -0.005292815386469751,
+        "tolerance": 0.01,
+        "passed": "\u901a\u8fc7",
+        "status": "\u9700\u4eba\u5de5\u786e\u8ba4"
+      },
+      "DE": {
+        "calc_value": 2.89346404141506,
+        "reference_value": 2.899,
+        "error": -0.005535958584939937,
+        "tolerance": 0.01,
+        "passed": "\u901a\u8fc7",
+        "status": "\u9700\u4eba\u5de5\u786e\u8ba4"
+      }
+    },
+    "hoop_groups": [
+      {
+        "group_id": "HOOP_01",
+        "source_component_code": "HOOP",
+        "canonical_role": "HOOP",
+        "assembly_index": null,
+        "center": [
+          0.0,
+          0.0,
+          1.1
+        ],
+        "part_a": "P_SP_SC_ANG18_HOOP",
+        "part_b": "P_SP_SC_ANG18_HOOP",
+        "instance_a": "HOOP_01_A",
+        "instance_b": "HOOP_01_B",
+        "pair_rotation": {
+          "axis_point": [
+            0.0,
+            0.0,
+            1.1
+          ],
+          "axis_direction": [
+            0.0,
+            0.0,
+            1.0
+          ],
+          "angle_deg": 180.0
+        }
+      }
+    ]
+  },
+  "holes": {
+    "project_id": "SP_SC_ANG18_11042210101041S-T0202",
+    "driving_holes": [
+      {
+        "driving_hole_id": "STEP06_DRIVING_P01_PS_TO_BEAM",
+        "project_id": "SP_SC_ANG18_11042210101041S-T0202",
+        "connection_group": "P01",
+        "hole_id": "PS_TO_BEAM",
+        "source_role": "PURLIN_SUPPORT",
+        "source_instance": "PURLIN_SUPPORT_01",
+        "source_part": "P_SP_SC_ANG18_PURLIN_SUPPORT",
+        "connection_target_role": "INCLINED_BEAM",
+        "leg": "SHORT_LEG",
+        "distance_from_angle_corner_m": 0.025,
+        "distance_from_end_m": 0.025,
+        "end_reference": "START",
+        "hole_diameter_m": null,
+        "local_center_m": [
+          0.0025,
+          0.025,
+          0.025
+        ],
+        "local_axis": [
+          1.0,
+          0.0,
+          0.0
+        ],
+        "enabled": true,
+        "validation_status": "GEOMETRY_PREFLIGHT_PASSED_RUNTIME_REQUIRED",
+        "source_row": 5,
+        "shared_part_info": {
+          "part_name": "P_SP_SC_ANG18_PURLIN_SUPPORT",
+          "instance_names": [
+            "PURLIN_SUPPORT_01",
+            "PURLIN_SUPPORT_02",
+            "PURLIN_SUPPORT_03",
+            "PURLIN_SUPPORT_04"
+          ],
+          "shared_part": true,
+          "requires_instance_isolation": false,
+          "hole_pattern_identical": true,
+          "execution_policy": "MODIFY_SHARED_PART_ONCE"
+        },
+        "corner_reference": "ANGLE_OUTER_PLANES_THEORETICAL_INTERSECTION",
+        "center_reference": "LEG_MID_THICKNESS",
+        "axis_convention": "UNDIRECTED_HOLE_AXIS",
+        "hole_type": "SLOT",
+        "width_m": 0.012,
+        "total_length_m": 0.03,
+        "major_axis": "PART_LENGTH",
+        "local_major_axis": [
+          0.0,
+          0.0,
+          1.0
+        ],
+        "source_geometry": {
+          "leg_a_m": 0.09,
+          "leg_b_m": 0.056,
+          "t_m": 0.005,
+          "inner_root_radius_m": 0.005,
+          "length_m": 0.05,
+          "section_kind": "ANGLE",
+          "model_policy": "SOLID"
+        },
+        "source_file": "F:\\Codex\\Wind Resistance of PV Support Structures\\CADtoCAE-EXE-Testing\\20161017_SPSC\\SP_SC_ANG18_11042210101041S-T0202_\u87ba\u6813\u5b54\u5b9a\u4f4d\u8868.xlsx",
+        "source_sheet": "\u6aa9\u6258\u5b54\u4f4d",
+        "local_center": [
+          0.0025,
+          0.025,
+          0.025
+        ]
+      },
+      {
+        "driving_hole_id": "STEP06_DRIVING_P01_PS_TO_PURLIN",
+        "project_id": "SP_SC_ANG18_11042210101041S-T0202",
+        "connection_group": "P01",
+        "hole_id": "PS_TO_PURLIN",
+        "source_role": "PURLIN_SUPPORT",
+        "source_instance": "PURLIN_SUPPORT_01",
+        "source_part": "P_SP_SC_ANG18_PURLIN_SUPPORT",
+        "connection_target_role": "PURLIN_LOCAL",
+        "leg": "LONG_LEG",
+        "distance_from_angle_corner_m": 0.055,
+        "distance_from_end_m": 0.025,
+        "end_reference": "START",
+        "hole_diameter_m": null,
+        "local_center_m": [
+          0.055,
+          0.0025,
+          0.025
+        ],
+        "local_axis": [
+          0.0,
+          1.0,
+          0.0
+        ],
+        "enabled": true,
+        "validation_status": "GEOMETRY_PREFLIGHT_PASSED_RUNTIME_REQUIRED",
+        "source_row": 4,
+        "shared_part_info": {
+          "part_name": "P_SP_SC_ANG18_PURLIN_SUPPORT",
+          "instance_names": [
+            "PURLIN_SUPPORT_01",
+            "PURLIN_SUPPORT_02",
+            "PURLIN_SUPPORT_03",
+            "PURLIN_SUPPORT_04"
+          ],
+          "shared_part": true,
+          "requires_instance_isolation": false,
+          "hole_pattern_identical": true,
+          "execution_policy": "MODIFY_SHARED_PART_ONCE"
+        },
+        "corner_reference": "ANGLE_OUTER_PLANES_THEORETICAL_INTERSECTION",
+        "center_reference": "LEG_MID_THICKNESS",
+        "axis_convention": "UNDIRECTED_HOLE_AXIS",
+        "hole_type": "SLOT",
+        "width_m": 0.012,
+        "total_length_m": 0.03,
+        "major_axis": "LEG_DIRECTION",
+        "local_major_axis": [
+          1.0,
+          0.0,
+          0.0
+        ],
+        "source_geometry": {
+          "leg_a_m": 0.09,
+          "leg_b_m": 0.056,
+          "t_m": 0.005,
+          "inner_root_radius_m": 0.005,
+          "length_m": 0.05,
+          "section_kind": "ANGLE",
+          "model_policy": "SOLID"
+        },
+        "source_file": "F:\\Codex\\Wind Resistance of PV Support Structures\\CADtoCAE-EXE-Testing\\20161017_SPSC\\SP_SC_ANG18_11042210101041S-T0202_\u87ba\u6813\u5b54\u5b9a\u4f4d\u8868.xlsx",
+        "source_sheet": "\u6aa9\u6258\u5b54\u4f4d",
+        "local_center": [
+          0.055,
+          0.0025,
+          0.025
+        ]
+      },
+      {
+        "driving_hole_id": "STEP06_DRIVING_P02_PS_TO_BEAM",
+        "project_id": "SP_SC_ANG18_11042210101041S-T0202",
+        "connection_group": "P02",
+        "hole_id": "PS_TO_BEAM",
+        "source_role": "PURLIN_SUPPORT",
+        "source_instance": "PURLIN_SUPPORT_02",
+        "source_part": "P_SP_SC_ANG18_PURLIN_SUPPORT",
+        "connection_target_role": "INCLINED_BEAM",
+        "leg": "SHORT_LEG",
+        "distance_from_angle_corner_m": 0.025,
+        "distance_from_end_m": 0.025,
+        "end_reference": "START",
+        "hole_diameter_m": null,
+        "local_center_m": [
+          0.0025,
+          0.025,
+          0.025
+        ],
+        "local_axis": [
+          1.0,
+          0.0,
+          0.0
+        ],
+        "enabled": true,
+        "validation_status": "GEOMETRY_PREFLIGHT_PASSED_RUNTIME_REQUIRED",
+        "source_row": 5,
+        "shared_part_info": {
+          "part_name": "P_SP_SC_ANG18_PURLIN_SUPPORT",
+          "instance_names": [
+            "PURLIN_SUPPORT_01",
+            "PURLIN_SUPPORT_02",
+            "PURLIN_SUPPORT_03",
+            "PURLIN_SUPPORT_04"
+          ],
+          "shared_part": true,
+          "requires_instance_isolation": false,
+          "hole_pattern_identical": true,
+          "execution_policy": "MODIFY_SHARED_PART_ONCE"
+        },
+        "corner_reference": "ANGLE_OUTER_PLANES_THEORETICAL_INTERSECTION",
+        "center_reference": "LEG_MID_THICKNESS",
+        "axis_convention": "UNDIRECTED_HOLE_AXIS",
+        "hole_type": "SLOT",
+        "width_m": 0.012,
+        "total_length_m": 0.03,
+        "major_axis": "PART_LENGTH",
+        "local_major_axis": [
+          0.0,
+          0.0,
+          1.0
+        ],
+        "source_geometry": {
+          "leg_a_m": 0.09,
+          "leg_b_m": 0.056,
+          "t_m": 0.005,
+          "inner_root_radius_m": 0.005,
+          "length_m": 0.05,
+          "section_kind": "ANGLE",
+          "model_policy": "SOLID"
+        },
+        "source_file": "F:\\Codex\\Wind Resistance of PV Support Structures\\CADtoCAE-EXE-Testing\\20161017_SPSC\\SP_SC_ANG18_11042210101041S-T0202_\u87ba\u6813\u5b54\u5b9a\u4f4d\u8868.xlsx",
+        "source_sheet": "\u6aa9\u6258\u5b54\u4f4d",
+        "local_center": [
+          0.0025,
+          0.025,
+          0.025
+        ]
+      },
+      {
+        "driving_hole_id": "STEP06_DRIVING_P02_PS_TO_PURLIN",
+        "project_id": "SP_SC_ANG18_11042210101041S-T0202",
+        "connection_group": "P02",
+        "hole_id": "PS_TO_PURLIN",
+        "source_role": "PURLIN_SUPPORT",
+        "source_instance": "PURLIN_SUPPORT_02",
+        "source_part": "P_SP_SC_ANG18_PURLIN_SUPPORT",
+        "connection_target_role": "PURLIN_LOCAL",
+        "leg": "LONG_LEG",
+        "distance_from_angle_corner_m": 0.055,
+        "distance_from_end_m": 0.025,
+        "end_reference": "START",
+        "hole_diameter_m": null,
+        "local_center_m": [
+          0.055,
+          0.0025,
+          0.025
+        ],
+        "local_axis": [
+          0.0,
+          1.0,
+          0.0
+        ],
+        "enabled": true,
+        "validation_status": "GEOMETRY_PREFLIGHT_PASSED_RUNTIME_REQUIRED",
+        "source_row": 4,
+        "shared_part_info": {
+          "part_name": "P_SP_SC_ANG18_PURLIN_SUPPORT",
+          "instance_names": [
+            "PURLIN_SUPPORT_01",
+            "PURLIN_SUPPORT_02",
+            "PURLIN_SUPPORT_03",
+            "PURLIN_SUPPORT_04"
+          ],
+          "shared_part": true,
+          "requires_instance_isolation": false,
+          "hole_pattern_identical": true,
+          "execution_policy": "MODIFY_SHARED_PART_ONCE"
+        },
+        "corner_reference": "ANGLE_OUTER_PLANES_THEORETICAL_INTERSECTION",
+        "center_reference": "LEG_MID_THICKNESS",
+        "axis_convention": "UNDIRECTED_HOLE_AXIS",
+        "hole_type": "SLOT",
+        "width_m": 0.012,
+        "total_length_m": 0.03,
+        "major_axis": "LEG_DIRECTION",
+        "local_major_axis": [
+          1.0,
+          0.0,
+          0.0
+        ],
+        "source_geometry": {
+          "leg_a_m": 0.09,
+          "leg_b_m": 0.056,
+          "t_m": 0.005,
+          "inner_root_radius_m": 0.005,
+          "length_m": 0.05,
+          "section_kind": "ANGLE",
+          "model_policy": "SOLID"
+        },
+        "source_file": "F:\\Codex\\Wind Resistance of PV Support Structures\\CADtoCAE-EXE-Testing\\20161017_SPSC\\SP_SC_ANG18_11042210101041S-T0202_\u87ba\u6813\u5b54\u5b9a\u4f4d\u8868.xlsx",
+        "source_sheet": "\u6aa9\u6258\u5b54\u4f4d",
+        "local_center": [
+          0.055,
+          0.0025,
+          0.025
+        ]
+      },
+      {
+        "driving_hole_id": "STEP06_DRIVING_P03_PS_TO_BEAM",
+        "project_id": "SP_SC_ANG18_11042210101041S-T0202",
+        "connection_group": "P03",
+        "hole_id": "PS_TO_BEAM",
+        "source_role": "PURLIN_SUPPORT",
+        "source_instance": "PURLIN_SUPPORT_03",
+        "source_part": "P_SP_SC_ANG18_PURLIN_SUPPORT",
+        "connection_target_role": "INCLINED_BEAM",
+        "leg": "SHORT_LEG",
+        "distance_from_angle_corner_m": 0.025,
+        "distance_from_end_m": 0.025,
+        "end_reference": "START",
+        "hole_diameter_m": null,
+        "local_center_m": [
+          0.0025,
+          0.025,
+          0.025
+        ],
+        "local_axis": [
+          1.0,
+          0.0,
+          0.0
+        ],
+        "enabled": true,
+        "validation_status": "GEOMETRY_PREFLIGHT_PASSED_RUNTIME_REQUIRED",
+        "source_row": 5,
+        "shared_part_info": {
+          "part_name": "P_SP_SC_ANG18_PURLIN_SUPPORT",
+          "instance_names": [
+            "PURLIN_SUPPORT_01",
+            "PURLIN_SUPPORT_02",
+            "PURLIN_SUPPORT_03",
+            "PURLIN_SUPPORT_04"
+          ],
+          "shared_part": true,
+          "requires_instance_isolation": false,
+          "hole_pattern_identical": true,
+          "execution_policy": "MODIFY_SHARED_PART_ONCE"
+        },
+        "corner_reference": "ANGLE_OUTER_PLANES_THEORETICAL_INTERSECTION",
+        "center_reference": "LEG_MID_THICKNESS",
+        "axis_convention": "UNDIRECTED_HOLE_AXIS",
+        "hole_type": "SLOT",
+        "width_m": 0.012,
+        "total_length_m": 0.03,
+        "major_axis": "PART_LENGTH",
+        "local_major_axis": [
+          0.0,
+          0.0,
+          1.0
+        ],
+        "source_geometry": {
+          "leg_a_m": 0.09,
+          "leg_b_m": 0.056,
+          "t_m": 0.005,
+          "inner_root_radius_m": 0.005,
+          "length_m": 0.05,
+          "section_kind": "ANGLE",
+          "model_policy": "SOLID"
+        },
+        "source_file": "F:\\Codex\\Wind Resistance of PV Support Structures\\CADtoCAE-EXE-Testing\\20161017_SPSC\\SP_SC_ANG18_11042210101041S-T0202_\u87ba\u6813\u5b54\u5b9a\u4f4d\u8868.xlsx",
+        "source_sheet": "\u6aa9\u6258\u5b54\u4f4d",
+        "local_center": [
+          0.0025,
+          0.025,
+          0.025
+        ]
+      },
+      {
+        "driving_hole_id": "STEP06_DRIVING_P03_PS_TO_PURLIN",
+        "project_id": "SP_SC_ANG18_11042210101041S-T0202",
+        "connection_group": "P03",
+        "hole_id": "PS_TO_PURLIN",
+        "source_role": "PURLIN_SUPPORT",
+        "source_instance": "PURLIN_SUPPORT_03",
+        "source_part": "P_SP_SC_ANG18_PURLIN_SUPPORT",
+        "connection_target_role": "PURLIN_LOCAL",
+        "leg": "LONG_LEG",
+        "distance_from_angle_corner_m": 0.055,
+        "distance_from_end_m": 0.025,
+        "end_reference": "START",
+        "hole_diameter_m": null,
+        "local_center_m": [
+          0.055,
+          0.0025,
+          0.025
+        ],
+        "local_axis": [
+          0.0,
+          1.0,
+          0.0
+        ],
+        "enabled": true,
+        "validation_status": "GEOMETRY_PREFLIGHT_PASSED_RUNTIME_REQUIRED",
+        "source_row": 4,
+        "shared_part_info": {
+          "part_name": "P_SP_SC_ANG18_PURLIN_SUPPORT",
+          "instance_names": [
+            "PURLIN_SUPPORT_01",
+            "PURLIN_SUPPORT_02",
+            "PURLIN_SUPPORT_03",
+            "PURLIN_SUPPORT_04"
+          ],
+          "shared_part": true,
+          "requires_instance_isolation": false,
+          "hole_pattern_identical": true,
+          "execution_policy": "MODIFY_SHARED_PART_ONCE"
+        },
+        "corner_reference": "ANGLE_OUTER_PLANES_THEORETICAL_INTERSECTION",
+        "center_reference": "LEG_MID_THICKNESS",
+        "axis_convention": "UNDIRECTED_HOLE_AXIS",
+        "hole_type": "SLOT",
+        "width_m": 0.012,
+        "total_length_m": 0.03,
+        "major_axis": "LEG_DIRECTION",
+        "local_major_axis": [
+          1.0,
+          0.0,
+          0.0
+        ],
+        "source_geometry": {
+          "leg_a_m": 0.09,
+          "leg_b_m": 0.056,
+          "t_m": 0.005,
+          "inner_root_radius_m": 0.005,
+          "length_m": 0.05,
+          "section_kind": "ANGLE",
+          "model_policy": "SOLID"
+        },
+        "source_file": "F:\\Codex\\Wind Resistance of PV Support Structures\\CADtoCAE-EXE-Testing\\20161017_SPSC\\SP_SC_ANG18_11042210101041S-T0202_\u87ba\u6813\u5b54\u5b9a\u4f4d\u8868.xlsx",
+        "source_sheet": "\u6aa9\u6258\u5b54\u4f4d",
+        "local_center": [
+          0.055,
+          0.0025,
+          0.025
+        ]
+      },
+      {
+        "driving_hole_id": "STEP06_DRIVING_P04_PS_TO_BEAM",
+        "project_id": "SP_SC_ANG18_11042210101041S-T0202",
+        "connection_group": "P04",
+        "hole_id": "PS_TO_BEAM",
+        "source_role": "PURLIN_SUPPORT",
+        "source_instance": "PURLIN_SUPPORT_04",
+        "source_part": "P_SP_SC_ANG18_PURLIN_SUPPORT",
+        "connection_target_role": "INCLINED_BEAM",
+        "leg": "SHORT_LEG",
+        "distance_from_angle_corner_m": 0.025,
+        "distance_from_end_m": 0.025,
+        "end_reference": "START",
+        "hole_diameter_m": null,
+        "local_center_m": [
+          0.0025,
+          0.025,
+          0.025
+        ],
+        "local_axis": [
+          1.0,
+          0.0,
+          0.0
+        ],
+        "enabled": true,
+        "validation_status": "GEOMETRY_PREFLIGHT_PASSED_RUNTIME_REQUIRED",
+        "source_row": 5,
+        "shared_part_info": {
+          "part_name": "P_SP_SC_ANG18_PURLIN_SUPPORT",
+          "instance_names": [
+            "PURLIN_SUPPORT_01",
+            "PURLIN_SUPPORT_02",
+            "PURLIN_SUPPORT_03",
+            "PURLIN_SUPPORT_04"
+          ],
+          "shared_part": true,
+          "requires_instance_isolation": false,
+          "hole_pattern_identical": true,
+          "execution_policy": "MODIFY_SHARED_PART_ONCE"
+        },
+        "corner_reference": "ANGLE_OUTER_PLANES_THEORETICAL_INTERSECTION",
+        "center_reference": "LEG_MID_THICKNESS",
+        "axis_convention": "UNDIRECTED_HOLE_AXIS",
+        "hole_type": "SLOT",
+        "width_m": 0.012,
+        "total_length_m": 0.03,
+        "major_axis": "PART_LENGTH",
+        "local_major_axis": [
+          0.0,
+          0.0,
+          1.0
+        ],
+        "source_geometry": {
+          "leg_a_m": 0.09,
+          "leg_b_m": 0.056,
+          "t_m": 0.005,
+          "inner_root_radius_m": 0.005,
+          "length_m": 0.05,
+          "section_kind": "ANGLE",
+          "model_policy": "SOLID"
+        },
+        "source_file": "F:\\Codex\\Wind Resistance of PV Support Structures\\CADtoCAE-EXE-Testing\\20161017_SPSC\\SP_SC_ANG18_11042210101041S-T0202_\u87ba\u6813\u5b54\u5b9a\u4f4d\u8868.xlsx",
+        "source_sheet": "\u6aa9\u6258\u5b54\u4f4d",
+        "local_center": [
+          0.0025,
+          0.025,
+          0.025
+        ]
+      },
+      {
+        "driving_hole_id": "STEP06_DRIVING_P04_PS_TO_PURLIN",
+        "project_id": "SP_SC_ANG18_11042210101041S-T0202",
+        "connection_group": "P04",
+        "hole_id": "PS_TO_PURLIN",
+        "source_role": "PURLIN_SUPPORT",
+        "source_instance": "PURLIN_SUPPORT_04",
+        "source_part": "P_SP_SC_ANG18_PURLIN_SUPPORT",
+        "connection_target_role": "PURLIN_LOCAL",
+        "leg": "LONG_LEG",
+        "distance_from_angle_corner_m": 0.055,
+        "distance_from_end_m": 0.025,
+        "end_reference": "START",
+        "hole_diameter_m": null,
+        "local_center_m": [
+          0.055,
+          0.0025,
+          0.025
+        ],
+        "local_axis": [
+          0.0,
+          1.0,
+          0.0
+        ],
+        "enabled": true,
+        "validation_status": "GEOMETRY_PREFLIGHT_PASSED_RUNTIME_REQUIRED",
+        "source_row": 4,
+        "shared_part_info": {
+          "part_name": "P_SP_SC_ANG18_PURLIN_SUPPORT",
+          "instance_names": [
+            "PURLIN_SUPPORT_01",
+            "PURLIN_SUPPORT_02",
+            "PURLIN_SUPPORT_03",
+            "PURLIN_SUPPORT_04"
+          ],
+          "shared_part": true,
+          "requires_instance_isolation": false,
+          "hole_pattern_identical": true,
+          "execution_policy": "MODIFY_SHARED_PART_ONCE"
+        },
+        "corner_reference": "ANGLE_OUTER_PLANES_THEORETICAL_INTERSECTION",
+        "center_reference": "LEG_MID_THICKNESS",
+        "axis_convention": "UNDIRECTED_HOLE_AXIS",
+        "hole_type": "SLOT",
+        "width_m": 0.012,
+        "total_length_m": 0.03,
+        "major_axis": "LEG_DIRECTION",
+        "local_major_axis": [
+          1.0,
+          0.0,
+          0.0
+        ],
+        "source_geometry": {
+          "leg_a_m": 0.09,
+          "leg_b_m": 0.056,
+          "t_m": 0.005,
+          "inner_root_radius_m": 0.005,
+          "length_m": 0.05,
+          "section_kind": "ANGLE",
+          "model_policy": "SOLID"
+        },
+        "source_file": "F:\\Codex\\Wind Resistance of PV Support Structures\\CADtoCAE-EXE-Testing\\20161017_SPSC\\SP_SC_ANG18_11042210101041S-T0202_\u87ba\u6813\u5b54\u5b9a\u4f4d\u8868.xlsx",
+        "source_sheet": "\u6aa9\u6258\u5b54\u4f4d",
+        "local_center": [
+          0.055,
+          0.0025,
+          0.025
+        ]
+      }
+    ],
+    "derived_holes": [
+      {
+        "derived_hole_id": "STEP06_DERIVED_P01_BEAM_FROM_SUPPORT",
+        "source_driving_hole_id": "STEP06_DRIVING_P01_PS_TO_BEAM",
+        "project_id": "SP_SC_ANG18_11042210101041S-T0202",
+        "connection_group": "P01",
+        "target_role": "INCLINED_BEAM",
+        "target_instance": "INCLINED_BEAM_01",
+        "target_part": "P_SP_SC_ANG18_INCLINED_BEAM",
+        "derivation_method": "AXIS_SURFACE_INTERSECTION",
+        "global_source_center_m": [
+          -1.7894601734694422,
+          0.02,
+          2.5568052997657005
+        ],
+        "global_axis": [
+          -0.3090169943749474,
+          6.123233995736767e-17,
+          0.9510565162951536
+        ],
+        "target_local_center_m": null,
+        "target_local_axis": null,
+        "hole_diameter_m": null,
+        "target_surface_role": "INCLINED_BEAM_TOP_FLANGE",
+        "validation_status": "TARGET_SURFACE_PENDING_RUNTIME",
+        "source_pose_status": "SUMMARY_PRE_TRANSLATION_ROTATIONS_THEN_TRANSLATION_THEN_POST_TRANSLATION_ROTATIONS_ANCHOR_CHECK_REQUIRED",
+        "target_pose_status": "SUMMARY_PRE_TRANSLATION_ROTATIONS_THEN_TRANSLATION_THEN_POST_TRANSLATION_ROTATIONS_ANCHOR_CHECK_REQUIRED",
+        "shared_part_info": {
+          "part_name": "P_SP_SC_ANG18_INCLINED_BEAM",
+          "instance_names": [
+            "INCLINED_BEAM_01"
+          ],
+          "shared_part": false,
+          "requires_instance_isolation": false,
+          "hole_pattern_identical": null,
+          "execution_policy": "TARGET_SURFACE_PENDING_RUNTIME"
+        },
+        "hole_type": "SLOT",
+        "width_m": 0.012,
+        "total_length_m": 0.03,
+        "major_axis": "PART_LENGTH",
+        "local_center": null,
+        "local_axis": null,
+        "local_major_axis": null,
+        "global_major_axis": [
+          -1.892183365217075e-17,
+          -1.0,
+          5.823541592445462e-17
+        ]
+      },
+      {
+        "derived_hole_id": "STEP06_DERIVED_P01_PURLIN_FROM_SUPPORT",
+        "source_driving_hole_id": "STEP06_DRIVING_P01_PS_TO_PURLIN",
+        "project_id": "SP_SC_ANG18_11042210101041S-T0202",
+        "connection_group": "P01",
+        "target_role": "PURLIN_LOCAL",
+        "target_instance": "PURLIN_LOCAL_01",
+        "target_part": "P_SP_SC_ANG18_PURLIN_LOCAL",
+        "derivation_method": "AXIS_SURFACE_INTERSECTION",
+        "global_source_center_m": [
+          -1.784284794057486,
+          0.020000000000000004,
+          2.6136886492446325
+        ],
+        "global_axis": [
+          -0.9510565162951536,
+          3.749399456654645e-33,
+          -0.3090169943749474
+        ],
+        "target_local_center_m": null,
+        "target_local_axis": null,
+        "hole_diameter_m": null,
+        "target_surface_role": "PURLIN_LOCAL_WEB",
+        "validation_status": "TARGET_SURFACE_PENDING_RUNTIME",
+        "source_pose_status": "SUMMARY_PRE_TRANSLATION_ROTATIONS_THEN_TRANSLATION_THEN_POST_TRANSLATION_ROTATIONS_ANCHOR_CHECK_REQUIRED",
+        "target_pose_status": "SUMMARY_PRE_TRANSLATION_ROTATIONS_THEN_TRANSLATION_THEN_POST_TRANSLATION_ROTATIONS_ANCHOR_CHECK_REQUIRED",
+        "shared_part_info": {
+          "part_name": "P_SP_SC_ANG18_PURLIN_LOCAL",
+          "instance_names": [
+            "PURLIN_LOCAL_01",
+            "PURLIN_LOCAL_02",
+            "PURLIN_LOCAL_03",
+            "PURLIN_LOCAL_04"
+          ],
+          "shared_part": true,
+          "requires_instance_isolation": true,
+          "hole_pattern_identical": null,
+          "execution_policy": "TARGET_SURFACE_PENDING_RUNTIME"
+        },
+        "hole_type": "SLOT",
+        "width_m": 0.012,
+        "total_length_m": 0.03,
+        "major_axis": "LEG_DIRECTION",
+        "local_center": null,
+        "local_axis": null,
+        "local_major_axis": null,
+        "global_major_axis": [
+          -0.3090169943749474,
+          6.123233995736767e-17,
+          0.9510565162951536
+        ]
+      },
+      {
+        "derived_hole_id": "STEP06_DERIVED_P02_BEAM_FROM_SUPPORT",
+        "source_driving_hole_id": "STEP06_DRIVING_P02_PS_TO_BEAM",
+        "project_id": "SP_SC_ANG18_11042210101041S-T0202",
+        "connection_group": "P02",
+        "target_role": "INCLINED_BEAM",
+        "target_instance": "INCLINED_BEAM_01",
+        "target_part": "P_SP_SC_ANG18_INCLINED_BEAM",
+        "derivation_method": "AXIS_SURFACE_INTERSECTION",
+        "global_source_center_m": [
+          -0.5530867022857427,
+          0.02,
+          2.9585273924531323
+        ],
+        "global_axis": [
+          -0.3090169943749474,
+          6.123233995736767e-17,
+          0.9510565162951536
+        ],
+        "target_local_center_m": null,
+        "target_local_axis": null,
+        "hole_diameter_m": null,
+        "target_surface_role": "INCLINED_BEAM_TOP_FLANGE",
+        "validation_status": "TARGET_SURFACE_PENDING_RUNTIME",
+        "source_pose_status": "SUMMARY_PRE_TRANSLATION_ROTATIONS_THEN_TRANSLATION_THEN_POST_TRANSLATION_ROTATIONS_ANCHOR_CHECK_REQUIRED",
+        "target_pose_status": "SUMMARY_PRE_TRANSLATION_ROTATIONS_THEN_TRANSLATION_THEN_POST_TRANSLATION_ROTATIONS_ANCHOR_CHECK_REQUIRED",
+        "shared_part_info": {
+          "part_name": "P_SP_SC_ANG18_INCLINED_BEAM",
+          "instance_names": [
+            "INCLINED_BEAM_01"
+          ],
+          "shared_part": false,
+          "requires_instance_isolation": false,
+          "hole_pattern_identical": null,
+          "execution_policy": "TARGET_SURFACE_PENDING_RUNTIME"
+        },
+        "hole_type": "SLOT",
+        "width_m": 0.012,
+        "total_length_m": 0.03,
+        "major_axis": "PART_LENGTH",
+        "local_center": null,
+        "local_axis": null,
+        "local_major_axis": null,
+        "global_major_axis": [
+          -1.892183365217075e-17,
+          -1.0,
+          5.823541592445462e-17
+        ]
+      },
+      {
+        "derived_hole_id": "STEP06_DERIVED_P02_PURLIN_FROM_SUPPORT",
+        "source_driving_hole_id": "STEP06_DRIVING_P02_PS_TO_PURLIN",
+        "project_id": "SP_SC_ANG18_11042210101041S-T0202",
+        "connection_group": "P02",
+        "target_role": "PURLIN_LOCAL",
+        "target_instance": "PURLIN_LOCAL_02",
+        "target_part": "P_SP_SC_ANG18_PURLIN_LOCAL",
+        "derivation_method": "AXIS_SURFACE_INTERSECTION",
+        "global_source_center_m": [
+          -0.5479113228737865,
+          0.020000000000000004,
+          3.0154107419320644
+        ],
+        "global_axis": [
+          -0.9510565162951536,
+          3.749399456654645e-33,
+          -0.3090169943749474
+        ],
+        "target_local_center_m": null,
+        "target_local_axis": null,
+        "hole_diameter_m": null,
+        "target_surface_role": "PURLIN_LOCAL_WEB",
+        "validation_status": "TARGET_SURFACE_PENDING_RUNTIME",
+        "source_pose_status": "SUMMARY_PRE_TRANSLATION_ROTATIONS_THEN_TRANSLATION_THEN_POST_TRANSLATION_ROTATIONS_ANCHOR_CHECK_REQUIRED",
+        "target_pose_status": "SUMMARY_PRE_TRANSLATION_ROTATIONS_THEN_TRANSLATION_THEN_POST_TRANSLATION_ROTATIONS_ANCHOR_CHECK_REQUIRED",
+        "shared_part_info": {
+          "part_name": "P_SP_SC_ANG18_PURLIN_LOCAL",
+          "instance_names": [
+            "PURLIN_LOCAL_01",
+            "PURLIN_LOCAL_02",
+            "PURLIN_LOCAL_03",
+            "PURLIN_LOCAL_04"
+          ],
+          "shared_part": true,
+          "requires_instance_isolation": true,
+          "hole_pattern_identical": null,
+          "execution_policy": "TARGET_SURFACE_PENDING_RUNTIME"
+        },
+        "hole_type": "SLOT",
+        "width_m": 0.012,
+        "total_length_m": 0.03,
+        "major_axis": "LEG_DIRECTION",
+        "local_center": null,
+        "local_axis": null,
+        "local_major_axis": null,
+        "global_major_axis": [
+          -0.3090169943749474,
+          6.123233995736767e-17,
+          0.9510565162951536
+        ]
+      },
+      {
+        "derived_hole_id": "STEP06_DERIVED_P03_BEAM_FROM_SUPPORT",
+        "source_driving_hole_id": "STEP06_DRIVING_P03_PS_TO_BEAM",
+        "project_id": "SP_SC_ANG18_11042210101041S-T0202",
+        "connection_group": "P03",
+        "target_role": "INCLINED_BEAM",
+        "target_instance": "INCLINED_BEAM_01",
+        "target_part": "P_SP_SC_ANG18_INCLINED_BEAM",
+        "derivation_method": "AXIS_SURFACE_INTERSECTION",
+        "global_source_center_m": [
+          0.30286416237989555,
+          0.02,
+          3.2366426873905847
+        ],
+        "global_axis": [
+          -0.3090169943749474,
+          6.123233995736767e-17,
+          0.9510565162951536
+        ],
+        "target_local_center_m": null,
+        "target_local_axis": null,
+        "hole_diameter_m": null,
+        "target_surface_role": "INCLINED_BEAM_TOP_FLANGE",
+        "validation_status": "TARGET_SURFACE_PENDING_RUNTIME",
+        "source_pose_status": "SUMMARY_PRE_TRANSLATION_ROTATIONS_THEN_TRANSLATION_THEN_POST_TRANSLATION_ROTATIONS_ANCHOR_CHECK_REQUIRED",
+        "target_pose_status": "SUMMARY_PRE_TRANSLATION_ROTATIONS_THEN_TRANSLATION_THEN_POST_TRANSLATION_ROTATIONS_ANCHOR_CHECK_REQUIRED",
+        "shared_part_info": {
+          "part_name": "P_SP_SC_ANG18_INCLINED_BEAM",
+          "instance_names": [
+            "INCLINED_BEAM_01"
+          ],
+          "shared_part": false,
+          "requires_instance_isolation": false,
+          "hole_pattern_identical": null,
+          "execution_policy": "TARGET_SURFACE_PENDING_RUNTIME"
+        },
+        "hole_type": "SLOT",
+        "width_m": 0.012,
+        "total_length_m": 0.03,
+        "major_axis": "PART_LENGTH",
+        "local_center": null,
+        "local_axis": null,
+        "local_major_axis": null,
+        "global_major_axis": [
+          -1.892183365217075e-17,
+          -1.0,
+          5.823541592445462e-17
+        ]
+      },
+      {
+        "derived_hole_id": "STEP06_DERIVED_P03_PURLIN_FROM_SUPPORT",
+        "source_driving_hole_id": "STEP06_DRIVING_P03_PS_TO_PURLIN",
+        "project_id": "SP_SC_ANG18_11042210101041S-T0202",
+        "connection_group": "P03",
+        "target_role": "PURLIN_LOCAL",
+        "target_instance": "PURLIN_LOCAL_03",
+        "target_part": "P_SP_SC_ANG18_PURLIN_LOCAL",
+        "derivation_method": "AXIS_SURFACE_INTERSECTION",
+        "global_source_center_m": [
+          0.3080395417918518,
+          0.020000000000000004,
+          3.2935260368695167
+        ],
+        "global_axis": [
+          -0.9510565162951536,
+          3.749399456654645e-33,
+          -0.3090169943749474
+        ],
+        "target_local_center_m": null,
+        "target_local_axis": null,
+        "hole_diameter_m": null,
+        "target_surface_role": "PURLIN_LOCAL_WEB",
+        "validation_status": "TARGET_SURFACE_PENDING_RUNTIME",
+        "source_pose_status": "SUMMARY_PRE_TRANSLATION_ROTATIONS_THEN_TRANSLATION_THEN_POST_TRANSLATION_ROTATIONS_ANCHOR_CHECK_REQUIRED",
+        "target_pose_status": "SUMMARY_PRE_TRANSLATION_ROTATIONS_THEN_TRANSLATION_THEN_POST_TRANSLATION_ROTATIONS_ANCHOR_CHECK_REQUIRED",
+        "shared_part_info": {
+          "part_name": "P_SP_SC_ANG18_PURLIN_LOCAL",
+          "instance_names": [
+            "PURLIN_LOCAL_01",
+            "PURLIN_LOCAL_02",
+            "PURLIN_LOCAL_03",
+            "PURLIN_LOCAL_04"
+          ],
+          "shared_part": true,
+          "requires_instance_isolation": true,
+          "hole_pattern_identical": null,
+          "execution_policy": "TARGET_SURFACE_PENDING_RUNTIME"
+        },
+        "hole_type": "SLOT",
+        "width_m": 0.012,
+        "total_length_m": 0.03,
+        "major_axis": "LEG_DIRECTION",
+        "local_center": null,
+        "local_axis": null,
+        "local_major_axis": null,
+        "global_major_axis": [
+          -0.3090169943749474,
+          6.123233995736767e-17,
+          0.9510565162951536
+        ]
+      },
+      {
+        "derived_hole_id": "STEP06_DERIVED_P04_BEAM_FROM_SUPPORT",
+        "source_driving_hole_id": "STEP06_DRIVING_P04_PS_TO_BEAM",
+        "project_id": "SP_SC_ANG18_11042210101041S-T0202",
+        "connection_group": "P04",
+        "target_role": "INCLINED_BEAM",
+        "target_instance": "INCLINED_BEAM_01",
+        "target_part": "P_SP_SC_ANG18_INCLINED_BEAM",
+        "derivation_method": "AXIS_SURFACE_INTERSECTION",
+        "global_source_center_m": [
+          1.6343432851931106,
+          0.02,
+          3.669266479515511
+        ],
+        "global_axis": [
+          -0.3090169943749474,
+          6.123233995736767e-17,
+          0.9510565162951536
+        ],
+        "target_local_center_m": null,
+        "target_local_axis": null,
+        "hole_diameter_m": null,
+        "target_surface_role": "INCLINED_BEAM_TOP_FLANGE",
+        "validation_status": "TARGET_SURFACE_PENDING_RUNTIME",
+        "source_pose_status": "SUMMARY_PRE_TRANSLATION_ROTATIONS_THEN_TRANSLATION_THEN_POST_TRANSLATION_ROTATIONS_ANCHOR_CHECK_REQUIRED",
+        "target_pose_status": "SUMMARY_PRE_TRANSLATION_ROTATIONS_THEN_TRANSLATION_THEN_POST_TRANSLATION_ROTATIONS_ANCHOR_CHECK_REQUIRED",
+        "shared_part_info": {
+          "part_name": "P_SP_SC_ANG18_INCLINED_BEAM",
+          "instance_names": [
+            "INCLINED_BEAM_01"
+          ],
+          "shared_part": false,
+          "requires_instance_isolation": false,
+          "hole_pattern_identical": null,
+          "execution_policy": "TARGET_SURFACE_PENDING_RUNTIME"
+        },
+        "hole_type": "SLOT",
+        "width_m": 0.012,
+        "total_length_m": 0.03,
+        "major_axis": "PART_LENGTH",
+        "local_center": null,
+        "local_axis": null,
+        "local_major_axis": null,
+        "global_major_axis": [
+          -1.892183365217075e-17,
+          -1.0,
+          5.823541592445462e-17
+        ]
+      },
+      {
+        "derived_hole_id": "STEP06_DERIVED_P04_PURLIN_FROM_SUPPORT",
+        "source_driving_hole_id": "STEP06_DRIVING_P04_PS_TO_PURLIN",
+        "project_id": "SP_SC_ANG18_11042210101041S-T0202",
+        "connection_group": "P04",
+        "target_role": "PURLIN_LOCAL",
+        "target_instance": "PURLIN_LOCAL_04",
+        "target_part": "P_SP_SC_ANG18_PURLIN_LOCAL",
+        "derivation_method": "AXIS_SURFACE_INTERSECTION",
+        "global_source_center_m": [
+          1.6395186646050668,
+          0.020000000000000004,
+          3.7261498289944432
+        ],
+        "global_axis": [
+          -0.9510565162951536,
+          3.749399456654645e-33,
+          -0.3090169943749474
+        ],
+        "target_local_center_m": null,
+        "target_local_axis": null,
+        "hole_diameter_m": null,
+        "target_surface_role": "PURLIN_LOCAL_WEB",
+        "validation_status": "TARGET_SURFACE_PENDING_RUNTIME",
+        "source_pose_status": "SUMMARY_PRE_TRANSLATION_ROTATIONS_THEN_TRANSLATION_THEN_POST_TRANSLATION_ROTATIONS_ANCHOR_CHECK_REQUIRED",
+        "target_pose_status": "SUMMARY_PRE_TRANSLATION_ROTATIONS_THEN_TRANSLATION_THEN_POST_TRANSLATION_ROTATIONS_ANCHOR_CHECK_REQUIRED",
+        "shared_part_info": {
+          "part_name": "P_SP_SC_ANG18_PURLIN_LOCAL",
+          "instance_names": [
+            "PURLIN_LOCAL_01",
+            "PURLIN_LOCAL_02",
+            "PURLIN_LOCAL_03",
+            "PURLIN_LOCAL_04"
+          ],
+          "shared_part": true,
+          "requires_instance_isolation": true,
+          "hole_pattern_identical": null,
+          "execution_policy": "TARGET_SURFACE_PENDING_RUNTIME"
+        },
+        "hole_type": "SLOT",
+        "width_m": 0.012,
+        "total_length_m": 0.03,
+        "major_axis": "LEG_DIRECTION",
+        "local_center": null,
+        "local_axis": null,
+        "local_major_axis": null,
+        "global_major_axis": [
+          -0.3090169943749474,
+          6.123233995736767e-17,
+          0.9510565162951536
+        ]
+      }
+    ],
+    "disabled_hole_ids": [],
+    "validation_status": "INPUT_VALIDATED_RUNTIME_REQUIRED",
+    "schema_version": "step06-hole-setup-v0.2",
+    "benchmark_scope": "P01-P04",
+    "shared_part_policy": "IDENTICAL_PATTERN_MODIFY_ONCE",
+    "part_executions": [
+      {
+        "source_part": "P_SP_SC_ANG18_PURLIN_SUPPORT",
+        "shared_part": true,
+        "referencing_instances": [
+          "PURLIN_SUPPORT_01",
+          "PURLIN_SUPPORT_02",
+          "PURLIN_SUPPORT_03",
+          "PURLIN_SUPPORT_04"
+        ],
+        "expected_affected_instances": [
+          "PURLIN_SUPPORT_01",
+          "PURLIN_SUPPORT_02",
+          "PURLIN_SUPPORT_03",
+          "PURLIN_SUPPORT_04"
+        ],
+        "hole_pattern_identical": true,
+        "requires_instance_isolation": false,
+        "execution_policy": "MODIFY_SHARED_PART_ONCE",
+        "standard_hole_pattern": [
+          {
+            "hole_id": "PS_TO_BEAM",
+            "hole_type": "SLOT",
+            "width_m": 0.012,
+            "total_length_m": 0.03,
+            "local_center_m": [
+              0.0025,
+              0.025,
+              0.025
+            ],
+            "local_axis": [
+              1.0,
+              0.0,
+              0.0
+            ],
+            "local_major_axis": [
+              0.0,
+              0.0,
+              1.0
+            ]
+          },
+          {
+            "hole_id": "PS_TO_PURLIN",
+            "hole_type": "SLOT",
+            "width_m": 0.012,
+            "total_length_m": 0.03,
+            "local_center_m": [
+              0.055,
+              0.0025,
+              0.025
+            ],
+            "local_axis": [
+              0.0,
+              1.0,
+              0.0
+            ],
+            "local_major_axis": [
+              1.0,
+              0.0,
+              0.0
+            ]
+          }
+        ],
+        "instance_patterns": [
+          {
+            "instance_name": "PURLIN_SUPPORT_01",
+            "canonical_role": "PURLIN_SUPPORT",
+            "source_part": "P_SP_SC_ANG18_PURLIN_SUPPORT",
+            "geometry_matches": true,
+            "pattern_source": "EXPLICIT_GROUP",
+            "connection_group": "P01",
+            "hole_pattern": [
+              {
+                "hole_id": "PS_TO_BEAM",
+                "hole_type": "SLOT",
+                "width_m": 0.012,
+                "total_length_m": 0.03,
+                "local_center_m": [
+                  0.0025,
+                  0.025,
+                  0.025
+                ],
+                "local_axis": [
+                  1.0,
+                  0.0,
+                  0.0
+                ],
+                "local_major_axis": [
+                  0.0,
+                  0.0,
+                  1.0
+                ]
+              },
+              {
+                "hole_id": "PS_TO_PURLIN",
+                "hole_type": "SLOT",
+                "width_m": 0.012,
+                "total_length_m": 0.03,
+                "local_center_m": [
+                  0.055,
+                  0.0025,
+                  0.025
+                ],
+                "local_axis": [
+                  0.0,
+                  1.0,
+                  0.0
+                ],
+                "local_major_axis": [
+                  1.0,
+                  0.0,
+                  0.0
+                ]
+              }
+            ]
+          },
+          {
+            "instance_name": "PURLIN_SUPPORT_02",
+            "canonical_role": "PURLIN_SUPPORT",
+            "source_part": "P_SP_SC_ANG18_PURLIN_SUPPORT",
+            "geometry_matches": true,
+            "pattern_source": "EXPLICIT_GROUP",
+            "connection_group": "P02",
+            "hole_pattern": [
+              {
+                "hole_id": "PS_TO_BEAM",
+                "hole_type": "SLOT",
+                "width_m": 0.012,
+                "total_length_m": 0.03,
+                "local_center_m": [
+                  0.0025,
+                  0.025,
+                  0.025
+                ],
+                "local_axis": [
+                  1.0,
+                  0.0,
+                  0.0
+                ],
+                "local_major_axis": [
+                  0.0,
+                  0.0,
+                  1.0
+                ]
+              },
+              {
+                "hole_id": "PS_TO_PURLIN",
+                "hole_type": "SLOT",
+                "width_m": 0.012,
+                "total_length_m": 0.03,
+                "local_center_m": [
+                  0.055,
+                  0.0025,
+                  0.025
+                ],
+                "local_axis": [
+                  0.0,
+                  1.0,
+                  0.0
+                ],
+                "local_major_axis": [
+                  1.0,
+                  0.0,
+                  0.0
+                ]
+              }
+            ]
+          },
+          {
+            "instance_name": "PURLIN_SUPPORT_03",
+            "canonical_role": "PURLIN_SUPPORT",
+            "source_part": "P_SP_SC_ANG18_PURLIN_SUPPORT",
+            "geometry_matches": true,
+            "pattern_source": "EXPLICIT_GROUP",
+            "connection_group": "P03",
+            "hole_pattern": [
+              {
+                "hole_id": "PS_TO_BEAM",
+                "hole_type": "SLOT",
+                "width_m": 0.012,
+                "total_length_m": 0.03,
+                "local_center_m": [
+                  0.0025,
+                  0.025,
+                  0.025
+                ],
+                "local_axis": [
+                  1.0,
+                  0.0,
+                  0.0
+                ],
+                "local_major_axis": [
+                  0.0,
+                  0.0,
+                  1.0
+                ]
+              },
+              {
+                "hole_id": "PS_TO_PURLIN",
+                "hole_type": "SLOT",
+                "width_m": 0.012,
+                "total_length_m": 0.03,
+                "local_center_m": [
+                  0.055,
+                  0.0025,
+                  0.025
+                ],
+                "local_axis": [
+                  0.0,
+                  1.0,
+                  0.0
+                ],
+                "local_major_axis": [
+                  1.0,
+                  0.0,
+                  0.0
+                ]
+              }
+            ]
+          },
+          {
+            "instance_name": "PURLIN_SUPPORT_04",
+            "canonical_role": "PURLIN_SUPPORT",
+            "source_part": "P_SP_SC_ANG18_PURLIN_SUPPORT",
+            "geometry_matches": true,
+            "pattern_source": "EXPLICIT_GROUP",
+            "connection_group": "P04",
+            "hole_pattern": [
+              {
+                "hole_id": "PS_TO_BEAM",
+                "hole_type": "SLOT",
+                "width_m": 0.012,
+                "total_length_m": 0.03,
+                "local_center_m": [
+                  0.0025,
+                  0.025,
+                  0.025
+                ],
+                "local_axis": [
+                  1.0,
+                  0.0,
+                  0.0
+                ],
+                "local_major_axis": [
+                  0.0,
+                  0.0,
+                  1.0
+                ]
+              },
+              {
+                "hole_id": "PS_TO_PURLIN",
+                "hole_type": "SLOT",
+                "width_m": 0.012,
+                "total_length_m": 0.03,
+                "local_center_m": [
+                  0.055,
+                  0.0025,
+                  0.025
+                ],
+                "local_axis": [
+                  0.0,
+                  1.0,
+                  0.0
+                ],
+                "local_major_axis": [
+                  1.0,
+                  0.0,
+                  0.0
+                ]
+              }
+            ]
+          }
+        ],
+        "blocking_reasons": []
+      }
+    ],
+    "runtime_mode": "STEP06_A",
+    "inherited_standard_groups": [
+      "P02",
+      "P03",
+      "P04"
+    ],
+    "instances": [
+      {
+        "instance_name": "INCLINED_BEAM_01",
+        "component_code": "INCLINED_BEAM",
+        "canonical_role": "INCLINED_BEAM",
+        "part_name": "P_SP_SC_ANG18_INCLINED_BEAM",
+        "category": "main_frame",
+        "required": true,
+        "connection_group": null,
+        "placement": {
+          "mode": "LINE",
+          "translation": [
+            -1.8956725412369635,
+            -0.0375,
+            2.4791848583007305
+          ],
+          "rotation_axis": null,
+          "rotation_angle": null,
+          "rotation_steps": [
+            {
+              "axis_point": [
+                0.0,
+                0.0,
+                0.0
+              ],
+              "axis_direction": [
+                0.0,
+                1.0,
+                0.0
+              ],
+              "angle_deg": 72.0
+            },
+            {
+              "axis_point": [
+                0.015,
+                0.0,
+                3.1
+              ],
+              "axis_direction": [
+                0.9510565162951535,
+                0.0,
+                0.3090169943749474
+              ],
+              "angle_deg": 90.0
+            }
+          ]
+        },
+        "geometry_info": {
+          "length": 3.948,
+          "section_kind": "C_CHANNEL"
+        },
+        "component_geometry": {
+          "part_name": "P_SP_SC_ANG18_INCLINED_BEAM",
+          "support_type": "\u5355\u6869\u5355\u7acb\u67f1",
+          "angle": "18",
+          "component_name": "\u659c\u6881",
+          "component_code": "INCLINED_BEAM",
+          "spec": "C75\u00d740\u00d715\u00d72.0",
+          "length_m": 3.948,
+          "quantity": "2",
+          "material": {
+            "material_grade": "Q355B",
+            "abaqus_name": "MAT_Q355B",
+            "elastic_modulus_pa": 206000000000.0,
+            "poisson_ratio": 0.3,
+            "density_kg_per_m3": 7850.0
+          },
+          "model_policy": "SHELL",
+          "element_type": "S4R",
+          "section_kind": "C_CHANNEL",
+          "section_params_m": {
+            "h_m": 0.075,
+            "b_m": 0.04,
+            "lip_m": 0.015,
+            "t_m": 0.002
+          },
+          "thickness_m": 0.002,
+          "section_code": "CX75X40X15X2",
+          "model_units": {
+            "length": "m",
+            "mass": "kg",
+            "force": "N",
+            "stress": "Pa"
+          },
+          "validation_warnings": []
+        },
+        "transform_anchors": [
+          {
+            "name": "G_global / C_CHANNEL_WEB_MIDPOINT",
+            "local_point": [
+              0.0,
+              0.0375,
+              0.0
+            ],
+            "expected_global": [
+              -1.8956725412369635,
+              0.0,
+              2.479184858300731
+            ]
+          },
+          {
+            "name": "F / C_CHANNEL_WEB_MIDPOINT",
+            "local_point": [
+              0.0,
+              0.0375,
+              2.009
+            ],
+            "expected_global": [
+              0.015,
+              0.0,
+              3.1
+            ]
+          },
+          {
+            "name": "C / C_CHANNEL_WEB_MIDPOINT",
+            "local_point": [
+              0.0,
+              0.0375,
+              0.3200000000000001
+            ],
+            "expected_global": [
+              -1.5913344560225142,
+              0.0,
+              2.578070296500714
+            ]
+          },
+          {
+            "name": "E / C_CHANNEL_WEB_MIDPOINT",
+            "local_point": [
+              0.0,
+              0.0375,
+              3.6290000000000004
+            ],
+            "expected_global": [
+              1.5557115563981487,
+              0.0,
+              3.600607530887415
+            ]
+          }
+        ]
+      },
+      {
+        "instance_name": "PURLIN_SUPPORT_01",
+        "component_code": "PURLIN_SUPPORT",
+        "canonical_role": "PURLIN_SUPPORT",
+        "part_name": "P_SP_SC_ANG18_PURLIN_SUPPORT",
+        "category": "purlin_connection",
+        "required": true,
+        "connection_group": "P01",
+        "placement": {
+          "mode": "POINT_ORIENT",
+          "translation": [
+            -1.764911218076126,
+            0.045,
+            2.5621530833343362
+          ],
+          "rotation_axis": null,
+          "rotation_angle": null,
+          "rotation_steps": [
+            {
+              "axis_point": [
+                0.0,
+                0.0,
+                0.0
+              ],
+              "axis_direction": [
+                0.0,
+                0.0,
+                1.0
+              ],
+              "angle_deg": 90.0
+            },
+            {
+              "axis_point": [
+                0.0,
+                0.0,
+                0.0
+              ],
+              "axis_direction": [
+                1.0,
+                0.0,
+                0.0
+              ],
+              "angle_deg": 90.0
+            },
+            {
+              "axis_point": [
+                0.0,
+                0.0,
+                0.0
+              ],
+              "axis_direction": [
+                0.0,
+                1.0,
+                0.0
+              ],
+              "angle_deg": -18.0
+            }
+          ]
+        },
+        "geometry_info": {
+          "length": 0.05,
+          "section_kind": "ANGLE"
+        },
+        "component_geometry": {
+          "part_name": "P_SP_SC_ANG18_PURLIN_SUPPORT",
+          "support_type": "\u5355\u6869\u5355\u7acb\u67f1",
+          "angle": "18",
+          "component_name": "\u6aa9\u6258",
+          "component_code": "PURLIN_SUPPORT",
+          "spec": "L90\u00d756\u00d75",
+          "length_m": 0.05,
+          "quantity": 4,
+          "material": {
+            "material_grade": "Q235B",
+            "abaqus_name": "MAT_Q235B",
+            "elastic_modulus_pa": 206000000000.0,
+            "poisson_ratio": 0.3,
+            "density_kg_per_m3": 7850.0
+          },
+          "model_policy": "SOLID",
+          "element_type": "C3D8R",
+          "section_kind": "ANGLE",
+          "section_params_m": {
+            "leg_a_m": 0.09,
+            "leg_b_m": 0.056,
+            "t_m": 0.005,
+            "inner_root_radius_m": 0.005
+          },
+          "thickness_m": 0.005,
+          "section_code": "LX90X56X5",
+          "model_units": {
+            "length": "m",
+            "mass": "kg",
+            "force": "N",
+            "stress": "Pa"
+          },
+          "validation_warnings": []
+        },
+        "transform_anchors": [
+          {
+            "name": "P1 / PURLIN_SUPPORT Step04 section reference",
+            "local_point": [
+              0.0,
+              0.0,
+              0.025
+            ],
+            "expected_global": [
+              -1.764911218076126,
+              0.02,
+              2.5621530833343362
+            ]
+          }
+        ]
+      },
+      {
+        "instance_name": "PURLIN_LOCAL_01",
+        "component_code": "PURLIN_LOCAL",
+        "canonical_role": "PURLIN_LOCAL",
+        "part_name": "P_SP_SC_ANG18_PURLIN_LOCAL",
+        "category": "purlin_connection",
+        "required": true,
+        "connection_group": "P01",
+        "placement": {
+          "mode": "POINT_ORIENT",
+          "translation": [
+            -1.7683104050142504,
+            0.045,
+            2.5726147050135832
+          ],
+          "rotation_axis": null,
+          "rotation_angle": null,
+          "rotation_steps": [
+            {
+              "axis_point": [
+                0.0,
+                0.0,
+                0.0
+              ],
+              "axis_direction": [
+                1.0,
+                0.0,
+                0.0
+              ],
+              "angle_deg": 90.0
+            },
+            {
+              "axis_point": [
+                0.0,
+                0.0,
+                0.0
+              ],
+              "axis_direction": [
+                0.0,
+                1.0,
+                0.0
+              ],
+              "angle_deg": -18.0
+            }
+          ]
+        },
+        "geometry_info": {
+          "length": 0.05,
+          "section_kind": "C_CHANNEL"
+        },
+        "component_geometry": {
+          "part_name": "P_SP_SC_ANG18_PURLIN_LOCAL",
+          "support_type": "\u5355\u6869\u5355\u7acb\u67f1",
+          "angle": "18",
+          "component_name": "PURLIN_LOCAL",
+          "component_code": "PURLIN_LOCAL",
+          "spec": "C115X50X15X2.0",
+          "length_m": 0.05,
+          "quantity": 1,
+          "material": {
+            "material_grade": "Q420B",
+            "abaqus_name": "MAT_Q420B",
+            "elastic_modulus_pa": 206000000000.0,
+            "poisson_ratio": 0.3,
+            "density_kg_per_m3": 7850.0
+          },
+          "model_policy": "SHELL",
+          "element_type": "S4R",
+          "section_kind": "C_CHANNEL",
+          "section_params_m": {
+            "h_m": 0.115,
+            "b_m": 0.05,
+            "lip_m": 0.015,
+            "t_m": 0.002
+          },
+          "thickness_m": 0.002,
+          "section_code": "CX115X50X15X2",
+          "model_units": {
+            "length": "m",
+            "mass": "kg",
+            "force": "N",
+            "stress": "Pa"
+          },
+          "validation_warnings": [],
+          "auxiliary_part": true,
+          "source_component_code": "PURLIN",
+          "length_source": "PURLIN_SUPPORT.length_m",
+          "geometry_summary": {
+            "type": "PURLIN_LOCAL",
+            "section": "C_CHANNEL h_m=0.115 b_m=0.05 lip_m=0.015 t_m=0.002",
+            "length_source": "PURLIN_SUPPORT.length_m",
+            "length_m": 0.05
+          }
+        },
+        "transform_anchors": [
+          {
+            "name": "P1 / PURLIN_LOCAL Step04 section reference",
+            "local_point": [
+              0.0,
+              0.0,
+              0.025
+            ],
+            "expected_global": [
+              -1.7683104050142504,
+              0.02,
+              2.5726147050135832
+            ]
+          }
+        ]
+      },
+      {
+        "instance_name": "PURLIN_SUPPORT_02",
+        "component_code": "PURLIN_SUPPORT",
+        "canonical_role": "PURLIN_SUPPORT",
+        "part_name": "P_SP_SC_ANG18_PURLIN_SUPPORT",
+        "category": "purlin_connection",
+        "required": true,
+        "connection_group": "P02",
+        "placement": {
+          "mode": "POINT_ORIENT",
+          "translation": [
+            -0.5285377468924265,
+            0.045,
+            2.963875176021768
+          ],
+          "rotation_axis": null,
+          "rotation_angle": null,
+          "rotation_steps": [
+            {
+              "axis_point": [
+                0.0,
+                0.0,
+                0.0
+              ],
+              "axis_direction": [
+                0.0,
+                0.0,
+                1.0
+              ],
+              "angle_deg": 90.0
+            },
+            {
+              "axis_point": [
+                0.0,
+                0.0,
+                0.0
+              ],
+              "axis_direction": [
+                1.0,
+                0.0,
+                0.0
+              ],
+              "angle_deg": 90.0
+            },
+            {
+              "axis_point": [
+                0.0,
+                0.0,
+                0.0
+              ],
+              "axis_direction": [
+                0.0,
+                1.0,
+                0.0
+              ],
+              "angle_deg": -18.0
+            }
+          ]
+        },
+        "geometry_info": {
+          "length": 0.05,
+          "section_kind": "ANGLE"
+        },
+        "component_geometry": {
+          "part_name": "P_SP_SC_ANG18_PURLIN_SUPPORT",
+          "support_type": "\u5355\u6869\u5355\u7acb\u67f1",
+          "angle": "18",
+          "component_name": "\u6aa9\u6258",
+          "component_code": "PURLIN_SUPPORT",
+          "spec": "L90\u00d756\u00d75",
+          "length_m": 0.05,
+          "quantity": 4,
+          "material": {
+            "material_grade": "Q235B",
+            "abaqus_name": "MAT_Q235B",
+            "elastic_modulus_pa": 206000000000.0,
+            "poisson_ratio": 0.3,
+            "density_kg_per_m3": 7850.0
+          },
+          "model_policy": "SOLID",
+          "element_type": "C3D8R",
+          "section_kind": "ANGLE",
+          "section_params_m": {
+            "leg_a_m": 0.09,
+            "leg_b_m": 0.056,
+            "t_m": 0.005,
+            "inner_root_radius_m": 0.005
+          },
+          "thickness_m": 0.005,
+          "section_code": "LX90X56X5",
+          "model_units": {
+            "length": "m",
+            "mass": "kg",
+            "force": "N",
+            "stress": "Pa"
+          },
+          "validation_warnings": []
+        },
+        "transform_anchors": [
+          {
+            "name": "P2 / PURLIN_SUPPORT Step04 section reference",
+            "local_point": [
+              0.0,
+              0.0,
+              0.025
+            ],
+            "expected_global": [
+              -0.5285377468924265,
+              0.02,
+              2.963875176021768
+            ]
+          }
+        ]
+      },
+      {
+        "instance_name": "PURLIN_LOCAL_02",
+        "component_code": "PURLIN_LOCAL",
+        "canonical_role": "PURLIN_LOCAL",
+        "part_name": "P_SP_SC_ANG18_PURLIN_LOCAL",
+        "category": "purlin_connection",
+        "required": true,
+        "connection_group": "P02",
+        "placement": {
+          "mode": "POINT_ORIENT",
+          "translation": [
+            -0.5319369338305509,
+            0.045,
+            2.974336797701015
+          ],
+          "rotation_axis": null,
+          "rotation_angle": null,
+          "rotation_steps": [
+            {
+              "axis_point": [
+                0.0,
+                0.0,
+                0.0
+              ],
+              "axis_direction": [
+                1.0,
+                0.0,
+                0.0
+              ],
+              "angle_deg": 90.0
+            },
+            {
+              "axis_point": [
+                0.0,
+                0.0,
+                0.0
+              ],
+              "axis_direction": [
+                0.0,
+                1.0,
+                0.0
+              ],
+              "angle_deg": -18.0
+            }
+          ]
+        },
+        "geometry_info": {
+          "length": 0.05,
+          "section_kind": "C_CHANNEL"
+        },
+        "component_geometry": {
+          "part_name": "P_SP_SC_ANG18_PURLIN_LOCAL",
+          "support_type": "\u5355\u6869\u5355\u7acb\u67f1",
+          "angle": "18",
+          "component_name": "PURLIN_LOCAL",
+          "component_code": "PURLIN_LOCAL",
+          "spec": "C115X50X15X2.0",
+          "length_m": 0.05,
+          "quantity": 1,
+          "material": {
+            "material_grade": "Q420B",
+            "abaqus_name": "MAT_Q420B",
+            "elastic_modulus_pa": 206000000000.0,
+            "poisson_ratio": 0.3,
+            "density_kg_per_m3": 7850.0
+          },
+          "model_policy": "SHELL",
+          "element_type": "S4R",
+          "section_kind": "C_CHANNEL",
+          "section_params_m": {
+            "h_m": 0.115,
+            "b_m": 0.05,
+            "lip_m": 0.015,
+            "t_m": 0.002
+          },
+          "thickness_m": 0.002,
+          "section_code": "CX115X50X15X2",
+          "model_units": {
+            "length": "m",
+            "mass": "kg",
+            "force": "N",
+            "stress": "Pa"
+          },
+          "validation_warnings": [],
+          "auxiliary_part": true,
+          "source_component_code": "PURLIN",
+          "length_source": "PURLIN_SUPPORT.length_m",
+          "geometry_summary": {
+            "type": "PURLIN_LOCAL",
+            "section": "C_CHANNEL h_m=0.115 b_m=0.05 lip_m=0.015 t_m=0.002",
+            "length_source": "PURLIN_SUPPORT.length_m",
+            "length_m": 0.05
+          }
+        },
+        "transform_anchors": [
+          {
+            "name": "P2 / PURLIN_LOCAL Step04 section reference",
+            "local_point": [
+              0.0,
+              0.0,
+              0.025
+            ],
+            "expected_global": [
+              -0.5319369338305509,
+              0.02,
+              2.974336797701015
+            ]
+          }
+        ]
+      },
+      {
+        "instance_name": "PURLIN_SUPPORT_03",
+        "component_code": "PURLIN_SUPPORT",
+        "canonical_role": "PURLIN_SUPPORT",
+        "part_name": "P_SP_SC_ANG18_PURLIN_SUPPORT",
+        "category": "purlin_connection",
+        "required": true,
+        "connection_group": "P03",
+        "placement": {
+          "mode": "POINT_ORIENT",
+          "translation": [
+            0.32741311777321175,
+            0.045,
+            3.2419904709592204
+          ],
+          "rotation_axis": null,
+          "rotation_angle": null,
+          "rotation_steps": [
+            {
+              "axis_point": [
+                0.0,
+                0.0,
+                0.0
+              ],
+              "axis_direction": [
+                0.0,
+                0.0,
+                1.0
+              ],
+              "angle_deg": 90.0
+            },
+            {
+              "axis_point": [
+                0.0,
+                0.0,
+                0.0
+              ],
+              "axis_direction": [
+                1.0,
+                0.0,
+                0.0
+              ],
+              "angle_deg": 90.0
+            },
+            {
+              "axis_point": [
+                0.0,
+                0.0,
+                0.0
+              ],
+              "axis_direction": [
+                0.0,
+                1.0,
+                0.0
+              ],
+              "angle_deg": -18.0
+            }
+          ]
+        },
+        "geometry_info": {
+          "length": 0.05,
+          "section_kind": "ANGLE"
+        },
+        "component_geometry": {
+          "part_name": "P_SP_SC_ANG18_PURLIN_SUPPORT",
+          "support_type": "\u5355\u6869\u5355\u7acb\u67f1",
+          "angle": "18",
+          "component_name": "\u6aa9\u6258",
+          "component_code": "PURLIN_SUPPORT",
+          "spec": "L90\u00d756\u00d75",
+          "length_m": 0.05,
+          "quantity": 4,
+          "material": {
+            "material_grade": "Q235B",
+            "abaqus_name": "MAT_Q235B",
+            "elastic_modulus_pa": 206000000000.0,
+            "poisson_ratio": 0.3,
+            "density_kg_per_m3": 7850.0
+          },
+          "model_policy": "SOLID",
+          "element_type": "C3D8R",
+          "section_kind": "ANGLE",
+          "section_params_m": {
+            "leg_a_m": 0.09,
+            "leg_b_m": 0.056,
+            "t_m": 0.005,
+            "inner_root_radius_m": 0.005
+          },
+          "thickness_m": 0.005,
+          "section_code": "LX90X56X5",
+          "model_units": {
+            "length": "m",
+            "mass": "kg",
+            "force": "N",
+            "stress": "Pa"
+          },
+          "validation_warnings": []
+        },
+        "transform_anchors": [
+          {
+            "name": "P3 / PURLIN_SUPPORT Step04 section reference",
+            "local_point": [
+              0.0,
+              0.0,
+              0.025
+            ],
+            "expected_global": [
+              0.32741311777321175,
+              0.02,
+              3.2419904709592204
+            ]
+          }
+        ]
+      },
+      {
+        "instance_name": "PURLIN_LOCAL_03",
+        "component_code": "PURLIN_LOCAL",
+        "canonical_role": "PURLIN_LOCAL",
+        "part_name": "P_SP_SC_ANG18_PURLIN_LOCAL",
+        "category": "purlin_connection",
+        "required": true,
+        "connection_group": "P03",
+        "placement": {
+          "mode": "POINT_ORIENT",
+          "translation": [
+            0.32401393083508734,
+            0.045,
+            3.2524520926384675
+          ],
+          "rotation_axis": null,
+          "rotation_angle": null,
+          "rotation_steps": [
+            {
+              "axis_point": [
+                0.0,
+                0.0,
+                0.0
+              ],
+              "axis_direction": [
+                1.0,
+                0.0,
+                0.0
+              ],
+              "angle_deg": 90.0
+            },
+            {
+              "axis_point": [
+                0.0,
+                0.0,
+                0.0
+              ],
+              "axis_direction": [
+                0.0,
+                1.0,
+                0.0
+              ],
+              "angle_deg": -18.0
+            }
+          ]
+        },
+        "geometry_info": {
+          "length": 0.05,
+          "section_kind": "C_CHANNEL"
+        },
+        "component_geometry": {
+          "part_name": "P_SP_SC_ANG18_PURLIN_LOCAL",
+          "support_type": "\u5355\u6869\u5355\u7acb\u67f1",
+          "angle": "18",
+          "component_name": "PURLIN_LOCAL",
+          "component_code": "PURLIN_LOCAL",
+          "spec": "C115X50X15X2.0",
+          "length_m": 0.05,
+          "quantity": 1,
+          "material": {
+            "material_grade": "Q420B",
+            "abaqus_name": "MAT_Q420B",
+            "elastic_modulus_pa": 206000000000.0,
+            "poisson_ratio": 0.3,
+            "density_kg_per_m3": 7850.0
+          },
+          "model_policy": "SHELL",
+          "element_type": "S4R",
+          "section_kind": "C_CHANNEL",
+          "section_params_m": {
+            "h_m": 0.115,
+            "b_m": 0.05,
+            "lip_m": 0.015,
+            "t_m": 0.002
+          },
+          "thickness_m": 0.002,
+          "section_code": "CX115X50X15X2",
+          "model_units": {
+            "length": "m",
+            "mass": "kg",
+            "force": "N",
+            "stress": "Pa"
+          },
+          "validation_warnings": [],
+          "auxiliary_part": true,
+          "source_component_code": "PURLIN",
+          "length_source": "PURLIN_SUPPORT.length_m",
+          "geometry_summary": {
+            "type": "PURLIN_LOCAL",
+            "section": "C_CHANNEL h_m=0.115 b_m=0.05 lip_m=0.015 t_m=0.002",
+            "length_source": "PURLIN_SUPPORT.length_m",
+            "length_m": 0.05
+          }
+        },
+        "transform_anchors": [
+          {
+            "name": "P3 / PURLIN_LOCAL Step04 section reference",
+            "local_point": [
+              0.0,
+              0.0,
+              0.025
+            ],
+            "expected_global": [
+              0.32401393083508734,
+              0.02,
+              3.2524520926384675
+            ]
+          }
+        ]
+      },
+      {
+        "instance_name": "PURLIN_SUPPORT_04",
+        "component_code": "PURLIN_SUPPORT",
+        "canonical_role": "PURLIN_SUPPORT",
+        "part_name": "P_SP_SC_ANG18_PURLIN_SUPPORT",
+        "category": "purlin_connection",
+        "required": true,
+        "connection_group": "P04",
+        "placement": {
+          "mode": "POINT_ORIENT",
+          "translation": [
+            1.6588922405864268,
+            0.045,
+            3.674614263084147
+          ],
+          "rotation_axis": null,
+          "rotation_angle": null,
+          "rotation_steps": [
+            {
+              "axis_point": [
+                0.0,
+                0.0,
+                0.0
+              ],
+              "axis_direction": [
+                0.0,
+                0.0,
+                1.0
+              ],
+              "angle_deg": 90.0
+            },
+            {
+              "axis_point": [
+                0.0,
+                0.0,
+                0.0
+              ],
+              "axis_direction": [
+                1.0,
+                0.0,
+                0.0
+              ],
+              "angle_deg": 90.0
+            },
+            {
+              "axis_point": [
+                0.0,
+                0.0,
+                0.0
+              ],
+              "axis_direction": [
+                0.0,
+                1.0,
+                0.0
+              ],
+              "angle_deg": -18.0
+            }
+          ]
+        },
+        "geometry_info": {
+          "length": 0.05,
+          "section_kind": "ANGLE"
+        },
+        "component_geometry": {
+          "part_name": "P_SP_SC_ANG18_PURLIN_SUPPORT",
+          "support_type": "\u5355\u6869\u5355\u7acb\u67f1",
+          "angle": "18",
+          "component_name": "\u6aa9\u6258",
+          "component_code": "PURLIN_SUPPORT",
+          "spec": "L90\u00d756\u00d75",
+          "length_m": 0.05,
+          "quantity": 4,
+          "material": {
+            "material_grade": "Q235B",
+            "abaqus_name": "MAT_Q235B",
+            "elastic_modulus_pa": 206000000000.0,
+            "poisson_ratio": 0.3,
+            "density_kg_per_m3": 7850.0
+          },
+          "model_policy": "SOLID",
+          "element_type": "C3D8R",
+          "section_kind": "ANGLE",
+          "section_params_m": {
+            "leg_a_m": 0.09,
+            "leg_b_m": 0.056,
+            "t_m": 0.005,
+            "inner_root_radius_m": 0.005
+          },
+          "thickness_m": 0.005,
+          "section_code": "LX90X56X5",
+          "model_units": {
+            "length": "m",
+            "mass": "kg",
+            "force": "N",
+            "stress": "Pa"
+          },
+          "validation_warnings": []
+        },
+        "transform_anchors": [
+          {
+            "name": "P4 / PURLIN_SUPPORT Step04 section reference",
+            "local_point": [
+              0.0,
+              0.0,
+              0.025
+            ],
+            "expected_global": [
+              1.6588922405864268,
+              0.02,
+              3.674614263084147
+            ]
+          }
+        ]
+      },
+      {
+        "instance_name": "PURLIN_LOCAL_04",
+        "component_code": "PURLIN_LOCAL",
+        "canonical_role": "PURLIN_LOCAL",
+        "part_name": "P_SP_SC_ANG18_PURLIN_LOCAL",
+        "category": "purlin_connection",
+        "required": true,
+        "connection_group": "P04",
+        "placement": {
+          "mode": "POINT_ORIENT",
+          "translation": [
+            1.6554930536483023,
+            0.045,
+            3.685075884763394
+          ],
+          "rotation_axis": null,
+          "rotation_angle": null,
+          "rotation_steps": [
+            {
+              "axis_point": [
+                0.0,
+                0.0,
+                0.0
+              ],
+              "axis_direction": [
+                1.0,
+                0.0,
+                0.0
+              ],
+              "angle_deg": 90.0
+            },
+            {
+              "axis_point": [
+                0.0,
+                0.0,
+                0.0
+              ],
+              "axis_direction": [
+                0.0,
+                1.0,
+                0.0
+              ],
+              "angle_deg": -18.0
+            }
+          ]
+        },
+        "geometry_info": {
+          "length": 0.05,
+          "section_kind": "C_CHANNEL"
+        },
+        "component_geometry": {
+          "part_name": "P_SP_SC_ANG18_PURLIN_LOCAL",
+          "support_type": "\u5355\u6869\u5355\u7acb\u67f1",
+          "angle": "18",
+          "component_name": "PURLIN_LOCAL",
+          "component_code": "PURLIN_LOCAL",
+          "spec": "C115X50X15X2.0",
+          "length_m": 0.05,
+          "quantity": 1,
+          "material": {
+            "material_grade": "Q420B",
+            "abaqus_name": "MAT_Q420B",
+            "elastic_modulus_pa": 206000000000.0,
+            "poisson_ratio": 0.3,
+            "density_kg_per_m3": 7850.0
+          },
+          "model_policy": "SHELL",
+          "element_type": "S4R",
+          "section_kind": "C_CHANNEL",
+          "section_params_m": {
+            "h_m": 0.115,
+            "b_m": 0.05,
+            "lip_m": 0.015,
+            "t_m": 0.002
+          },
+          "thickness_m": 0.002,
+          "section_code": "CX115X50X15X2",
+          "model_units": {
+            "length": "m",
+            "mass": "kg",
+            "force": "N",
+            "stress": "Pa"
+          },
+          "validation_warnings": [],
+          "auxiliary_part": true,
+          "source_component_code": "PURLIN",
+          "length_source": "PURLIN_SUPPORT.length_m",
+          "geometry_summary": {
+            "type": "PURLIN_LOCAL",
+            "section": "C_CHANNEL h_m=0.115 b_m=0.05 lip_m=0.015 t_m=0.002",
+            "length_source": "PURLIN_SUPPORT.length_m",
+            "length_m": 0.05
+          }
+        },
+        "transform_anchors": [
+          {
+            "name": "P4 / PURLIN_LOCAL Step04 section reference",
+            "local_point": [
+              0.0,
+              0.0,
+              0.025
+            ],
+            "expected_global": [
+              1.6554930536483023,
+              0.02,
+              3.685075884763394
+            ]
+          }
+        ]
+      }
+    ],
+    "summary_transform_validation": {
+      "contract": "PRE_TRANSLATION_ROTATIONS_THEN_TRANSLATION_THEN_POST_TRANSLATION_ROTATIONS",
+      "status": "PASSED",
+      "instances": [
+        {
+          "instance_name": "INCLINED_BEAM_01",
+          "status": "PASSED",
+          "anchors": [
+            {
+              "name": "G_global / C_CHANNEL_WEB_MIDPOINT",
+              "local_point": [
+                0.0,
+                0.0375,
+                0.0
+              ],
+              "expected_global": [
+                -1.8956725412369635,
+                0.0,
+                2.479184858300731
+              ],
+              "actual_global": [
+                -1.895672541236964,
+                2.220446049250313e-16,
+                2.4791848583007305
+              ],
+              "error_m": 6.661338147750939e-16,
+              "roundtrip_error_m": 4.4408920985006257e-16
+            },
+            {
+              "name": "F / C_CHANNEL_WEB_MIDPOINT",
+              "local_point": [
+                0.0,
+                0.0375,
+                2.009
+              ],
+              "expected_global": [
+                0.015,
+                0.0,
+                3.1
+              ],
+              "actual_global": [
+                0.014999999999999911,
+                -3.00193059386088e-17,
+                3.1
+              ],
+              "error_m": 9.342514861453014e-17,
+              "roundtrip_error_m": 1.1443916996305594e-16
+            },
+            {
+              "name": "C / C_CHANNEL_WEB_MIDPOINT",
+              "local_point": [
+                0.0,
+                0.0375,
+                0.3200000000000001
+              ],
+              "expected_global": [
+                -1.5913344560225142,
+                0.0,
+                2.578070296500714
+              ],
+              "actual_global": [
+                -1.5913344560225144,
+                3.3306690738754696e-16,
+                2.578070296500714
+              ],
+              "error_m": 4.002966042486721e-16,
+              "roundtrip_error_m": 3.3103687685155823e-16
+            },
+            {
+              "name": "E / C_CHANNEL_WEB_MIDPOINT",
+              "local_point": [
+                0.0,
+                0.0375,
+                3.6290000000000004
+              ],
+              "expected_global": [
+                1.5557115563981487,
+                0.0,
+                3.600607530887415
+              ],
+              "actual_global": [
+                1.5557115563981492,
+                -5.551115123125783e-17,
+                3.600607530887415
+              ],
+              "error_m": 4.47545209131181e-16,
+              "roundtrip_error_m": 5.551115123125783e-17
+            }
+          ]
+        },
+        {
+          "instance_name": "PURLIN_SUPPORT_01",
+          "status": "PASSED",
+          "anchors": [
+            {
+              "name": "P1 / PURLIN_SUPPORT Step04 section reference",
+              "local_point": [
+                0.0,
+                0.0,
+                0.025
+              ],
+              "expected_global": [
+                -1.764911218076126,
+                0.02,
+                2.5621530833343362
+              ],
+              "actual_global": [
+                -1.764911218076126,
+                0.02,
+                2.5621530833343362
+              ],
+              "error_m": 0.0,
+              "roundtrip_error_m": 7.105745792673e-18
+            }
+          ]
+        },
+        {
+          "instance_name": "PURLIN_LOCAL_01",
+          "status": "PASSED",
+          "anchors": [
+            {
+              "name": "P1 / PURLIN_LOCAL Step04 section reference",
+              "local_point": [
+                0.0,
+                0.0,
+                0.025
+              ],
+              "expected_global": [
+                -1.7683104050142504,
+                0.02,
+                2.5726147050135832
+              ],
+              "actual_global": [
+                -1.7683104050142504,
+                0.019999999999999997,
+                2.5726147050135832
+              ],
+              "error_m": 3.469446951953614e-18,
+              "roundtrip_error_m": 1.5308084989341916e-18
+            }
+          ]
+        },
+        {
+          "instance_name": "PURLIN_SUPPORT_02",
+          "status": "PASSED",
+          "anchors": [
+            {
+              "name": "P2 / PURLIN_SUPPORT Step04 section reference",
+              "local_point": [
+                0.0,
+                0.0,
+                0.025
+              ],
+              "expected_global": [
+                -0.5285377468924265,
+                0.02,
+                2.963875176021768
+              ],
+              "actual_global": [
+                -0.5285377468924265,
+                0.02,
+                2.963875176021768
+              ],
+              "error_m": 0.0,
+              "roundtrip_error_m": 7.105745792673e-18
+            }
+          ]
+        },
+        {
+          "instance_name": "PURLIN_LOCAL_02",
+          "status": "PASSED",
+          "anchors": [
+            {
+              "name": "P2 / PURLIN_LOCAL Step04 section reference",
+              "local_point": [
+                0.0,
+                0.0,
+                0.025
+              ],
+              "expected_global": [
+                -0.5319369338305509,
+                0.02,
+                2.974336797701015
+              ],
+              "actual_global": [
+                -0.5319369338305509,
+                0.019999999999999997,
+                2.974336797701015
+              ],
+              "error_m": 3.469446951953614e-18,
+              "roundtrip_error_m": 1.5308084989341916e-18
+            }
+          ]
+        },
+        {
+          "instance_name": "PURLIN_SUPPORT_03",
+          "status": "PASSED",
+          "anchors": [
+            {
+              "name": "P3 / PURLIN_SUPPORT Step04 section reference",
+              "local_point": [
+                0.0,
+                0.0,
+                0.025
+              ],
+              "expected_global": [
+                0.32741311777321175,
+                0.02,
+                3.2419904709592204
+              ],
+              "actual_global": [
+                0.32741311777321175,
+                0.02,
+                3.2419904709592204
+              ],
+              "error_m": 0.0,
+              "roundtrip_error_m": 7.105745792673e-18
+            }
+          ]
+        },
+        {
+          "instance_name": "PURLIN_LOCAL_03",
+          "status": "PASSED",
+          "anchors": [
+            {
+              "name": "P3 / PURLIN_LOCAL Step04 section reference",
+              "local_point": [
+                0.0,
+                0.0,
+                0.025
+              ],
+              "expected_global": [
+                0.32401393083508734,
+                0.02,
+                3.2524520926384675
+              ],
+              "actual_global": [
+                0.32401393083508734,
+                0.019999999999999997,
+                3.2524520926384675
+              ],
+              "error_m": 3.469446951953614e-18,
+              "roundtrip_error_m": 1.5308084989341916e-18
+            }
+          ]
+        },
+        {
+          "instance_name": "PURLIN_SUPPORT_04",
+          "status": "PASSED",
+          "anchors": [
+            {
+              "name": "P4 / PURLIN_SUPPORT Step04 section reference",
+              "local_point": [
+                0.0,
+                0.0,
+                0.025
+              ],
+              "expected_global": [
+                1.6588922405864268,
+                0.02,
+                3.674614263084147
+              ],
+              "actual_global": [
+                1.6588922405864268,
+                0.02,
+                3.674614263084147
+              ],
+              "error_m": 0.0,
+              "roundtrip_error_m": 7.105745792673e-18
+            }
+          ]
+        },
+        {
+          "instance_name": "PURLIN_LOCAL_04",
+          "status": "PASSED",
+          "anchors": [
+            {
+              "name": "P4 / PURLIN_LOCAL Step04 section reference",
+              "local_point": [
+                0.0,
+                0.0,
+                0.025
+              ],
+              "expected_global": [
+                1.6554930536483023,
+                0.02,
+                3.685075884763394
+              ],
+              "actual_global": [
+                1.6554930536483023,
+                0.019999999999999997,
+                3.685075884763394
+              ],
+              "error_m": 3.469446951953614e-18,
+              "roundtrip_error_m": 1.5308084989341916e-18
+            }
+          ]
+        }
+      ],
+      "errors": []
+    },
+    "hoop_hole_plan": {
+      "runtime_enabled": true,
+      "coordinate_convention": "STEP02_HOOP_INNER_PROFILE_Y0_MATERIAL_POSITIVE_Y",
+      "driving_holes": [
+        {
+          "part_name": "P_SP_SC_ANG18_HOOP",
+          "hole_id": "HOOP_LEFT_01",
+          "end_reference": "LEFT",
+          "distance_from_end_m": 0.09,
+          "distance_from_side_m": 0.04,
+          "hole_type": "ROUND",
+          "width_m": 0.016,
+          "total_length_m": 0.016,
+          "local_center_m": [
+            -0.10500000000000001,
+            0.0025,
+            0.04
+          ],
+          "local_axis": [
+            0.0,
+            1.0,
+            0.0
+          ],
+          "local_major_axis": null,
+          "shared_part_info": {
+            "part_name": "P_SP_SC_ANG18_HOOP",
+            "referencing_instances": [
+              "HOOP_01_A",
+              "HOOP_01_B"
+            ],
+            "shared_part": true,
+            "hole_pattern_identical": true,
+            "requires_instance_isolation": false,
+            "execution_policy": "MODIFY_SHARED_PART_ONCE",
+            "expected_affected_instances": [
+              "HOOP_01_A",
+              "HOOP_01_B"
+            ]
+          },
+          "validation_status": "VALIDATED_INPUT",
+          "coordinate_convention": "STEP02_HOOP_INNER_PROFILE_Y0_MATERIAL_POSITIVE_Y",
+          "runtime_status": "CUT_PENDING_RUNTIME_PREFLIGHT",
+          "local_center": [
+            -0.10500000000000001,
+            0.0025,
+            0.04
+          ],
+          "diameter_m": 0.016
+        },
+        {
+          "part_name": "P_SP_SC_ANG18_HOOP",
+          "hole_id": "HOOP_LEFT_02",
+          "end_reference": "LEFT",
+          "distance_from_end_m": 0.03,
+          "distance_from_side_m": 0.04,
+          "hole_type": "SLOT",
+          "width_m": 0.016,
+          "total_length_m": 0.035,
+          "local_center_m": [
+            -0.165,
+            0.0025,
+            0.04
+          ],
+          "local_axis": [
+            0.0,
+            1.0,
+            0.0
+          ],
+          "local_major_axis": [
+            1.0,
+            0.0,
+            0.0
+          ],
+          "shared_part_info": {
+            "part_name": "P_SP_SC_ANG18_HOOP",
+            "referencing_instances": [
+              "HOOP_01_A",
+              "HOOP_01_B"
+            ],
+            "shared_part": true,
+            "hole_pattern_identical": true,
+            "requires_instance_isolation": false,
+            "execution_policy": "MODIFY_SHARED_PART_ONCE",
+            "expected_affected_instances": [
+              "HOOP_01_A",
+              "HOOP_01_B"
+            ]
+          },
+          "validation_status": "VALIDATED_INPUT",
+          "coordinate_convention": "STEP02_HOOP_INNER_PROFILE_Y0_MATERIAL_POSITIVE_Y",
+          "runtime_status": "CUT_PENDING_RUNTIME_PREFLIGHT",
+          "local_center": [
+            -0.165,
+            0.0025,
+            0.04
+          ]
+        },
+        {
+          "part_name": "P_SP_SC_ANG18_HOOP",
+          "hole_id": "HOOP_RIGHT_01",
+          "end_reference": "RIGHT",
+          "distance_from_end_m": 0.09,
+          "distance_from_side_m": 0.04,
+          "hole_type": "ROUND",
+          "width_m": 0.016,
+          "total_length_m": 0.016,
+          "local_center_m": [
+            0.10500000000000001,
+            0.0025,
+            0.04
+          ],
+          "local_axis": [
+            0.0,
+            1.0,
+            0.0
+          ],
+          "local_major_axis": null,
+          "shared_part_info": {
+            "part_name": "P_SP_SC_ANG18_HOOP",
+            "referencing_instances": [
+              "HOOP_01_A",
+              "HOOP_01_B"
+            ],
+            "shared_part": true,
+            "hole_pattern_identical": true,
+            "requires_instance_isolation": false,
+            "execution_policy": "MODIFY_SHARED_PART_ONCE",
+            "expected_affected_instances": [
+              "HOOP_01_A",
+              "HOOP_01_B"
+            ]
+          },
+          "validation_status": "VALIDATED_INPUT",
+          "coordinate_convention": "STEP02_HOOP_INNER_PROFILE_Y0_MATERIAL_POSITIVE_Y",
+          "runtime_status": "CUT_PENDING_RUNTIME_PREFLIGHT",
+          "local_center": [
+            0.10500000000000001,
+            0.0025,
+            0.04
+          ],
+          "diameter_m": 0.016
+        },
+        {
+          "part_name": "P_SP_SC_ANG18_HOOP",
+          "hole_id": "HOOP_RIGHT_02",
+          "end_reference": "RIGHT",
+          "distance_from_end_m": 0.03,
+          "distance_from_side_m": 0.04,
+          "hole_type": "SLOT",
+          "width_m": 0.016,
+          "total_length_m": 0.035,
+          "local_center_m": [
+            0.165,
+            0.0025,
+            0.04
+          ],
+          "local_axis": [
+            0.0,
+            1.0,
+            0.0
+          ],
+          "local_major_axis": [
+            1.0,
+            0.0,
+            0.0
+          ],
+          "shared_part_info": {
+            "part_name": "P_SP_SC_ANG18_HOOP",
+            "referencing_instances": [
+              "HOOP_01_A",
+              "HOOP_01_B"
+            ],
+            "shared_part": true,
+            "hole_pattern_identical": true,
+            "requires_instance_isolation": false,
+            "execution_policy": "MODIFY_SHARED_PART_ONCE",
+            "expected_affected_instances": [
+              "HOOP_01_A",
+              "HOOP_01_B"
+            ]
+          },
+          "validation_status": "VALIDATED_INPUT",
+          "coordinate_convention": "STEP02_HOOP_INNER_PROFILE_Y0_MATERIAL_POSITIVE_Y",
+          "runtime_status": "CUT_PENDING_RUNTIME_PREFLIGHT",
+          "local_center": [
+            0.165,
+            0.0025,
+            0.04
+          ]
+        }
+      ],
+      "disabled_holes": [],
+      "part_geometry": {
+        "P_SP_SC_ANG18_HOOP": {
+          "convention": "STEP02_HOOP_INNER_PROFILE_Y0_MATERIAL_POSITIVE_Y",
+          "section_kind": "HOOP_BAND",
+          "model_policy": "SOLID",
+          "width_m": 0.08,
+          "thickness_m": 0.005,
+          "left_end_x_m": -0.195,
+          "right_end_x_m": 0.195,
+          "straight_tangent_x_m": 0.07937253933193772,
+          "left_straight_length_m": 0.11562746066806229,
+          "right_straight_length_m": 0.11562746066806229,
+          "left_transition_boundary_x_m": -0.07937253933193772,
+          "right_transition_boundary_x_m": 0.07937253933193772
+        }
+      },
+      "workbook_schema": "v2"
+    },
+    "step06_version": "0.2.11",
+    "generator_version": "0.2.11"
+  },
+  "components": [
+    {
+      "part_name": "P_SP_SC_ANG18_INCLINED_BEAM",
+      "support_type": "\u5355\u6869\u5355\u7acb\u67f1",
+      "angle": "18",
+      "component_name": "\u659c\u6881",
+      "component_code": "INCLINED_BEAM",
+      "spec": "C75\u00d740\u00d715\u00d72.0",
+      "length_m": 3.948,
+      "quantity": "2",
+      "material": {
+        "material_grade": "Q355B",
+        "abaqus_name": "MAT_Q355B",
+        "elastic_modulus_pa": 206000000000.0,
+        "poisson_ratio": 0.3,
+        "density_kg_per_m3": 7850.0
+      },
+      "model_policy": "SHELL",
+      "element_type": "S4R",
+      "section_kind": "C_CHANNEL",
+      "section_params_m": {
+        "h_m": 0.075,
+        "b_m": 0.04,
+        "lip_m": 0.015,
+        "t_m": 0.002
+      },
+      "thickness_m": 0.002,
+      "section_code": "CX75X40X15X2",
+      "model_units": {
+        "length": "m",
+        "mass": "kg",
+        "force": "N",
+        "stress": "Pa"
+      },
+      "validation_warnings": []
+    },
+    {
+      "part_name": "P_SP_SC_ANG18_COLUMN_UP",
+      "support_type": "\u5355\u6869\u5355\u7acb\u67f1",
+      "angle": "18",
+      "component_name": "\u4e0a\u7acb\u67f1",
+      "component_code": "COLUMN_UP",
+      "spec": "\u03c6127\u00d72.5",
+      "length_m": 2.05,
+      "quantity": "2",
+      "material": {
+        "material_grade": "Q355B",
+        "abaqus_name": "MAT_Q355B",
+        "elastic_modulus_pa": 206000000000.0,
+        "poisson_ratio": 0.3,
+        "density_kg_per_m3": 7850.0
+      },
+      "model_policy": "SHELL",
+      "element_type": "S4R",
+      "section_kind": "PIPE",
+      "section_params_m": {
+        "od_m": 0.127,
+        "t_m": 0.0025
+      },
+      "thickness_m": 0.0025,
+      "section_code": "PIPEX127X2P5",
+      "model_units": {
+        "length": "m",
+        "mass": "kg",
+        "force": "N",
+        "stress": "Pa"
+      },
+      "validation_warnings": []
+    },
+    {
+      "part_name": "P_SP_SC_ANG18_COLUMN_DOWN",
+      "support_type": "\u5355\u6869\u5355\u7acb\u67f1",
+      "angle": "18",
+      "component_name": "\u4e0b\u7acb\u67f1",
+      "component_code": "COLUMN_DOWN",
+      "spec": "\u03c6140\u00d73.5",
+      "length_m": 1.7,
+      "quantity": "2",
+      "material": {
+        "material_grade": "Q355B",
+        "abaqus_name": "MAT_Q355B",
+        "elastic_modulus_pa": 206000000000.0,
+        "poisson_ratio": 0.3,
+        "density_kg_per_m3": 7850.0
+      },
+      "model_policy": "SHELL",
+      "element_type": "S4R",
+      "section_kind": "PIPE",
+      "section_params_m": {
+        "od_m": 0.14,
+        "t_m": 0.0035
+      },
+      "thickness_m": 0.0035,
+      "section_code": "PIPEX140X3P5",
+      "model_units": {
+        "length": "m",
+        "mass": "kg",
+        "force": "N",
+        "stress": "Pa"
+      },
+      "validation_warnings": []
+    },
+    {
+      "part_name": "P_SP_SC_ANG18_BRACE_FRONT",
+      "support_type": "\u5355\u6869\u5355\u7acb\u67f1",
+      "angle": "18",
+      "component_name": "\u524d\u659c\u6491",
+      "component_code": "BRACE_FRONT",
+      "spec": "C70\u00d740\u00d715\u00d72.0",
+      "length_m": 2.114,
+      "quantity": "2",
+      "material": {
+        "material_grade": "Q355B",
+        "abaqus_name": "MAT_Q355B",
+        "elastic_modulus_pa": 206000000000.0,
+        "poisson_ratio": 0.3,
+        "density_kg_per_m3": 7850.0
+      },
+      "model_policy": "SHELL",
+      "element_type": "S4R",
+      "section_kind": "C_CHANNEL",
+      "section_params_m": {
+        "h_m": 0.07,
+        "b_m": 0.04,
+        "lip_m": 0.015,
+        "t_m": 0.002
+      },
+      "thickness_m": 0.002,
+      "section_code": "CX70X40X15X2",
+      "model_units": {
+        "length": "m",
+        "mass": "kg",
+        "force": "N",
+        "stress": "Pa"
+      },
+      "validation_warnings": []
+    },
+    {
+      "part_name": "P_SP_SC_ANG18_BRACE_REAR",
+      "support_type": "\u5355\u6869\u5355\u7acb\u67f1",
+      "angle": "18",
+      "component_name": "\u540e\u659c\u6491",
+      "component_code": "BRACE_REAR",
+      "spec": "C70\u00d740\u00d715\u00d72.0",
+      "length_m": 2.916,
+      "quantity": "2",
+      "material": {
+        "material_grade": "Q355B",
+        "abaqus_name": "MAT_Q355B",
+        "elastic_modulus_pa": 206000000000.0,
+        "poisson_ratio": 0.3,
+        "density_kg_per_m3": 7850.0
+      },
+      "model_policy": "SHELL",
+      "element_type": "S4R",
+      "section_kind": "C_CHANNEL",
+      "section_params_m": {
+        "h_m": 0.07,
+        "b_m": 0.04,
+        "lip_m": 0.015,
+        "t_m": 0.002
+      },
+      "thickness_m": 0.002,
+      "section_code": "CX70X40X15X2",
+      "model_units": {
+        "length": "m",
+        "mass": "kg",
+        "force": "N",
+        "stress": "Pa"
+      },
+      "validation_warnings": []
+    },
+    {
+      "part_name": "P_SP_SC_ANG18_PURLIN",
+      "support_type": "\u5355\u6869\u5355\u7acb\u67f1",
+      "angle": "18",
+      "component_name": "\u6aa9\u6761",
+      "component_code": "PURLIN",
+      "spec": "C115X50X15X2.0",
+      "length_m": 8.218,
+      "quantity": "4",
+      "material": {
+        "material_grade": "Q420B",
+        "abaqus_name": "MAT_Q420B",
+        "elastic_modulus_pa": 206000000000.0,
+        "poisson_ratio": 0.3,
+        "density_kg_per_m3": 7850.0
+      },
+      "model_policy": "SHELL",
+      "element_type": "S4R",
+      "section_kind": "C_CHANNEL",
+      "section_params_m": {
+        "h_m": 0.115,
+        "b_m": 0.05,
+        "lip_m": 0.015,
+        "t_m": 0.002
+      },
+      "thickness_m": 0.002,
+      "section_code": "CX115X50X15X2",
+      "model_units": {
+        "length": "m",
+        "mass": "kg",
+        "force": "N",
+        "stress": "Pa"
+      },
+      "validation_warnings": []
+    },
+    {
+      "part_name": "P_SP_SC_ANG18_PURLIN_SUPPORT",
+      "support_type": "\u5355\u6869\u5355\u7acb\u67f1",
+      "angle": "18",
+      "component_name": "\u6aa9\u6258",
+      "component_code": "PURLIN_SUPPORT",
+      "spec": "L90\u00d756\u00d75",
+      "length_m": 0.05,
+      "quantity": 4,
+      "material": {
+        "material_grade": "Q235B",
+        "abaqus_name": "MAT_Q235B",
+        "elastic_modulus_pa": 206000000000.0,
+        "poisson_ratio": 0.3,
+        "density_kg_per_m3": 7850.0
+      },
+      "model_policy": "SOLID",
+      "element_type": "C3D8R",
+      "section_kind": "ANGLE",
+      "section_params_m": {
+        "leg_a_m": 0.09,
+        "leg_b_m": 0.056,
+        "t_m": 0.005,
+        "inner_root_radius_m": 0.005
+      },
+      "thickness_m": 0.005,
+      "section_code": "LX90X56X5",
+      "model_units": {
+        "length": "m",
+        "mass": "kg",
+        "force": "N",
+        "stress": "Pa"
+      },
+      "validation_warnings": []
+    },
+    {
+      "part_name": "P_SP_SC_ANG18_HOOP",
+      "support_type": "\u5355\u6869\u5355\u7acb\u67f1",
+      "angle": "18",
+      "component_name": "\u62b1\u7b8d",
+      "component_code": "HOOP",
+      "spec": "HOOP(D=140,W=80,T=5,L=120,R=120,RF=5)",
+      "length_m": 1.42,
+      "quantity": "2",
+      "material": {
+        "material_grade": "Q235B",
+        "abaqus_name": "MAT_Q235B",
+        "elastic_modulus_pa": 206000000000.0,
+        "poisson_ratio": 0.3,
+        "density_kg_per_m3": 7850.0
+      },
+      "model_policy": "SOLID",
+      "element_type": "C3D8R",
+      "section_kind": "HOOP_BAND",
+      "section_params_m": {
+        "diameter_m": 0.14,
+        "width_m": 0.08,
+        "t_m": 0.005,
+        "left_extension_m": 0.12,
+        "right_extension_m": 0.12,
+        "inner_radius_m": 0.07,
+        "outer_radius_m": 0.075,
+        "transition_fillet_m": 0.005
+      },
+      "thickness_m": 0.005,
+      "section_code": "HOOP_D140_W80_T5_L120_R120_RF5",
+      "model_units": {
+        "length": "m",
+        "mass": "kg",
+        "force": "N",
+        "stress": "Pa"
+      },
+      "validation_warnings": [],
+      "geometry_summary": {
+        "type": "HOOP",
+        "D_m": 0.14,
+        "Ri_m": 0.07,
+        "Ro_m": 0.075,
+        "W_m": 0.08,
+        "T_m": 0.005,
+        "L_m": 0.12,
+        "R_m": 0.12,
+        "RF_m": 0.005,
+        "transition_note": null
+      }
+    },
+    {
+      "part_name": "P_SP_SC_ANG18_PURLIN_LOCAL",
+      "support_type": "\u5355\u6869\u5355\u7acb\u67f1",
+      "angle": "18",
+      "component_name": "PURLIN_LOCAL",
+      "component_code": "PURLIN_LOCAL",
+      "spec": "C115X50X15X2.0",
+      "length_m": 0.05,
+      "quantity": 1,
+      "material": {
+        "material_grade": "Q420B",
+        "abaqus_name": "MAT_Q420B",
+        "elastic_modulus_pa": 206000000000.0,
+        "poisson_ratio": 0.3,
+        "density_kg_per_m3": 7850.0
+      },
+      "model_policy": "SHELL",
+      "element_type": "S4R",
+      "section_kind": "C_CHANNEL",
+      "section_params_m": {
+        "h_m": 0.115,
+        "b_m": 0.05,
+        "lip_m": 0.015,
+        "t_m": 0.002
+      },
+      "thickness_m": 0.002,
+      "section_code": "CX115X50X15X2",
+      "model_units": {
+        "length": "m",
+        "mass": "kg",
+        "force": "N",
+        "stress": "Pa"
+      },
+      "validation_warnings": [],
+      "auxiliary_part": true,
+      "source_component_code": "PURLIN",
+      "length_source": "PURLIN_SUPPORT.length_m",
+      "geometry_summary": {
+        "type": "PURLIN_LOCAL",
+        "section": "C_CHANNEL h_m=0.115 b_m=0.05 lip_m=0.015 t_m=0.002",
+        "length_source": "PURLIN_SUPPORT.length_m",
+        "length_m": 0.05
+      }
+    }
+  ]
+}

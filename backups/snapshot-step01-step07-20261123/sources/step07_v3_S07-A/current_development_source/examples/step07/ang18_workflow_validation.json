@@ -1,0 +1,38 @@
+{
+  "model_name": "SP_SC_ANG18_11042210101041S-T0202",
+  "input_cae": "upstream_completed.cae",
+  "units": "m-N-Pa",
+  "mesh": {
+    "size": 0.05,
+    "local_size": 0.008,
+    "by_role": {
+      "COLUMN_DOWN": 0.008,
+      "COLUMN_UP": 0.025,
+      "HOOP": 0.008,
+      "PURLIN_SUPPORT": 0.005
+    }
+  },
+  "loads": [
+    {
+      "instance": "PURLIN_LOCAL_01",
+      "force": [
+        0,
+        0,
+        -100
+      ]
+    }
+  ],
+  "job": {
+    "name": "Step07_ANG18",
+    "submit": true
+  },
+  "validation_assumptions": {
+    "fix_purlin_rp_rotations": true,
+    "fix_support_beam_rp_rotations": true
+  },
+  "connection_plan": "SP_SC_ANG18_11042210101041S-T0202_analysis_plan.json",
+  "step": {
+    "initialInc": 1.0,
+    "maxInc": 1.0
+  }
+}

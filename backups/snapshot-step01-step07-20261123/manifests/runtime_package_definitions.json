@@ -1,0 +1,65 @@
+[
+  {
+    "Id": "S01-A",
+    "Package": "F:\\Codex\\Wind Resistance of PV Support Structures\\CADtoCAE-feature-step01-development\\dist\\CADtoCAE_Step01_MaterialTable",
+    "ExeName": "CADtoCAE_Step01_MaterialTable.exe",
+    "ExpectedExeSha256": "0F1100C487141CFB006CB6AA9D254F13616A085947EDB9DE9BDF261D658B85B1",
+    "Evidence": "B"
+  },
+  {
+    "Id": "S02-A",
+    "Package": "F:\\Codex\\Wind Resistance of PV Support Structures\\CADtoCAE-fix-step02-hoop-inner-profile\\dist\\CADtoCAE_Step02_PartScript",
+    "ExeName": "CADtoCAE_Step02_PartScript.exe",
+    "ExpectedExeSha256": "260D2F5D38830DC3C7D05EC0CCB02BFF409673C00F1E507C119B22AE352D4B95",
+    "Evidence": "B"
+  },
+  {
+    "Id": "S04-A",
+    "Package": "F:\\Codex\\Wind Resistance of PV Support Structures\\CADtoCAE-feature-step04-dp-assembly\\dist\\CADtoCAE_Step04_AssemblyScript",
+    "ExeName": "CADtoCAE_Step04_AssemblyScript.exe",
+    "ExpectedExeSha256": "9C89663D72BD14257BBA03A7F2C362A9F735FA6C21132768CCD0A2A309D4C99E",
+    "Evidence": "B"
+  },
+  {
+    "Id": "S05-A",
+    "Package": "F:\\Codex\\Wind Resistance of PV Support Structures\\CADtoCAE-feature-step05-development\\dist\\CADtoCAE_Step05_AnalysisSetup",
+    "ExeName": "CADtoCAE_Step05_AnalysisSetup.exe",
+    "ExpectedExeSha256": "11A92D27A6BF7482636D74200F58119C5B4FCADC1C2A595044461522A870CBE2",
+    "Evidence": "B"
+  },
+  {
+    "Id": "S06-A",
+    "Package": "F:\\Codex\\Wind Resistance of PV Support Structures\\CADtoCAE-feature-step06-development\\dist\\CADtoCAE_Step06_HoleSetup",
+    "ExeName": "CADtoCAE_Step06_HoleSetup.exe",
+    "ExpectedExeSha256": "016421FAFAA08B3D6FF3BCE44452304976BDFAB0DED33BC0C813D8DBCE82E653",
+    "Evidence": "A"
+  },
+  {
+    "Id": "S07-A",
+    "Package": "F:\\Codex\\PV_Wind_Load_Feasibility\\Step07_V3_D1_Isolated\\Dist\\CADtoCAE_Step07_V3_D1_Luan",
+    "ExeName": "CADtoCAE_Step07_V3_D1_Luan.exe",
+    "ExpectedExeSha256": "1D2D401BD24BC0F6D2260147B82FA79B091F7B3D5988BD0E3AC10D181DC21F96",
+    "Evidence": "A"
+  },
+  {
+    "Id": "S07-C",
+    "Package": "F:\\Codex\\Wind Resistance of PV Support Structures\\CADtoCAE-Step07-Development\\dist\\CADtoCAE_Step07_AnalysisSetup",
+    "ExeName": "CADtoCAE_Step07_AnalysisSetup.exe",
+    "ExpectedExeSha256": "C8CE1BA6D0A7083240909072D1387E1A60F3C37446A4514109DA027B0CB2CD0B",
+    "Evidence": "A_MANIFEST_SNAPSHOT"
+  },
+  {
+    "Id": "BAT-A",
+    "Package": "F:\\Codex\\Wind Resistance of PV Support Structures\\CADtoCAE-BatchRunner\\dist\\CADtoCAE_BatchRunner_V40",
+    "ExeName": "CADtoCAE_BatchRunner_V40.exe",
+    "ExpectedExeSha256": "0B75E5707A7CD78E97B4926EBFF765496C009E08D8F41F3CB8276B3314F7D18D",
+    "Evidence": "B"
+  },
+  {
+    "Id": "BAT-B",
+    "Package": "F:\\Codex\\Wind Resistance of PV Support Structures\\CADtoCAE-BatchRunner\\dist\\CADtoCAE_BatchRunner_CLI_V40",
+    "ExeName": "CADtoCAE_BatchRunner_CLI_V40.exe",
+    "ExpectedExeSha256": "A1899CFF1E37656ADA9330AAF8C79EBE4B49F48C4405B3D0B212F668E267A5FD",
+    "Evidence": "B"
+  }
+]

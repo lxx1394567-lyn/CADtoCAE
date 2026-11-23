@@ -1,0 +1,2 @@
+# Preserve archived snapshot bytes exactly; do not normalize line endings.
+* -text

@@ -1,0 +1,286 @@
+[
+  {
+    "path": "docs/step06_b1_connector_setup.md",
+    "sha256": "DEDCD062D8EB16D0C35E52FEF2FD5C98725845032949EA1CB833F666CAD6E8A4"
+  },
+  {
+    "path": "docs/step06_connector_setup.md",
+    "sha256": "F7DF478A59CC1DF3B11EAFC1F1945312A224A014A8F5A04A370773A6EEC7C6E4"
+  },
+  {
+    "path": "docs/step06_hole_setup.md",
+    "sha256": "786BBBB723B002A291AF2D62E5BC429548154D6238B4011CB0DDC459B90462C5"
+  },
+  {
+    "path": "docs/step06_hoop_brace_connector.md",
+    "sha256": "2BF2209FDAEAACB39E8EE9478B7672AACDF6EC29E0AF33AA6C8E9188295C339E"
+  },
+  {
+    "path": "docs/step06_support_beam_connector.md",
+    "sha256": "D95D675B4CB742F5F4468E7B04876ED17063BACCD1FD7250EC546E8CE3569616"
+  },
+  {
+    "path": "examples/Step06_螺栓孔定位表_中文版.xlsx",
+    "sha256": "D3C52E9E34EB864F5BEF26D0D23E1F865973F52661727690F5BAFE8011BDB702"
+  },
+  {
+    "path": "examples/step06/step06_bolt_hole_location.xlsx",
+    "sha256": "C72F66E912E7531C7A58285536B53158A8187425143B0FA9D81A9497659F1D75"
+  },
+  {
+    "path": "scripts/build_step06_exe.ps1",
+    "sha256": "E7559021EB120C8C88D8405B820FBD80A9A53F6F7B71E71C5EFEC6DEBEAFDEBC"
+  },
+  {
+    "path": "scripts/step06_generate_bolt_coupling_update.py",
+    "sha256": "BE8144BB2EC88F5DD6D560EBBB27C2DB5B3C65A0158BA129DD32D1FF9654C98F"
+  },
+  {
+    "path": "scripts/step06_generate_bolt_preset_update.py",
+    "sha256": "7ED98170C6D11BA1FE508DB356A5FADBC592450A22A8D06132A28ED26A2831B0"
+  },
+  {
+    "path": "scripts/step06_generate_connector_setup.py",
+    "sha256": "517171CE2DB7B657A48B17F5FC8F95A9286EC89C72670FCC700CFF744D2F4439"
+  },
+  {
+    "path": "scripts/step06_generate_hoop_brace_connector.py",
+    "sha256": "FDC86D04FE0AC0731F5A1C11681472C699BEAF5CE185CEB556E888D71F94EE0B"
+  },
+  {
+    "path": "scripts/step06_generate_support_beam_connector.py",
+    "sha256": "1134FF1A38F9C4B81187D60CC0B9AD50C368A3232693E29C81FDC5E9BC0947E5"
+  },
+  {
+    "path": "scripts/step06_hole_setup_gui.py",
+    "sha256": "00A7BC331CDA16E93E889D1828675501EDAD26D56CD6204777E51A412086BD0D"
+  },
+  {
+    "path": "src/cadtocae/bolt_coupling_update_runtime.py",
+    "sha256": "CC3AB02DC4B5C84C7EF6B3D58DF676AABA0DA5F5106A827B4C397B0EA081E6CC"
+  },
+  {
+    "path": "src/cadtocae/connector_b1_plan.py",
+    "sha256": "E3089AFEDF037E1971C7C74C2A6537AFC4A84962D79519F7B032B5AF2A72F2E7"
+  },
+  {
+    "path": "src/cadtocae/connector_b1_runtime.py",
+    "sha256": "7126B371D34E3C391B312DA81E6255E1CC774378AA87C5EC7BB1DAFF651C7D04"
+  },
+  {
+    "path": "src/cadtocae/connector_geometry.py",
+    "sha256": "640E2A8F35B3450555AA15D732BBF366617E4037180062DCCD4206E655F24C61"
+  },
+  {
+    "path": "src/cadtocae/connector_groups.py",
+    "sha256": "5DCB4043780378BEF39BF24AD23F2DCE12BA48A1D55820FF78B834C8C7EEE7B6"
+  },
+  {
+    "path": "src/cadtocae/connector_groups_runtime.py",
+    "sha256": "4D552BB054630DF8A47CA1D79092C21547A219B52D820EFEB858B4031FE76778"
+  },
+  {
+    "path": "src/cadtocae/connector_integration.py",
+    "sha256": "D845A6301B429091CE18E53B55D43DB94124CF7412783E24E17D45DD8C633912"
+  },
+  {
+    "path": "src/cadtocae/connector_integration_runtime.py",
+    "sha256": "EDDEF4F0250B5EC1C7C24A25357AE58544B6335CDA2F97699C22AEE0FB37DEDD"
+  },
+  {
+    "path": "src/cadtocae/connector_plan.py",
+    "sha256": "E73D0CA6D048F26B080BE49860515BB731262C7E03A916EE7437436C8A980DEB"
+  },
+  {
+    "path": "src/cadtocae/connector_setup.py",
+    "sha256": "49AB5D61E3BD6C9FF44ECD96B7DA7AF1D61AF5BF23995B7C9D055371666C3EFE"
+  },
+  {
+    "path": "src/cadtocae/hole_derived_runtime.py",
+    "sha256": "BD064B7DDD21F9DEACAE67DB9833B42A0241E2D83E4C9280561C1A8934A58EC0"
+  },
+  {
+    "path": "src/cadtocae/hole_inputs.py",
+    "sha256": "81A837A3F942425565810C0D07EF3ABAC5E81602D537FFF16EA3675F1AA1C431"
+  },
+  {
+    "path": "src/cadtocae/hole_plan.py",
+    "sha256": "D3D87BFAFF7F3C1D47441B2A18AC42E302D35876598CEAA33F52073DC3CF3D53"
+  },
+  {
+    "path": "src/cadtocae/hole_projects.py",
+    "sha256": "1C63ACE33E5E1B10289F071CAF3B1F641AB8DB54DF121F9945A4F20CD6D76730"
+  },
+  {
+    "path": "src/cadtocae/hole_runtime.py",
+    "sha256": "E1A7A4D70A89323279A3AD5752B75642EE7FE2B8B67FEBA20B3412097BFD2693"
+  },
+  {
+    "path": "src/cadtocae/hole_setup.py",
+    "sha256": "7FB4B995BF7712D69ED73FE3E8387ABB9DC2FE57AF7ED6CC0B3E3614A02C5023"
+  },
+  {
+    "path": "src/cadtocae/hole_transforms.py",
+    "sha256": "C2CE6D6D14FDE82FA6598BE8B3C2224FAFF95FF9AB70589F7559FC70613AC5E9"
+  },
+  {
+    "path": "src/cadtocae/hole_workbooks.py",
+    "sha256": "4E4C0A975E628466338F35C7248DA8F474FC0F94B2B0ED000D44BB5281398E52"
+  },
+  {
+    "path": "src/cadtocae/hoop_brace_plan.py",
+    "sha256": "8A9F85DB7EDD191CB30C3FD39843DEFB47E110065D0B09F3375D1FE9E97E3CF5"
+  },
+  {
+    "path": "src/cadtocae/hoop_brace_runtime.py",
+    "sha256": "0E68508ECDA0B154563EF12CB88903788F4E5FF92F5C7F6E51F701127AFF34E0"
+  },
+  {
+    "path": "src/cadtocae/hoop_brace_setup.py",
+    "sha256": "0B08448809EA675F75AD249B7C6878929F4A8A527D0849699A45F2009A52091B"
+  },
+  {
+    "path": "src/cadtocae/hoop_hole_plan.py",
+    "sha256": "54F08E6AE02DCD45ABC82959A2B05145868BCAAFDD038ABD8F71E8C9B241FB93"
+  },
+  {
+    "path": "src/cadtocae/hoop_hole_runtime.py",
+    "sha256": "9F6983A23D96AC66771E5D6A195486C784D4FA7CD4E1B29A515BC2A854B36068"
+  },
+  {
+    "path": "src/cadtocae/purlin_bolt_preset_runtime.py",
+    "sha256": "F54DE9AEA1455BC65BD9E77EA909DF1B7BE54A26789FAAEC487F21944A90590C"
+  },
+  {
+    "path": "src/cadtocae/step06_release.py",
+    "sha256": "2AB0BE85F18B47B4511B56653A64FBCF3666A46F3718DC4903D7CEC202D88DC5"
+  },
+  {
+    "path": "src/cadtocae/step06_version.py",
+    "sha256": "E5A874F2DE3B4069EB2EAF9270E36EC20247C80CEE5E5C27CBF069B101EA29CD"
+  },
+  {
+    "path": "src/cadtocae/support_beam_connector.py",
+    "sha256": "F416D73296A902EAA86C9F4270D12B62F6F8B243EFB53030C0E18DA115798F03"
+  },
+  {
+    "path": "src/cadtocae/support_beam_connector_runtime.py",
+    "sha256": "D3EA46EFADB2407E6120F30D19143106685F27BBB5E3973966219195ECB20D0F"
+  },
+  {
+    "path": "tests/abaqus_bolt_kinematic_probe.py",
+    "sha256": "B528CD7AB4B35CCBFA5BC89828D00B2430CD1BA5922D5AE1D517A8681B75D58D"
+  },
+  {
+    "path": "tests/abaqus_bolt_preset_probe.py",
+    "sha256": "1D7CBE33A47092F36EA2D864A013B0F55A73F1C0491BE600C81227368D8FC5C8"
+  },
+  {
+    "path": "tests/abaqus_connector_integration_probe.py",
+    "sha256": "31E91F2C80CE61212BC15BB5398D0B48CB5C7D866E54B6E6184D45096E8FC2B9"
+  },
+  {
+    "path": "tests/abaqus_hoop_brace_probe.py",
+    "sha256": "D5440FF93F66BFD8292D3DA94916F20D3B8865B92C79AC6B0126CA65E108CCA3"
+  },
+  {
+    "path": "tests/abaqus_step06_b1_probe.py",
+    "sha256": "0260E87CCA21B151F0A4D8E437CB1506275A8350C151CEE05C8769101A0305D4"
+  },
+  {
+    "path": "tests/abaqus_step06_groups_probe.py",
+    "sha256": "0E2D0A3B39DA8B95860EF15215438A22715D9F30C42F7B0F4DBA75D0AFA25E5A"
+  },
+  {
+    "path": "tests/abaqus_support_beam_probe.py",
+    "sha256": "94A23A82165476BEB2C528C6842E0830BEEDF7CA2257B05F77347F8903346B54"
+  },
+  {
+    "path": "tests/fixtures/step06_ang18_transform.json",
+    "sha256": "2F9CCE145A1F3CBA8614DD38DA14860D4C19BC0DEC96970E7619C690B7164456"
+  },
+  {
+    "path": "tests/test_step06_bolt_coupling_rule.py",
+    "sha256": "47E0B45056390F2627D304BD286C614985D264853401A975FA39543AAD16B646"
+  },
+  {
+    "path": "tests/test_step06_bolt_preset.py",
+    "sha256": "D36BE6B3415890AF64D7F44FC131391E81324D47A1630CE0CC81C2FFC593F1B0"
+  },
+  {
+    "path": "tests/test_step06_connector_b1.py",
+    "sha256": "26485F52E785099233CD069593D59389307C116E4AE9CA9D489F9AFB61842A72"
+  },
+  {
+    "path": "tests/test_step06_connector_groups.py",
+    "sha256": "ABD9274B33B08565B316544EEE1F911357F98820E5BC1ED6B2D42EA96CC8C221"
+  },
+  {
+    "path": "tests/test_step06_connector_plan.py",
+    "sha256": "0B76B7FF989B6B52A969D58BF24055104DD7C4F30494D2C84A3924D8275F6567"
+  },
+  {
+    "path": "tests/test_step06_derived.py",
+    "sha256": "7539079E4589C6487849F655CDFF0B3C144D92F9656BF4B375F0DA911EF5F8E7"
+  },
+  {
+    "path": "tests/test_step06_discovery.py",
+    "sha256": "CC261F79CD7BF497A1A695F9124BC3A2D3A54D7F335B7A3251AABE04E1D7EFAB"
+  },
+  {
+    "path": "tests/test_step06_gui.py",
+    "sha256": "C85C5DDAB0E2705EE78C0BC33E3C96C637B0978E068526263D70B3D6E12A1050"
+  },
+  {
+    "path": "tests/test_step06_hole_inputs.py",
+    "sha256": "F2087A0389DA074305FF3D01AD8909FE7DEA26E3F73E4E35105038F89991BBB5"
+  },
+  {
+    "path": "tests/test_step06_hole_plan.py",
+    "sha256": "DE49277AB48064796EFF11E8F90E439E69B0D9AF5C9B94B6175E829D761880A7"
+  },
+  {
+    "path": "tests/test_step06_hoop_brace_plan.py",
+    "sha256": "528972F0F6ED7F7A10E429E094D63A00A333A3826EBE10C790D18A0ACFA2841E"
+  },
+  {
+    "path": "tests/test_step06_hoop_brace_runtime.py",
+    "sha256": "3FED632FC091BD100AECD04103810831203D11A0E6C4B2721DA898BDD91F2802"
+  },
+  {
+    "path": "tests/test_step06_hoop_runtime.py",
+    "sha256": "4ADCB8C6EF0A45FD891128753C7E063FC913482A8D7B50B623C98764B3A5EC30"
+  },
+  {
+    "path": "tests/test_step06_integration.py",
+    "sha256": "75F9B03784F5D600AAE6A3AE3E310964572B2FA7CE14A3CED10DB50D3058579B"
+  },
+  {
+    "path": "tests/test_step06_model_resolution.py",
+    "sha256": "19401D867A7E24F864B1AD7CF71CC3C6AE67CBDAB34C0A3FA7A9471AD63EE46A"
+  },
+  {
+    "path": "tests/test_step06_project_tables.py",
+    "sha256": "15924A854C9E770C525E6716253AFE089E7290F945EF8D09105A59E149896B1E"
+  },
+  {
+    "path": "tests/test_step06_release.py",
+    "sha256": "1C3134A02441E25B8886F24449257404C5E6083788CD862BBFBFDBB913767719"
+  },
+  {
+    "path": "tests/test_step06_runtime.py",
+    "sha256": "6596E9AF5737DA6F3B623B9F83AB784DC5410E563403552C47212714A9FADDA6"
+  },
+  {
+    "path": "tests/test_step06_spsc_geometry.py",
+    "sha256": "07E79812B33172F5DE3A58FAD1299F4F3666BC9977A72C74D203866DC136CDAD"
+  },
+  {
+    "path": "tests/test_step06_support_beam.py",
+    "sha256": "651438A092A16E7A48B4A1317AF9C678D4CF98B4C79A522E5C40C4CE95562526"
+  },
+  {
+    "path": "tests/test_step06_transforms.py",
+    "sha256": "A93DF6100F34647C46BCB365A77D8F5D4528BD2D179ECC5439AF01C4E81049CA"
+  }
+]

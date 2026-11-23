@@ -1,0 +1,5 @@
+4670162 feat(step01): improve material table OCR and component naming
+237dd26 Merge pull request #3 from lxx1394567-lyn/chore/development-workflow
+9689935 docs: document CADtoCAE development workflow
+847744f Merge pull request #2 from lxx1394567-lyn/feature/step04-adapter
+03f7d4f 完善 Step04 装配脚本生成与上游产物适配

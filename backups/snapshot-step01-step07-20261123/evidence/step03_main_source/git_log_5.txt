@@ -1,0 +1,5 @@
+a0092c0 Merge pull request #8 from lxx1394567-lyn/fix/step02-hoop-inner-profile
+cdf5836 fix(step02): correct hoop geometry and runtime packaging
+472003a Merge pull request #7 from lxx1394567-lyn/feature/step04-dp-assembly
+a4ead2b feat(step04): add DP assembly and folder-based generation
+0a237b1 Merge pull request #6 from lxx1394567-lyn/feature/step04-development
