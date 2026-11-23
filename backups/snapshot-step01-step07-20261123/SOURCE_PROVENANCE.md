@@ -5,7 +5,7 @@ Confirmation of a runtime package means that the package was selected for preser
 | Module | Archived source | Evidence | Status and limitations |
 |---|---|---|---|
 | Step01 S01-A | Current clean snapshot from `CADtoCAE-feature-step01-development`; build script/spec/docs/tests included | Commit `4670162...`, PyInstaller spec and build script | **B**: strong association, but no exact build-time source hash manifest |
-| Step02 S02-A | Current clean snapshot from `CADtoCAE-fix-step02-hoop-inner-profile` | Commit `cdf5836...`, PR #8 files, Tcl/Tk build checks, docs/tests | **B**: no complete exact source hash manifest for the selected EXE |
+| Step02 S02-B | Current clean snapshot from `CADtoCAE-fix-step02-hoop-inner-profile` | Commit `cdf5836...`, TkFix PyInstaller spec, `rebuild-tkfix.log`, `tk-runtime.json`, warning/xref reports, GUI smoke PASS, build script, docs/tests | **B**: strong TkFix build association, but no complete exact source hash manifest for every source file embedded in the selected EXE |
 | Step03 | Current main Step03 scripts, coordinate module, configuration, templates, examples, tests, and usage material | Main base `a0092c0...` | No standalone EXE; source-only preservation |
 | Step04 S04-A | Current clean snapshot from `CADtoCAE-feature-step04-dp-assembly` | Commit `a4ead2b...`, spec/build script/docs/tests | **B**: no complete exact source hash manifest |
 | Step05 S05-A | Current snapshot from `CADtoCAE-feature-step05-development`, including modified and untracked source/tests | Git status evidence; package runtime files; spec/build script | **B**: current source contains later work; existing integrity proof refers to another older EXE hash |

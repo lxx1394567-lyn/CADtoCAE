@@ -1,0 +1,156 @@
+test_angle_inner_root_uses_fillet_radius_equal_to_thickness (test_abaqus_geometry.AbaqusGeometryTest.test_angle_inner_root_uses_fillet_radius_equal_to_thickness) ... ok
+test_c_channel_profile_is_open_lipped_centerline (test_abaqus_geometry.AbaqusGeometryTest.test_c_channel_profile_is_open_lipped_centerline) ... ok
+test_clamp_sketch_plane_uses_planar_face_and_z_direction_edge (test_abaqus_geometry.AbaqusGeometryTest.test_clamp_sketch_plane_uses_planar_face_and_z_direction_edge) ... ok
+test_clamp_slots_have_two_centers_at_15_and_75_mm (test_abaqus_geometry.AbaqusGeometryTest.test_clamp_slots_have_two_centers_at_15_and_75_mm) ... ok
+test_hoop_band_dimensions_use_inner_diameter_and_asymmetric_extensions (test_abaqus_geometry.AbaqusGeometryTest.test_hoop_band_dimensions_use_inner_diameter_and_asymmetric_extensions) ... ok
+test_mid_clamp_profile_rejects_previous_self_intersection (test_abaqus_geometry.AbaqusGeometryTest.test_mid_clamp_profile_rejects_previous_self_intersection) ... ok
+test_mid_clamp_validation_does_not_call_abaqus_sum_with_generator (test_abaqus_geometry.AbaqusGeometryTest.test_mid_clamp_validation_does_not_call_abaqus_sum_with_generator) ... ok
+test_simple_c_and_clamp_v1_profiles_use_drawing_dimensions (test_abaqus_geometry.AbaqusGeometryTest.test_simple_c_and_clamp_v1_profiles_use_drawing_dimensions) ... ok
+test_assembly (unittest.loader._FailedTest.test_assembly) ... ERROR
+test_coordinate_workbooks_include_purlin_axis_points_and_checks (test_coordinate_workbooks.CoordinateWorkbookTest.test_coordinate_workbooks_include_purlin_axis_points_and_checks) ... ok
+test_coordinate_workbooks_use_project_prefix (test_coordinate_workbooks.CoordinateWorkbookTest.test_coordinate_workbooks_use_project_prefix) ... ok
+test_both_entry_points_match_and_use_only_explicit_lines_and_arcs (test_hoop_profile.HoopProfileTest.test_both_entry_points_match_and_use_only_explicit_lines_and_arcs) ... ok
+test_existing_step04_pairs_mate_inner_faces_and_keep_long_side (test_hoop_profile.HoopProfileTest.test_existing_step04_pairs_mate_inner_faces_and_keep_long_side) ... ok
+test_invalid_dimensions_fail_before_sketch_creation (test_hoop_profile.HoopProfileTest.test_invalid_dimensions_fail_before_sketch_creation) ... ok
+test_radius_thickness_tangency_lengths_and_no_self_intersection (test_hoop_profile.HoopProfileTest.test_radius_thickness_tangency_lengths_and_no_self_intersection) ... ok
+test_beam_anchor_uses_section_centroid_and_y_rotation (test_main_frame_assembly.MainFrameAssemblyTest.test_beam_anchor_uses_section_centroid_and_y_rotation) ... ok
+test_build_payload_accepts_column_up_without_column_down (test_main_frame_assembly.MainFrameAssemblyTest.test_build_payload_accepts_column_up_without_column_down) ... ok
+test_build_payload_accepts_single_column_component_code (test_main_frame_assembly.MainFrameAssemblyTest.test_build_payload_accepts_single_column_component_code) ... ok
+test_excel_checks_are_exported_for_current_tolerance (test_main_frame_assembly.MainFrameAssemblyTest.test_excel_checks_are_exported_for_current_tolerance) ... ok
+test_excel_inputs_recompute_g_local_control_points (test_main_frame_assembly.MainFrameAssemblyTest.test_excel_inputs_recompute_g_local_control_points) ... ok
+test_export_generates_single_embedded_assembly_script (test_main_frame_assembly.MainFrameAssemblyTest.test_export_generates_single_embedded_assembly_script) ... ok
+test_hoop_component_code_resolver (test_main_frame_assembly.MainFrameAssemblyTest.test_hoop_component_code_resolver) ... ok
+test_purlin_station_points_create_exact_support_and_local_purlin_pairs (test_main_frame_assembly.MainFrameAssemblyTest.test_purlin_station_points_create_exact_support_and_local_purlin_pairs) ... ok
+test_section_reference_for_pipe_c_channel_and_angle (test_main_frame_assembly.MainFrameAssemblyTest.test_section_reference_for_pipe_c_channel_and_angle) ... ok
+test_sp_sc_hoop_control_point_creates_complete_pair (test_main_frame_assembly.MainFrameAssemblyTest.test_sp_sc_hoop_control_point_creates_complete_pair) ... ok
+test_sp_sc_numbered_hoop_assembly_creates_complete_pair (test_main_frame_assembly.MainFrameAssemblyTest.test_sp_sc_numbered_hoop_assembly_creates_complete_pair) ... ok
+test_step04_auto_locates_flat_step02_part_script_components (test_main_frame_assembly.MainFrameAssemblyTest.test_step04_auto_locates_flat_step02_part_script_components) ... ok
+test_step04_rejects_model_name_that_does_not_match_prefix (test_main_frame_assembly.MainFrameAssemblyTest.test_step04_rejects_model_name_that_does_not_match_prefix) ... ok
+test_material_pdf (unittest.loader._FailedTest.test_material_pdf) ... ERROR
+test_batch_generates_part_script_from_step01_workbook (test_part_script.PartScriptGenerationTest.test_batch_generates_part_script_from_step01_workbook) ... ok
+test_batch_rejects_different_workbooks_with_same_project_id (test_part_script.PartScriptGenerationTest.test_batch_rejects_different_workbooks_with_same_project_id) ... ok
+test_filename_prefix_overrides_stale_angle_inside_workbook (test_part_script.PartScriptGenerationTest.test_filename_prefix_overrides_stale_angle_inside_workbook) ... ok
+test_infer_project_prefix_from_workbook (test_part_script.PartScriptGenerationTest.test_infer_project_prefix_from_workbook) ... ok
+test_manual_part_names_sanitize_full_project_id_for_abaqus (test_part_script.PartScriptGenerationTest.test_manual_part_names_sanitize_full_project_id_for_abaqus) ... ok
+test_project_id_comes_from_full_components_filename (test_part_script.PartScriptGenerationTest.test_project_id_comes_from_full_components_filename) ... ok
+test_single_step02_cli_uses_filename_prefix_for_generated_part_names (test_part_script.PartScriptGenerationTest.test_single_step02_cli_uses_filename_prefix_for_generated_part_names) ... ok
+test_step02_prefers_manual_component_sheet_overrides (test_part_script.PartScriptGenerationTest.test_step02_prefers_manual_component_sheet_overrides) ... ok
+test_step02_reads_raw_material_updates_without_excel_recalc (test_part_script.PartScriptGenerationTest.test_step02_reads_raw_material_updates_without_excel_recalc) ... ok
+test_create_timestamped_run_directory_and_manifest (test_runs.RunDirectoryTest.test_create_timestamped_run_directory_and_manifest) ... ok
+test_component_role_alias_is_explicit (test_standards.StandardsTest.test_component_role_alias_is_explicit) ... ok
+test_component_role_maps_known_component_codes (test_standards.StandardsTest.test_component_role_maps_known_component_codes) ... ok
+test_decimal_angle_code (test_standards.StandardsTest.test_decimal_angle_code) ... ok
+test_derive_component_row_adds_mass_and_density_fields (test_standards.StandardsTest.test_derive_component_row_adds_mass_and_density_fields) ... ok
+test_derive_component_row_flags_missing_fields (test_standards.StandardsTest.test_derive_component_row_flags_missing_fields) ... ok
+test_hoop_model_params_are_meters (test_standards.StandardsTest.test_hoop_model_params_are_meters) ... ok
+test_hoop_spec_is_context_ready_and_pipe_spec_is_unchanged (test_standards.StandardsTest.test_hoop_spec_is_context_ready_and_pipe_spec_is_unchanged) ... ok
+test_implemented_precision_parts_force_solid_despite_excel_policy (test_standards.StandardsTest.test_implemented_precision_parts_force_solid_despite_excel_policy) ... ok
+test_material_density_mapping_does_not_default_unknowns_to_steel (test_standards.StandardsTest.test_material_density_mapping_does_not_default_unknowns_to_steel) ... ok
+test_material_grade_normalization_for_density_lookup (test_standards.StandardsTest.test_material_grade_normalization_for_density_lookup) ... ok
+test_mid_and_edge_clamp_v1_specs_are_distinct (test_standards.StandardsTest.test_mid_and_edge_clamp_v1_specs_are_distinct) ... ok
+test_numbered_and_front_rear_codes_are_distinct (test_standards.StandardsTest.test_numbered_and_front_rear_codes_are_distinct) ... ok
+test_numbered_component_names_keep_suffix_only_for_known_bases (test_standards.StandardsTest.test_numbered_component_names_keep_suffix_only_for_known_bases) ... ok
+test_parse_common_specs (test_standards.StandardsTest.test_parse_common_specs) ... ok
+test_parseable_hoop_roles_can_override_manual_template (test_standards.StandardsTest.test_parseable_hoop_roles_can_override_manual_template) ... ok
+test_part_name_omits_layout_mark_length_and_quantity (test_standards.StandardsTest.test_part_name_omits_layout_mark_length_and_quantity) ... ok
+test_precision_part_specs_keep_component_identity_separate_from_section_kind (test_standards.StandardsTest.test_precision_part_specs_keep_component_identity_separate_from_section_kind) ... ok
+test_project_prefix_rules (test_standards.StandardsTest.test_project_prefix_rules) ... ok
+test_rectangular_washer_parser_is_reserved_without_auto_model_policy (test_standards.StandardsTest.test_rectangular_washer_parser_is_reserved_without_auto_model_policy) ... ok
+test_actual_transforms_align_centers_long_short_plates_arcs_and_width (test_step04_dp_adapter.DPAdapterTest.test_actual_transforms_align_centers_long_short_plates_arcs_and_width) ... ok
+test_ambiguous_hoop_mapping_is_preflight_error (test_step04_dp_adapter.DPAdapterTest.test_ambiguous_hoop_mapping_is_preflight_error) ... ok
+test_ang14_and_ang35_actual_long_side_drives_both_half_transforms (test_step04_dp_adapter.DPAdapterTest.test_ang14_and_ang35_actual_long_side_drives_both_half_transforms) ... ok
+test_beam_uses_g_f_and_preserves_roll (test_step04_dp_adapter.DPAdapterTest.test_beam_uses_g_f_and_preserves_roll) ... ok
+test_column_derived_direction_and_flip_work_away_from_global_x (test_step04_dp_adapter.DPAdapterTest.test_column_derived_direction_and_flip_work_away_from_global_x) ... ok
+test_columns_and_braces_use_exact_final_control_lines_without_scaling (test_step04_dp_adapter.DPAdapterTest.test_columns_and_braces_use_exact_final_control_lines_without_scaling) ... ok
+test_control_points_are_authoritative_not_rebuilt_from_symmetry (test_step04_dp_adapter.DPAdapterTest.test_control_points_are_authoritative_not_rebuilt_from_symmetry) ... ok
+test_dispatch_main_frame_with_four_purlin_pairs (test_step04_dp_adapter.DPAdapterTest.test_dispatch_main_frame_with_four_purlin_pairs) ... ok
+test_front_rear_directions_follow_swapped_column_positions (test_step04_dp_adapter.DPAdapterTest.test_front_rear_directions_follow_swapped_column_positions) ... ok
+test_generated_common_transforms_keep_anchors_axes_and_actual_lengths (test_step04_dp_adapter.DPAdapterTest.test_generated_common_transforms_keep_anchors_axes_and_actual_lengths) ... ok
+test_hoop_pairs_reuse_part_with_horizontal_flip_through_hf_hr (test_step04_dp_adapter.DPAdapterTest.test_hoop_pairs_reuse_part_with_horizontal_flip_through_hf_hr) ... ok
+test_invalid_dp_geometry_or_coincident_columns_fails_preflight (test_step04_dp_adapter.DPAdapterTest.test_invalid_dp_geometry_or_coincident_columns_fails_preflight) ... ok
+test_left_long_hoop_aligns_to_non_x_inward_direction (test_step04_dp_adapter.DPAdapterTest.test_left_long_hoop_aligns_to_non_x_inward_direction) ... ok
+test_missing_matching_hoop_is_preflight_error (test_step04_dp_adapter.DPAdapterTest.test_missing_matching_hoop_is_preflight_error) ... ok
+test_named_reader_stops_before_numeric_qa_rows (test_step04_dp_adapter.DPAdapterTest.test_named_reader_stops_before_numeric_qa_rows) ... ok
+test_nonvertical_column_or_off_axis_hoop_is_rejected (test_step04_dp_adapter.DPAdapterTest.test_nonvertical_column_or_off_axis_hoop_is_rejected) ... ok
+test_nonzero_transverse_beam_position_translates_purlin_nodes (test_step04_dp_adapter.DPAdapterTest.test_nonzero_transverse_beam_position_translates_purlin_nodes) ... ok
+test_numbered_hoops_match_by_diameter_not_index (test_step04_dp_adapter.DPAdapterTest.test_numbered_hoops_match_by_diameter_not_index) ... ok
+test_purlin_nodes_use_saved_points_real_parts_and_physical_surfaces (test_step04_dp_adapter.DPAdapterTest.test_purlin_nodes_use_saved_points_real_parts_and_physical_surfaces) ... ok
+test_qa_and_rear_column_mismatch_are_warnings_only (test_step04_dp_adapter.DPAdapterTest.test_qa_and_rear_column_mismatch_are_warnings_only) ... ok
+test_real_generation_entry_exports_despite_warnings (test_step04_dp_adapter.DPAdapterTest.test_real_generation_entry_exports_despite_warnings) ... ok
+test_reversed_saved_stations_warn_without_repositioning (test_step04_dp_adapter.DPAdapterTest.test_reversed_saved_stations_warn_without_repositioning) ... ok
+test_summary_preserves_points_warnings_and_hoop_ownership (test_step04_dp_adapter.DPAdapterTest.test_summary_preserves_points_warnings_and_hoop_ownership) ... ok
+test_symmetric_or_nearly_symmetric_dp_hoop_is_ambiguous (test_step04_dp_adapter.DPAdapterTest.test_symmetric_or_nearly_symmetric_dp_hoop_is_ambiguous) ... ok
+test_wrong_or_zero_brace_side_warns_and_exports_diagnostics (test_step04_dp_adapter.DPAdapterTest.test_wrong_or_zero_brace_side_warns_and_exports_diagnostics) ... ok
+test_full_project_id_and_structure_detection (test_step04_instance_plan.Step04InstancePlanTest.test_full_project_id_and_structure_detection) ... ok
+test_generated_script_uses_generic_instance_plan_executor (test_step04_instance_plan.Step04InstancePlanTest.test_generated_script_uses_generic_instance_plan_executor) ... ok
+test_numbered_hoop_does_not_fall_back_to_another_index (test_step04_instance_plan.Step04InstancePlanTest.test_numbered_hoop_does_not_fall_back_to_another_index) ... ok
+test_optional_purlin_placement_data_is_skipped (test_step04_instance_plan.Step04InstancePlanTest.test_optional_purlin_placement_data_is_skipped) ... ok
+test_sp_dc_adapter_builds_unified_unique_instance_plan (test_step04_instance_plan.Step04InstancePlanTest.test_sp_dc_adapter_builds_unified_unique_instance_plan) ... ok
+test_sp_dc_generic_hoop_is_reused_for_all_control_points (test_step04_instance_plan.Step04InstancePlanTest.test_sp_dc_generic_hoop_is_reused_for_all_control_points) ... ok
+test_sp_dc_numbered_hoops_map_to_matching_control_points (test_step04_instance_plan.Step04InstancePlanTest.test_sp_dc_numbered_hoops_map_to_matching_control_points) ... ok
+test_sp_dc_summary_records_hoop_and_purlin_connection_groups (test_step04_instance_plan.Step04InstancePlanTest.test_sp_dc_summary_records_hoop_and_purlin_connection_groups) ... ok
+test_batch_rechecks_added_duplicate_and_continues (test_step04_projects.DiscoveryTest.test_batch_rechecks_added_duplicate_and_continues) ... ok
+test_generated_outputs_and_excel_lock_files_are_ignored (test_step04_projects.DiscoveryTest.test_generated_outputs_and_excel_lock_files_are_ignored) ... ok
+test_id_and_structure_metadata_mismatches (test_step04_projects.DiscoveryTest.test_id_and_structure_metadata_mismatches) ... ok
+test_invalid_inputs_and_unsupported_structure (test_step04_projects.DiscoveryTest.test_invalid_inputs_and_unsupported_structure) ... ok
+test_missing_inputs_are_specific (test_step04_projects.DiscoveryTest.test_missing_inputs_are_specific) ... ok
+test_readonly_scan_warnings_remain_generatable (test_step04_projects.DiscoveryTest.test_readonly_scan_warnings_remain_generatable) ... ok
+test_recursion_and_duplicate_inputs (test_step04_projects.DiscoveryTest.test_recursion_and_duplicate_inputs) ... ok
+test_selected_only_and_all_ready_skips_blocked (test_step04_projects.DiscoveryTest.test_selected_only_and_all_ready_skips_blocked) ... ok
+test_split_folder_pair_is_not_silently_merged (test_step04_projects.DiscoveryTest.test_split_folder_pair_is_not_silently_merged) ... ok
+test_valid_types_and_multiple_projects (test_step04_projects.DiscoveryTest.test_valid_types_and_multiple_projects) ... ok
+test_gui_selected_dispatch_uses_only_selected_project (test_step04_projects.FolderGenerationIntegrationTest.test_gui_selected_dispatch_uses_only_selected_project) ... ok
+test_three_real_adapter_fixtures_match_direct_file_api (test_step04_projects.FolderGenerationIntegrationTest.test_three_real_adapter_fixtures_match_direct_file_api) ... ok
+test_step01_pdf_only_does_not_fake_components (test_step_scripts.StepScriptTest.test_step01_pdf_only_does_not_fake_components) ... skipped 'sample PDF is not available'
+test_component_role_formula_uses_same_config_entries_as_python (test_workbook.WorkbookTest.test_component_role_formula_uses_same_config_entries_as_python) ... ok
+test_configured_alias_does_not_raise_part_name_collision (test_workbook.WorkbookTest.test_configured_alias_does_not_raise_part_name_collision) ... ok
+test_create_material_workbook (test_workbook.WorkbookTest.test_create_material_workbook) ... ok
+test_export_adds_purlin_local_using_default_length_fallback (test_workbook.WorkbookTest.test_export_adds_purlin_local_using_default_length_fallback) ... ok
+test_export_adds_purlin_local_using_inclined_beam_flange_fallback (test_workbook.WorkbookTest.test_export_adds_purlin_local_using_inclined_beam_flange_fallback) ... ok
+test_export_adds_purlin_local_using_purlin_support_length (test_workbook.WorkbookTest.test_export_adds_purlin_local_using_purlin_support_length) ... ok
+test_export_approved_components_json (test_workbook.WorkbookTest.test_export_approved_components_json) ... ok
+test_export_complete_components_converts_length_mm_once (test_workbook.WorkbookTest.test_export_complete_components_converts_length_mm_once) ... ok
+test_export_complete_components_json (test_workbook.WorkbookTest.test_export_complete_components_json) ... ok
+test_export_complete_components_preserves_meter_values_written_to_length_mm (test_workbook.WorkbookTest.test_export_complete_components_preserves_meter_values_written_to_length_mm) ... ok
+test_export_precision_parts_keep_component_codes_and_geometry_kinds (test_workbook.WorkbookTest.test_export_precision_parts_keep_component_codes_and_geometry_kinds) ... ok
+test_export_uses_step01_section_columns_when_spec_needs_manual_parse (test_workbook.WorkbookTest.test_export_uses_step01_section_columns_when_spec_needs_manual_parse) ... ok
+test_manual_component_rows_beyond_raw_table_are_read_and_exported (test_workbook.WorkbookTest.test_manual_component_rows_beyond_raw_table_are_read_and_exported) ... ok
+test_workbook_component_codes_cover_new_naming_map (test_workbook.WorkbookTest.test_workbook_component_codes_cover_new_naming_map) ... ok
+test_workbook_leaves_unknown_material_density_blank (test_workbook.WorkbookTest.test_workbook_leaves_unknown_material_density_blank) ... ok
+test_workbook_marks_unexpected_part_name_collision (test_workbook.WorkbookTest.test_workbook_marks_unexpected_part_name_collision) ... ok
+test_workbook_preserves_raw_mass_columns_and_adds_model_mass_fields (test_workbook.WorkbookTest.test_workbook_preserves_raw_mass_columns_and_adds_model_mass_fields) ... ok
+
+======================================================================
+ERROR: test_assembly (unittest.loader._FailedTest.test_assembly)
+----------------------------------------------------------------------
+ImportError: Failed to import test module: test_assembly
+Traceback (most recent call last):
+  File "D:\Software\anaconda3\Lib\unittest\loader.py", line 419, in _find_test_path
+    module = self._get_module_from_name(name)
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "D:\Software\anaconda3\Lib\unittest\loader.py", line 362, in _get_module_from_name
+    __import__(name)
+  File "F:\Codex\Wind Resistance of PV Support Structures\CADtoCAE-fix-step02-hoop-inner-profile\tests\test_assembly.py", line 11, in <module>
+    from PIL import Image
+ModuleNotFoundError: No module named 'PIL'
+
+
+======================================================================
+ERROR: test_material_pdf (unittest.loader._FailedTest.test_material_pdf)
+----------------------------------------------------------------------
+ImportError: Failed to import test module: test_material_pdf
+Traceback (most recent call last):
+  File "D:\Software\anaconda3\Lib\unittest\loader.py", line 419, in _find_test_path
+    module = self._get_module_from_name(name)
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "D:\Software\anaconda3\Lib\unittest\loader.py", line 362, in _get_module_from_name
+    __import__(name)
+  File "F:\Codex\Wind Resistance of PV Support Structures\CADtoCAE-fix-step02-hoop-inner-profile\tests\test_material_pdf.py", line 9, in <module>
+    from PIL import Image, ImageDraw
+ModuleNotFoundError: No module named 'PIL'
+
+
+----------------------------------------------------------------------
+Ran 121 tests in 53.492s
+
+FAILED (errors=2, skipped=1)

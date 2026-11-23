@@ -1,0 +1,112 @@
+Building Step02 GUI executable from F:\Codex\Wind Resistance of PV Support Structures\CADtoCAE-fix-step02-hoop-inner-profile
+Build Python: F:\Codex\Wind Resistance of PV Support Structures\CADtoCAE-feature-step2-part-abaqus\.venv_step02_build\Scripts\python.exe
+PyInstaller: 6.22.2; Tk: 8.6
+Including runtime DLL: D:\Software\anaconda3\Library\bin\tcl86t.dll
+Including runtime DLL: D:\Software\anaconda3\Library\bin\tk86t.dll
+Including runtime DLL: D:\Software\anaconda3\Library\bin\ffi.dll
+529 WARNING: Assuming this is not an Anaconda environment or an additional venv/pipenv/... environment manager is being used on top, because the conda-meta folder F:\Codex\Wind Resistance of PV Support Structures\CADtoCAE-feature-step2-part-abaqus\.venv_step02_build\conda-meta does not exist.
+569 INFO: PyInstaller: 6.22.2, contrib hooks: 2026.7
+569 INFO: Python: 3.11.7 (conda)
+609 INFO: Platform: Windows-10-10.0.26200-SP0
+609 INFO: Python environment: F:\Codex\Wind Resistance of PV Support Structures\CADtoCAE-feature-step2-part-abaqus\.venv_step02_build
+610 INFO: wrote F:\Codex\Wind Resistance of PV Support Structures\CADtoCAE-fix-step02-hoop-inner-profile\build\step02\spec\CADtoCAE_Step02_PartScript_TkFix.spec
+619 INFO: Removing temporary files and cleaning cache in C:\Users\LDT94\AppData\Local\pyinstaller
+184 WARNING: Assuming this is not an Anaconda environment or an additional venv/pipenv/... environment manager is being used on top, because the conda-meta folder F:\Codex\Wind Resistance of PV Support Structures\CADtoCAE-feature-step2-part-abaqus\.venv_step02_build\conda-meta does not exist.
+2417 INFO: Module search paths (PYTHONPATH):
+['F:\\Codex\\Wind Resistance of PV Support '
+ 'Structures\\CADtoCAE-fix-step02-hoop-inner-profile',
+ 'D:\\Software\\anaconda3\\python311.zip',
+ 'D:\\Software\\anaconda3\\DLLs',
+ 'D:\\Software\\anaconda3\\Lib',
+ 'D:\\Software\\anaconda3',
+ 'F:\\Codex\\Wind Resistance of PV Support '
+ 'Structures\\CADtoCAE-feature-step2-part-abaqus\\.venv_step02_build',
+ 'F:\\Codex\\Wind Resistance of PV Support '
+ 'Structures\\CADtoCAE-feature-step2-part-abaqus\\.venv_step02_build\\Lib\\site-packages',
+ 'F:\\Codex\\Wind Resistance of PV Support '
+ 'Structures\\CADtoCAE-fix-step02-hoop-inner-profile\\scripts',
+ 'F:\\Codex\\Wind Resistance of PV Support '
+ 'Structures\\CADtoCAE-fix-step02-hoop-inner-profile\\src']
+194 WARNING: Assuming this is not an Anaconda environment or an additional venv/pipenv/... environment manager is being used on top, because the conda-meta folder F:\Codex\Wind Resistance of PV Support Structures\CADtoCAE-feature-step2-part-abaqus\.venv_step02_build\conda-meta does not exist.
+3052 INFO: Appending 'binaries' from .spec
+3053 INFO: Appending 'datas' from .spec
+3086 INFO: checking Analysis
+3086 INFO: Building Analysis because Analysis-00.toc is non existent
+3086 INFO: Looking for Python shared library...
+3086 INFO: Using Python shared library: D:\Software\anaconda3\python311.dll
+3086 INFO: Running Analysis Analysis-00.toc
+3086 INFO: Target bytecode optimization level: 0
+3087 INFO: Initializing module dependency graph...
+3089 INFO: Initializing module graph hook caches...
+3167 INFO: Analyzing modules for base_library.zip ...
+179 WARNING: Assuming this is not an Anaconda environment or an additional venv/pipenv/... environment manager is being used on top, because the conda-meta folder F:\Codex\Wind Resistance of PV Support Structures\CADtoCAE-feature-step2-part-abaqus\.venv_step02_build\conda-meta does not exist.
+187 WARNING: Assuming this is not an Anaconda environment or an additional venv/pipenv/... environment manager is being used on top, because the conda-meta folder F:\Codex\Wind Resistance of PV Support Structures\CADtoCAE-feature-step2-part-abaqus\.venv_step02_build\conda-meta does not exist.
+186 WARNING: Assuming this is not an Anaconda environment or an additional venv/pipenv/... environment manager is being used on top, because the conda-meta folder F:\Codex\Wind Resistance of PV Support Structures\CADtoCAE-feature-step2-part-abaqus\.venv_step02_build\conda-meta does not exist.
+5088 INFO: Processing standard module hook 'hook-heapq.py' from 'F:\\Codex\\Wind Resistance of PV Support Structures\\CADtoCAE-feature-step2-part-abaqus\\.venv_step02_build\\Lib\\site-packages\\PyInstaller\\hooks'
+5229 INFO: Processing standard module hook 'hook-encodings.py' from 'F:\\Codex\\Wind Resistance of PV Support Structures\\CADtoCAE-feature-step2-part-abaqus\\.venv_step02_build\\Lib\\site-packages\\PyInstaller\\hooks'
+182 WARNING: Assuming this is not an Anaconda environment or an additional venv/pipenv/... environment manager is being used on top, because the conda-meta folder F:\Codex\Wind Resistance of PV Support Structures\CADtoCAE-feature-step2-part-abaqus\.venv_step02_build\conda-meta does not exist.
+7320 INFO: Processing standard module hook 'hook-math.py' from 'F:\\Codex\\Wind Resistance of PV Support Structures\\CADtoCAE-feature-step2-part-abaqus\\.venv_step02_build\\Lib\\site-packages\\PyInstaller\\hooks'
+7476 INFO: Processing standard module hook 'hook-pickle.py' from 'F:\\Codex\\Wind Resistance of PV Support Structures\\CADtoCAE-feature-step2-part-abaqus\\.venv_step02_build\\Lib\\site-packages\\PyInstaller\\hooks'
+9347 INFO: Caching module dependency graph...
+9398 INFO: Analyzing F:\Codex\Wind Resistance of PV Support Structures\CADtoCAE-fix-step02-hoop-inner-profile\scripts\step02_part_script_gui.py
+9429 INFO: Processing pre-find-module-path hook 'hook-tkinter.py' from 'F:\\Codex\\Wind Resistance of PV Support Structures\\CADtoCAE-feature-step2-part-abaqus\\.venv_step02_build\\Lib\\site-packages\\PyInstaller\\hooks\\pre_find_module_path'
+9471 INFO: TclTkInfo: initializing cached Tcl/Tk info...
+9970 INFO: Processing standard module hook 'hook-_tkinter.py' from 'F:\\Codex\\Wind Resistance of PV Support Structures\\CADtoCAE-feature-step2-part-abaqus\\.venv_step02_build\\Lib\\site-packages\\PyInstaller\\hooks'
+10137 INFO: Processing standard module hook 'hook-openpyxl.py' from 'F:\\Codex\\Wind Resistance of PV Support Structures\\CADtoCAE-feature-step2-part-abaqus\\.venv_step02_build\\Lib\\site-packages\\_pyinstaller_hooks_contrib\\stdhooks'
+10831 INFO: Processing standard module hook 'hook-xml.py' from 'F:\\Codex\\Wind Resistance of PV Support Structures\\CADtoCAE-feature-step2-part-abaqus\\.venv_step02_build\\Lib\\site-packages\\PyInstaller\\hooks'
+10858 INFO: Processing standard module hook 'hook-xml.etree.cElementTree.py' from 'F:\\Codex\\Wind Resistance of PV Support Structures\\CADtoCAE-feature-step2-part-abaqus\\.venv_step02_build\\Lib\\site-packages\\PyInstaller\\hooks'
+13115 INFO: Analyzing hidden import 'openpyxl.compat.abc'
+13118 INFO: Analyzing hidden import 'openpyxl.compat.product'
+13134 INFO: Analyzing hidden import 'openpyxl.compat.singleton'
+13140 INFO: Analyzing hidden import 'openpyxl.descriptors.slots'
+13143 INFO: Analyzing hidden import 'openpyxl.packaging.interface'
+13148 INFO: Analyzing hidden import 'openpyxl.utils.dataframe'
+13170 INFO: Analyzing hidden import 'openpyxl.utils.inference'
+13174 INFO: Analyzing hidden import 'openpyxl.worksheet.cell_watch'
+13178 INFO: Analyzing hidden import 'openpyxl.worksheet.controls'
+13208 INFO: Analyzing hidden import 'openpyxl.worksheet.custom'
+13212 INFO: Analyzing hidden import 'openpyxl.worksheet.errors'
+13232 INFO: Analyzing hidden import 'openpyxl.worksheet.picture'
+13246 INFO: Analyzing hidden import 'openpyxl.worksheet.smart_tag'
+13253 INFO: Processing module hooks (post-graph stage)...
+13677 INFO: Processing standard module hook 'hook-_tkinter.py' from 'F:\\Codex\\Wind Resistance of PV Support Structures\\CADtoCAE-feature-step2-part-abaqus\\.venv_step02_build\\Lib\\site-packages\\PyInstaller\\hooks'
+13692 INFO: Performing binary vs. data reclassification (1125 entries)
+13942 INFO: Looking for ctypes DLLs
+13956 INFO: Analyzing run-time hooks ...
+13958 INFO: Including run-time hook 'pyi_rth_inspect.py' from 'F:\\Codex\\Wind Resistance of PV Support Structures\\CADtoCAE-feature-step2-part-abaqus\\.venv_step02_build\\Lib\\site-packages\\PyInstaller\\hooks\\rthooks'
+13979 INFO: Including run-time hook 'pyi_rth__tkinter.py' from 'F:\\Codex\\Wind Resistance of PV Support Structures\\CADtoCAE-feature-step2-part-abaqus\\.venv_step02_build\\Lib\\site-packages\\PyInstaller\\hooks\\rthooks'
+14020 INFO: Creating base_library.zip...
+14046 INFO: Looking for dynamic libraries
+14702 INFO: Extra DLL search directories (AddDllDirectory): []
+14702 INFO: Extra DLL search directories (PATH): []
+15797 INFO: Warnings written to F:\Codex\Wind Resistance of PV Support Structures\CADtoCAE-fix-step02-hoop-inner-profile\build\step02\work\CADtoCAE_Step02_PartScript_TkFix\warn-CADtoCAE_Step02_PartScript_TkFix.txt
+15849 INFO: Graph cross-reference written to F:\Codex\Wind Resistance of PV Support Structures\CADtoCAE-fix-step02-hoop-inner-profile\build\step02\work\CADtoCAE_Step02_PartScript_TkFix\xref-CADtoCAE_Step02_PartScript_TkFix.html
+15957 INFO: checking PYZ
+15957 INFO: Building PYZ because PYZ-00.toc is non existent
+15958 INFO: Building PYZ (ZlibArchive) F:\Codex\Wind Resistance of PV Support Structures\CADtoCAE-fix-step02-hoop-inner-profile\build\step02\work\CADtoCAE_Step02_PartScript_TkFix\PYZ-00.pyz
+16281 INFO: Building PYZ (ZlibArchive) F:\Codex\Wind Resistance of PV Support Structures\CADtoCAE-fix-step02-hoop-inner-profile\build\step02\work\CADtoCAE_Step02_PartScript_TkFix\PYZ-00.pyz completed successfully.
+16294 INFO: checking PKG
+16295 INFO: Building PKG because PKG-00.toc is non existent
+16295 INFO: Building PKG (CArchive) CADtoCAE_Step02_PartScript_TkFix.pkg
+16365 INFO: Building PKG (CArchive) CADtoCAE_Step02_PartScript_TkFix.pkg completed successfully.
+16366 INFO: Bootloader F:\Codex\Wind Resistance of PV Support Structures\CADtoCAE-feature-step2-part-abaqus\.venv_step02_build\Lib\site-packages\PyInstaller\bootloader\Windows-64bit-intel\runw.exe
+16367 INFO: checking EXE
+16367 INFO: Building EXE because EXE-00.toc is non existent
+16367 INFO: Building EXE from EXE-00.toc
+16387 INFO: Copying bootloader EXE to F:\Codex\Wind Resistance of PV Support Structures\CADtoCAE-fix-step02-hoop-inner-profile\build\step02\work\CADtoCAE_Step02_PartScript_TkFix\CADtoCAE_Step02_PartScript_TkFix.exe
+16529 INFO: Copying icon to EXE
+16610 INFO: Copying 0 resources to EXE
+16610 INFO: Embedding manifest in EXE
+16681 INFO: Appending PKG archive to EXE
+16784 INFO: Fixing EXE headers
+17184 INFO: Building EXE from EXE-00.toc completed successfully.
+17212 INFO: checking COLLECT
+17213 INFO: Building COLLECT because COLLECT-00.toc is non existent
+17213 INFO: Building COLLECT COLLECT-00.toc
+19815 INFO: Building COLLECT COLLECT-00.toc completed successfully.
+19845 INFO: Build complete! The results are available in: F:\Codex\Wind Resistance of PV Support Structures\CADtoCAE-fix-step02-hoop-inner-profile\dist
+{"python": "F:\\Codex\\Wind Resistance of PV Support Structures\\CADtoCAE-feature-step2-part-abaqus\\.venv_step02_build\\Scripts\\python.exe", "version": "3.11.7 | packaged by Anaconda, Inc. | (main, Dec 15 2023, 18:05:47) [MSC v.1916 64 bit (AMD64)]", "pyinstaller": "6.22.2", "tk_version": 8.6, "tkinter_extension": "D:\\Software\\anaconda3\\DLLs\\_tkinter.pyd", "binaries": ["D:\\Software\\anaconda3\\Library\\bin\\tcl86t.dll", "D:\\Software\\anaconda3\\Library\\bin\\tk86t.dll", "D:\\Software\\anaconda3\\Library\\bin\\ffi.dll"], "tcl_library": "D:/Software/anaconda3/Library/lib/tcl8.6", "package_check": "PASS"}
+
+Done.
+Executable:
+  dist\CADtoCAE_Step02_PartScript_TkFix\CADtoCAE_Step02_PartScript_TkFix.exe

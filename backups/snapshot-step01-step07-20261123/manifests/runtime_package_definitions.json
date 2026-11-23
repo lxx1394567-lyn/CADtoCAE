@@ -7,10 +7,10 @@
     "Evidence": "B"
   },
   {
-    "Id": "S02-A",
-    "Package": "F:\\Codex\\Wind Resistance of PV Support Structures\\CADtoCAE-fix-step02-hoop-inner-profile\\dist\\CADtoCAE_Step02_PartScript",
-    "ExeName": "CADtoCAE_Step02_PartScript.exe",
-    "ExpectedExeSha256": "260D2F5D38830DC3C7D05EC0CCB02BFF409673C00F1E507C119B22AE352D4B95",
+    "Id": "S02-B",
+    "Package": "F:\\Codex\\Wind Resistance of PV Support Structures\\CADtoCAE-fix-step02-hoop-inner-profile\\dist\\CADtoCAE_Step02_PartScript_TkFix",
+    "ExeName": "CADtoCAE_Step02_PartScript_TkFix.exe",
+    "ExpectedExeSha256": "11A8EE568183A65355898A03288E0E013897DEE01BAAA8E830DA9350C96282C3",
     "Evidence": "B"
   },
   {

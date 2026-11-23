@@ -1,9 +1,9 @@
-# CADtoCAE Step01—Step07 backup snapshot (2026-11-23)
+# CADtoCAE Step01—Step07 backup snapshot r2 (2026-11-23)
 
 This directory is the source-and-evidence portion of the authorized backup snapshot.
 
 - Branch: `backup/step01-step07-20261123`
-- Tag: `snapshot-step01-step07-20261123`
+- Tag: `snapshot-step01-step07-20261123-r2`
 - Base commit: `a0092c033675dd5dffb7ad58d5c7acc19e2ac660`
 - Runtime packages: distributed as nine ZIP assets on the prerelease associated with the tag
 - EXE policy: selected EXEs were not rebuilt, edited, or executed
@@ -13,7 +13,7 @@ This directory is the source-and-evidence portion of the authorized backup snaps
 | Scope | Candidate | Evidence status | Release asset |
 |---|---|---|---|
 | Step01 material table OCR | S01-A | B | `S01-A_CADtoCAE_Step01_MaterialTable.zip` |
-| Step02 corrected HOOP part scripts | S02-A | B | `S02-A_CADtoCAE_Step02_PartScript.zip` |
+| Step02 TkFix part scripts | S02-B | B | `S02-B_CADtoCAE_Step02_PartScript_TkFix.zip` |
 | Step03 coordinate workbooks | scripts/templates only | no standalone EXE | committed under `sources/step03_scripts_templates` |
 | Step04 DP/folder assembly | S04-A | B | `S04-A_CADtoCAE_Step04_AssemblyScript.zip` |
 | Step05 analysis setup | S05-A | B | `S05-A_CADtoCAE_Step05_AnalysisSetup.zip` |
@@ -23,7 +23,7 @@ This directory is the source-and-evidence portion of the authorized backup snaps
 | BatchRunner GUI V40 | BAT-A | B | `BAT-A_CADtoCAE_BatchRunner_V40.zip` |
 | BatchRunner CLI V40 | BAT-B | B | `BAT-B_CADtoCAE_BatchRunner_CLI_V40.zip` |
 
-S07-B, Selection, historical packages, diagnostic packages, and duplicate mirrors were intentionally not selected as primary runtime packages. Their original local files were not moved or deleted.
+This r2 revision changes only the selected Step02 runtime package from S02-A to S02-B. The original tag and Release remain unchanged. S07-B, Selection, historical packages, diagnostic packages, and duplicate mirrors were intentionally not selected as primary runtime packages. Their original local files were not moved or deleted.
 
 ## Layout
 

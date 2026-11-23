@@ -7,17 +7,17 @@ Clone the backup branch or check out the tag:
 ```powershell
 git clone --branch backup/step01-step07-20261123 --single-branch https://github.com/lxx1394567-lyn/CADtoCAE.git CADtoCAE-backup-restore
 git -C CADtoCAE-backup-restore rev-parse HEAD
-git -C CADtoCAE-backup-restore rev-parse snapshot-step01-step07-20261123^{commit}
+git -C CADtoCAE-backup-restore rev-parse snapshot-step01-step07-20261123-r2^{commit}
 ```
 
 The branch commit and tag target must match the published snapshot commit.
 
 ## 2. Download release assets
 
-Download all assets from the prerelease associated with `snapshot-step01-step07-20261123`. With GitHub CLI:
+Download all assets from the prerelease associated with `snapshot-step01-step07-20261123-r2`. With GitHub CLI:
 
 ```powershell
-gh release download snapshot-step01-step07-20261123 --repo lxx1394567-lyn/CADtoCAE --dir release-assets
+gh release download snapshot-step01-step07-20261123-r2 --repo lxx1394567-lyn/CADtoCAE --dir release-assets
 ```
 
 ## 3. Verify asset hashes

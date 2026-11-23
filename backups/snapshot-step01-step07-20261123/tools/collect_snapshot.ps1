@@ -190,7 +190,7 @@ function Write-RuntimePackageManifest {
 $parent = 'F:\Codex\Wind Resistance of PV Support Structures'
 $projects = @(
     [pscustomobject]@{Id='step01_S01-A';Source=(Join-Path $parent 'CADtoCAE-feature-step01-development');Evidence='B'},
-    [pscustomobject]@{Id='step02_S02-A';Source=(Join-Path $parent 'CADtoCAE-fix-step02-hoop-inner-profile');Evidence='B'},
+    [pscustomobject]@{Id='step02_S02-B';Source=(Join-Path $parent 'CADtoCAE-fix-step02-hoop-inner-profile');Evidence='B'},
     [pscustomobject]@{Id='step04_S04-A';Source=(Join-Path $parent 'CADtoCAE-feature-step04-dp-assembly');Evidence='B'},
     [pscustomobject]@{Id='step05_S05-A';Source=(Join-Path $parent 'CADtoCAE-feature-step05-development');Evidence='B'},
     [pscustomobject]@{Id='step06_S06-A';Source=(Join-Path $parent 'CADtoCAE-feature-step06-development');Evidence='A'},
@@ -248,13 +248,29 @@ foreach ($name in @('release.json','smoke.json','CADtoCAE_Step06_HoleSetup.spec'
     Copy-SnapshotFile -Source (Join-Path $step06Build $name) -Destination (Join-Path $EvidenceRoot "step06_S06-A\release_build\$name") | Out-Null
 }
 
+$step02Build = Join-Path $parent 'CADtoCAE-fix-step02-hoop-inner-profile\build\step02'
+$step02Evidence = @(
+    'rebuild-tkfix.log',
+    'smoke-tkfix.log',
+    'tk-runtime.json',
+    'spec\CADtoCAE_Step02_PartScript_TkFix.spec',
+    'work\CADtoCAE_Step02_PartScript_TkFix\warn-CADtoCAE_Step02_PartScript_TkFix.txt',
+    'work\CADtoCAE_Step02_PartScript_TkFix\xref-CADtoCAE_Step02_PartScript_TkFix.html',
+    'final-hoop-tests.log',
+    'final-step02-tests.log',
+    'final-full-tests.log'
+)
+foreach ($relative in $step02Evidence) {
+    Copy-SnapshotFile -Source (Join-Path $step02Build $relative) -Destination (Join-Path $EvidenceRoot "step02_S02-B\tkfix_build\$relative") | Out-Null
+}
+
 $reviewRoot = 'F:\Codex\CADtoCAE-Version-Review\20261123'
 Copy-SnapshotFile -Source (Join-Path $reviewRoot 'FINAL_VERSION_REVIEW.md') -Destination (Join-Path $EvidenceRoot 'version_review\FINAL_VERSION_REVIEW.md') | Out-Null
 Copy-SnapshotFile -Source (Join-Path $reviewRoot 'candidate_inventory.csv') -Destination (Join-Path $EvidenceRoot 'version_review\candidate_inventory.csv') | Out-Null
 
 $runtimeDefinitions = @(
     [pscustomobject]@{Id='S01-A';Package=(Join-Path $parent 'CADtoCAE-feature-step01-development\dist\CADtoCAE_Step01_MaterialTable');ExeName='CADtoCAE_Step01_MaterialTable.exe';ExpectedExeSha256='0F1100C487141CFB006CB6AA9D254F13616A085947EDB9DE9BDF261D658B85B1';Evidence='B'},
-    [pscustomobject]@{Id='S02-A';Package=(Join-Path $parent 'CADtoCAE-fix-step02-hoop-inner-profile\dist\CADtoCAE_Step02_PartScript');ExeName='CADtoCAE_Step02_PartScript.exe';ExpectedExeSha256='260D2F5D38830DC3C7D05EC0CCB02BFF409673C00F1E507C119B22AE352D4B95';Evidence='B'},
+    [pscustomobject]@{Id='S02-B';Package=(Join-Path $parent 'CADtoCAE-fix-step02-hoop-inner-profile\dist\CADtoCAE_Step02_PartScript_TkFix');ExeName='CADtoCAE_Step02_PartScript_TkFix.exe';ExpectedExeSha256='11A8EE568183A65355898A03288E0E013897DEE01BAAA8E830DA9350C96282C3';Evidence='B'},
     [pscustomobject]@{Id='S04-A';Package=(Join-Path $parent 'CADtoCAE-feature-step04-dp-assembly\dist\CADtoCAE_Step04_AssemblyScript');ExeName='CADtoCAE_Step04_AssemblyScript.exe';ExpectedExeSha256='9C89663D72BD14257BBA03A7F2C362A9F735FA6C21132768CCD0A2A309D4C99E';Evidence='B'},
     [pscustomobject]@{Id='S05-A';Package=(Join-Path $parent 'CADtoCAE-feature-step05-development\dist\CADtoCAE_Step05_AnalysisSetup');ExeName='CADtoCAE_Step05_AnalysisSetup.exe';ExpectedExeSha256='11A92D27A6BF7482636D74200F58119C5B4FCADC1C2A595044461522A870CBE2';Evidence='B'},
     [pscustomobject]@{Id='S06-A';Package=(Join-Path $parent 'CADtoCAE-feature-step06-development\dist\CADtoCAE_Step06_HoleSetup');ExeName='CADtoCAE_Step06_HoleSetup.exe';ExpectedExeSha256='016421FAFAA08B3D6FF3BCE44452304976BDFAB0DED33BC0C813D8DBCE82E653';Evidence='A'},

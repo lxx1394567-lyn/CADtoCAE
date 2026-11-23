@@ -1,0 +1,14 @@
+test_batch_generates_part_script_from_step01_workbook (test_part_script.PartScriptGenerationTest.test_batch_generates_part_script_from_step01_workbook) ... ok
+test_batch_rejects_different_workbooks_with_same_project_id (test_part_script.PartScriptGenerationTest.test_batch_rejects_different_workbooks_with_same_project_id) ... ok
+test_filename_prefix_overrides_stale_angle_inside_workbook (test_part_script.PartScriptGenerationTest.test_filename_prefix_overrides_stale_angle_inside_workbook) ... ok
+test_infer_project_prefix_from_workbook (test_part_script.PartScriptGenerationTest.test_infer_project_prefix_from_workbook) ... ok
+test_manual_part_names_sanitize_full_project_id_for_abaqus (test_part_script.PartScriptGenerationTest.test_manual_part_names_sanitize_full_project_id_for_abaqus) ... ok
+test_project_id_comes_from_full_components_filename (test_part_script.PartScriptGenerationTest.test_project_id_comes_from_full_components_filename) ... ok
+test_single_step02_cli_uses_filename_prefix_for_generated_part_names (test_part_script.PartScriptGenerationTest.test_single_step02_cli_uses_filename_prefix_for_generated_part_names) ... ok
+test_step02_prefers_manual_component_sheet_overrides (test_part_script.PartScriptGenerationTest.test_step02_prefers_manual_component_sheet_overrides) ... ok
+test_step02_reads_raw_material_updates_without_excel_recalc (test_part_script.PartScriptGenerationTest.test_step02_reads_raw_material_updates_without_excel_recalc) ... ok
+
+----------------------------------------------------------------------
+Ran 9 tests in 4.631s
+
+OK
